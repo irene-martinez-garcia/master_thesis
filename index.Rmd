@@ -1,5 +1,5 @@
 ---
-title: "AlberdiLab | Silver fox metagenomics"
+title: "AlberdiLab | Comparative metagenomics"
 subtitle: MSc project
 author:
   - Irene Martínez, M Thomas P Gilbert, Antton Alberdi^[University of Copenhagen, antton.alberdi@sund.ku.dk]
@@ -7,11 +7,11 @@ date: "Last update: `r Sys.Date()`"
 site: bookdown::bookdown_site
 documentclass: book
 bibliography: [book.bib, packages.bib]
-url: https://alberdilab.github.io/silverfox_metagenomics
+url: https://github.com/irene-martinez-garcia/comparative_metagenomics
 description: |
-  Data analysis code for the study of Belyayev silverfox metagenomes
+  Data analysis code for comparative metagenomics of gut microbiome bacterial species in several vertebrates
 link-citations: yes
-github-repo: alberdilab/silverfox_metagenomics
+github-repo: irene-martinez-garcia/comparative_metagenomics
 ---
 
 ```{r knitr_opts, echo=FALSE}
@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-This webbook contains all the code used for data analysis in study of gut microbiomes of Belyayev tame and aggressive silverfoxes.
+This webbook contains all the code used for data analysis for the comparative metagenomics analysis of gut microbiome bacterial species in several vertebrates.
 
 ## Prepare the R environment
 
@@ -37,7 +37,7 @@ RStudio > New Project > Version Control > Git
 
 And indicating the following git repository:
 
-> https://github.com/alberdilab/silverfox_metagenomics.git
+> https://github.com/irene-martinez-garcia/comparative_metagenomics.git
 
 Once the R project has been created, follow the instructions and code chunks shown in this webbook.
 
