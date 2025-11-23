@@ -80,6 +80,7 @@ species_hostclass_counts <- ehi_mags %>%
   filter(!is.na(host_class), host_class != "") %>% 
   group_by(species) %>%
   summarise(
+    n_mags = n(),
     n_host_classes = n_distinct(host_class),
     host_classes = paste(sort(unique(host_class)), collapse = ", "),
     phylum = paste(unique(phylum), collapse = ", ")
@@ -103,6 +104,7 @@ species_hostclass_counts_f <- ehi_mags_filtered %>%
   filter(!is.na(host_class), host_class != "") %>% 
   group_by(species) %>%
   summarise(
+    n_mags = n(),
     n_host_classes = n_distinct(host_class),
     host_classes = paste(sort(unique(host_class)), collapse = ", "),
     phylum = paste(unique(phylum), collapse = ", ")
@@ -111,7 +113,8 @@ species_hostclass_counts_f <- ehi_mags_filtered %>%
 
 
 species_selection_f <- species_hostclass_counts_f %>%
-  filter(n_host_classes >= 3)
+  filter(n_host_classes >= 3, n_mags > 10) %>%
+  arrange(desc(n_mags))
 
 species_selection_f
 ```
@@ -152,12 +155,21 @@ ggplot(counts_species_per_class, aes(x = n_host_classes, y = n_species)) +
 
 ```
 ```{r add the count data to the ehi mags}
+
 mags_with_counts <- ehi_mags_filtered %>%
   left_join(species_hostclass_counts, by = "species")
+
 
 #filter for mags with >2 host classes
 mags_host3 <- mags_with_counts %>%
   filter(n_host_classes >= 3)
+
+n_mags <- mags_host3 %>% 
+  group_by(species) %>%
+  summarise(n_mags = n(), .groups = "drop")
+
+
+
 
 #Species level:
 species_host3 <- mags_host3 %>%
@@ -169,6 +181,10 @@ species_host3 <- mags_host3 %>%
             host_classes = paste(sort(unique(host_class)), collapse = ", "),
             host_species = paste(sort(unique(host_species)), collapse = ", "))
 ```
+
+
+
+
 
 We have several MAGs per species, so here we select the "best MAG" (highest completeness and lowest contamination), to have statistics based on the best of each.
 ```{r best mags per species}
@@ -203,6 +219,42 @@ ggplot(best_mag_per_species, aes(x= species, y = best_genome_size, fill = best_p
 
 
 
+Filtering for Parabacteroides distasonis (make into a loop for all the relevant species later)
+```{r pdist}
+p_dist <- ehi_mags %>%
+  filter(completeness >90,
+         contamination < 2.5,
+         species == "s__Parabacteroides distasonis")
 
+write_tsv(p_dist, "data/mags_metadata/parabacteroides_distasonis_metadata.tsv")
+
+```
+
+
+
+
+```{r loop for all species}
+# #Loop through each species in species_selection
+# for (i in 1:nrow(species_selection)) {
+#   current_species <- species_species$species[i]
+#   
+#   #Filter for completeness and contamination
+#   species_data <- ehi_mags %>%
+#     filter(completeness > 90,
+#            contamination < 2.5,
+#            species == current_species)
+#   
+#   #Filename from species name
+#   filename <- current_species %>%
+#     str_replace("s__", "") %>%
+#     str_replace_all(" ", "_") %>%
+#     tolower()
+#   
+#   #export to tsv
+#   write_tsv(species_data, 
+#             paste0("data/mags_metadata/", filename, "_metadata.tsv"))
+# }
+
+```
 
 

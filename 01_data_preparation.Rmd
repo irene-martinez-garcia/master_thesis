@@ -5,7 +5,7 @@
 Load the original data files outputted by the bioinformatic pipeline.
 
 ### EHI MAGs
-```{r load ehi mags}
+```{r load ehi mags first}
 ehi_mags <- read_csv("data/ehi_mags.csv")
 ```
 

@@ -7,3 +7,8 @@ load-data
 ehi-mags
 prepare-color-scheme
 wrap-working-objects
+data-preparation-1
+ehi-mags-1
+host-classes
+host-classes--after-filtering
+count-host-classes-per-species

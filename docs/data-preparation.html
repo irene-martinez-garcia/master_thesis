@@ -30,7 +30,7 @@
   
   
 <link rel="prev" href="index.html"/>
-
+<link rel="next" href="data-preparation-1.html"/>
 
 
 
@@ -1998,6 +1998,13 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 <li class="chapter" data-level="2.2" data-path="data-preparation.html"><a href="data-preparation.html#prepare-color-scheme"><i class="fa fa-check"></i><b>2.2</b> Prepare color scheme</a></li>
 <li class="chapter" data-level="2.3" data-path="data-preparation.html"><a href="data-preparation.html#wrap-working-objects"><i class="fa fa-check"></i><b>2.3</b> Wrap working objects</a></li>
 </ul></li>
+<li class="chapter" data-level="3" data-path="data-preparation-1.html"><a href="data-preparation-1.html"><i class="fa fa-check"></i><b>3</b> Data preparation</a>
+<ul>
+<li class="chapter" data-level="3.0.1" data-path="data-preparation-1.html"><a href="data-preparation-1.html#ehi-mags-1"><i class="fa fa-check"></i><b>3.0.1</b> EHI MAGs</a></li>
+<li class="chapter" data-level="3.0.2" data-path="data-preparation-1.html"><a href="data-preparation-1.html#host-classes"><i class="fa fa-check"></i><b>3.0.2</b> Host classes</a></li>
+<li class="chapter" data-level="3.0.3" data-path="data-preparation-1.html"><a href="data-preparation-1.html#host-classes--after-filtering"><i class="fa fa-check"></i><b>3.0.3</b> Host classes- after filtering</a></li>
+<li class="chapter" data-level="3.0.4" data-path="data-preparation-1.html"><a href="data-preparation-1.html#count-host-classes-per-species"><i class="fa fa-check"></i><b>3.0.4</b> Count host classes per species</a></li>
+</ul></li>
 <li class="divider"></li>
 <li><a href="https://www.alberdilab.dk" target="blank"><b>www.alberdilab.dk</b></a></li>
 <li><a href="https://www.earthhologenome.org" target="blank"><b>www.earthhologenome.org</b></a></li>
@@ -2042,12 +2049,16 @@ lgl  (1): annotated
 <div id="prepare-color-scheme" class="section level2 hasAnchor" number="2.2">
 <h2><span class="header-section-number">2.2</span> Prepare color scheme<a href="data-preparation.html#prepare-color-scheme" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p><a href="www.alberdilab.dk">AlberdiLab</a> projects use unified color schemes developed for the <a href="www.earthhologenome.org">Earth Hologenome Initiative</a>, to facilitate figure interpretation.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb5-1"><a href="data-preparation.html#cb5-1" tabindex="-1"></a>phylum_colors <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;https://raw.githubusercontent.com/earthhologenome/EHI_taxonomy_colour/main/ehi_phylum_colors.tsv&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb5-2"><a href="data-preparation.html#cb5-2" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">phylum=</span><span class="fu">str_remove_all</span>(phylum, <span class="st">&quot;p__&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb5-3"><a href="data-preparation.html#cb5-3" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(phylum, colors) <span class="sc">%&gt;%</span> </span>
-<span id="cb5-4"><a href="data-preparation.html#cb5-4" tabindex="-1"></a>    <span class="fu">unique</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb5-5"><a href="data-preparation.html#cb5-5" tabindex="-1"></a>    <span class="fu">arrange</span>(phylum) <span class="sc">%&gt;%</span></span>
-<span id="cb5-6"><a href="data-preparation.html#cb5-6" tabindex="-1"></a>    <span class="fu">pull</span>(colors, <span class="at">name=</span>phylum)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb5-1"><a href="data-preparation.html#cb5-1" tabindex="-1"></a>ehi_mags_p <span class="ot">&lt;-</span> ehi_mags <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="data-preparation.html#cb5-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">phylum=</span><span class="fu">str_remove_all</span>(phylum, <span class="st">&quot;p__&quot;</span>)) </span>
+<span id="cb5-3"><a href="data-preparation.html#cb5-3" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="data-preparation.html#cb5-4" tabindex="-1"></a>phylum_colors <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;https://raw.githubusercontent.com/earthhologenome/EHI_taxonomy_colour/main/ehi_phylum_colors.tsv&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-5"><a href="data-preparation.html#cb5-5" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">phylum=</span><span class="fu">str_remove_all</span>(phylum, <span class="st">&quot;p__&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-6"><a href="data-preparation.html#cb5-6" tabindex="-1"></a>    <span class="fu">right_join</span>(ehi_mags_p, <span class="at">by=</span><span class="fu">join_by</span>(phylum <span class="sc">==</span> phylum)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-7"><a href="data-preparation.html#cb5-7" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(phylum, colors) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-8"><a href="data-preparation.html#cb5-8" tabindex="-1"></a>    <span class="fu">unique</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-9"><a href="data-preparation.html#cb5-9" tabindex="-1"></a>    <span class="fu">arrange</span>(phylum) <span class="sc">%&gt;%</span></span>
+<span id="cb5-10"><a href="data-preparation.html#cb5-10" tabindex="-1"></a>    <span class="fu">pull</span>(colors, <span class="at">name=</span>phylum)</span></code></pre></div>
 </div>
 <div id="wrap-working-objects" class="section level2 hasAnchor" number="2.3">
 <h2><span class="header-section-number">2.3</span> Wrap working objects<a href="data-preparation.html#wrap-working-objects" class="anchor-section" aria-label="Anchor link to header"></a></h2>
@@ -2058,19 +2069,13 @@ lgl  (1): annotated
 
 </div>
 </div>
-
-
-
-
-
-
             </section>
 
           </div>
         </div>
       </div>
-<a href="index.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-
+<a href="index.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="data-preparation-1.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script>/*! jQuery v3.6.0 | (c) OpenJS Foundation and other contributors | jquery.org/license */
