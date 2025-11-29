@@ -20,3 +20,10 @@ host-classes--after-filtering
 count-host-classes-per-species
 data-statistics
 load-data-1
+functional-analysis
+functional-overview
+predicted-genes
+number-of-annotated-genes-and-percentages
+number-of-kegg-annotatated-genes-and-percentages
+functional-ordination
+checking-each-cluster-at-once

@@ -47,7 +47,7 @@ drakkar annotating -b /maps/projects/alberdilab/people/pjq449/comparative_metage
 ```{r load ehi mags first}
 ehi_mags <- read_csv("data/ehi_mags.csv")
 ```
-## Prepare color scheme
+### Prepare color scheme
 
 [AlberdiLab](www.alberdilab.dk) projects use unified color schemes developed for the [Earth Hologenome Initiative](www.earthhologenome.org), to facilitate figure interpretation.
 
@@ -63,6 +63,11 @@ phylum_colors <- read_tsv("https://raw.githubusercontent.com/earthhologenome/EHI
     arrange(phylum) %>%
     pull(colors, name=phylum)
 
+```
+
+
+```{r colors}
+source_colors <- c(EHI = "#8BC63F", GTDB = "#2D522D")
 ```
 
 ### Sample metadata
@@ -173,6 +178,10 @@ genome_gifts <- distill(genome_annotations,GIFT_db,genomecol= 2, annotcol=c(9,10
 ```
 
 
+
+
+
+
 ## Wrap working objects
 
 All working objects are wrapped into a single Rdata object to facilitate downstream usage.
@@ -187,6 +196,7 @@ save(ehi_mags,
      ehi_metadata,
      master_index,
      combined_metadata,
+     source_colors,
      file = "data/data.Rdata")
 ```
 
