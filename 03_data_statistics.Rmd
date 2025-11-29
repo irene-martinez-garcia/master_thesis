@@ -5,10 +5,23 @@
 load("data/data.Rdata")
 ```
 
-Number of MAGs
+Total number of MAGs
 ```{r count n MAGS}
-genome_annotations %>%
-  distinct(genome) %>%
-  nrow()
+combined_metadata %>%
+  count(source)
 ```
+
+```{r mean completeness and contamination}
+combined_metadata %>% 
+  summarise(
+    mean_c = mean(completeness, na.rm = TRUE) %>% round(2),
+    sd_c = sd(completeness, na.rm = TRUE) %>% round(2),
+    mean_con = mean(contamination, na.rm = TRUE) %>% round(2),
+    sd_con = sd(contamination, na.rm = TRUE) %>% round(2)
+  ) %>%
+  unite("Completeness", mean_c, sd_c, sep = " ± ") %>%
+  unite("Contamination", mean_con, sd_con, sep = " ± ") %>%
+  tt()
+```
+
 

@@ -2,28 +2,45 @@
 
 
 ## Searching for the MAGs
-1) Choose the MAGs:
-In this case, we will be working with Parabacteroides distasonis and Phocaeicola vulgatus. In the EHI database, select the MAGs with > 90% completeness and < 2.5 contamination. Do the same in the GTDB, but also filter for isolation source CONTAINS feces.
+1) Choose the MAGs
+In this case, we will be working with _Parabacteroides distasonis_ and _Phocaeicola vulgatus_. In the EHI database, select the MAGs with > 90% completeness and < 2.5 contamination. Do the same in the GTDB, but also filter for isolation source CONTAINS feces.
 
-## Downloading the MAGs:
-2) Download the EHI_MAG index for each species (in /data/mags_metadata folder) and the curl file from the GTDB and place in each species directory in Mjolnir.
+## Downloading the MAGs
+2) Download genome indices and metadata
+Download the EHI_MAG index for each species (in /data/mags_metadata folder) and the curl file and metadata tsv from the GTDB and place in each species directory in Mjolnir.
 
-3) Run the create_index.R script to create an index of all the MAGs and the download paths
+3) Create the master index 
+Run the create_index.R script to create an index of all the MAGs and the download paths (needs a list of species as input  and right now it is hardcoded in the script)
+```{bash, eval = FALSE}
+conda activate mags_r_env
+Rscript scripts/create_index.R 
+```
 
 4) Run the downloading_mags.smk to download all the genomes
+```{bash, eval = FALSE}
+snakemake -s snakefiles/downloading_mags.smk --cores 8
+```
 
-5) Unzip all the MAGs and make sure they are in the same folder. Make a screen session for each species.
 
-6) Run drakkar annotating_function.smk to re-annotate all the MAGs:
+5) Unzip all the MAGs and make sure they are in the same folder: run
+```{bash, eval = FALSE}
+bash scripts/unzip_mags.sh parabacteroides_distasonis  
+bash scripts/unzip_mags.sh phocaeicola_vulgatus
+```
+
+6) Make a screen session for each species.
+```{bash, eval = FALSE}
+screen -S parabacteroides_distasonis
+```
+
+
+7) Run drakkar annotating_function.smk to re-annotate all the MAGs:
 ```{bash, eval = FALSE}
 drakkar annotating -b /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/data/parabacteroides_distasonis/mags/unzipped -o /maps/projects/alberdilab/people/pjq449/comparative_metagenomics --env_path /projects/alberdilab/data/environments/drakkar --annotation-type function 
 ```
 
 
-
-
-
-## R Studio- Data Analysis:
+## R Studio- Data Analysis
 ## Load data
 
 ### EHI MAGs
@@ -49,29 +66,111 @@ phylum_colors <- read_tsv("https://raw.githubusercontent.com/earthhologenome/EHI
 ```
 
 ### Sample metadata
-```{r load sample metadata}
-##search!
+```{r load gtdb metadata}
+gtdb_metadata <- read_tsv("data/p_dist_gtdb_metadata.tsv")
+```
+```{r load EHI metadata}
+ehi_metadata <- read_tsv("data/mags_metadata/parabacteroides_distasonis_metadata.tsv")
+```
+```{r join the metadatas}
+# Prepare EHI metadata with standardized column names
+ehi_clean <- ehi_metadata %>%
+  select(
+    ID,
+    species = species,  
+    completeness,
+    contamination,
+    size,
+    GC,
+    N50,
+    contigs,
+    host_species,
+    host_order,
+    host_class,
+    assembly_type,
+    sample_type
+  ) %>%
+  mutate(source = "EHI")
+
+# Prepare GTDB metadata with standardized column names
+gtdb_clean <- gtdb_metadata %>%
+  select(
+    ID = Accession,
+    species = "Organism Name",
+    gtdb_taxonomy = "GTDB Taxonomy",
+    sample_type = "Isolation Source",
+    completeness = "CheckM Completeness",
+    contamination = "CheckM2 Contamination",
+  ) %>%
+  mutate(source = "GTDB")
+
+#Join
+combined_metadata <- bind_rows(ehi_clean, gtdb_clean)
+
 ```
 
-### Genome annotations
-```{r load the genome annotations}
-# Read the mapping
-contig_to_genome <- read_tsv("data/p_dist_contig_to_genome.tsv", 
-                              col_names = c("contig", "genome"))
 
-# Read annotations and add genome names
+
+
+```{r load master index}
+# Read master index
+master_index <- read_tsv("data/master_mag_index.tsv") %>%
+  filter(species == "parabacteroides_distasonis") %>%
+  mutate(
+    # Extract the actual genome identifier from out_path
+    genome_identifier = case_when(
+      # For EHI: extract EHA00531_bin.1 from the filename
+      str_detect(out_path, "EHA") ~ str_extract(out_path, "EHA[0-9]+_bin\\.[0-9]+"),
+      # For NCBI: use the ID as is (GCA/GCF number)
+      TRUE ~ ID
+    )
+  )
+```
+```{r mapping the ids to the genome identifiers}
+# Check the mapping
+print("Master index mapping:")
+master_index %>% 
+  select(ID, genome_identifier, out_path) %>%
+  head(10) %>%
+  print()
+
+# Read contig-to-genome mapping
+contig_to_genome <- read_tsv("data/p_dist_contig_to_genome.tsv",
+                              col_names = c("contig", "genome_filename"))
+```
+
+
+### Genome annotations
+
+```{r load genome annotations with ids}
+# Read annotations and add IDs
 genome_annotations <- read_tsv("data/gene_annotations.tsv.xz") %>%
-  mutate(contig = sub("_[^_]*$", "", gene)) %>%  # Extract contig name from gene
+  mutate(contig = sub("_[^_]*$", "", gene)) %>%
   left_join(contig_to_genome, by = "contig") %>%
-  select(gene, genome, contig, everything())
+  # Extract accession from genome filename
+  mutate(
+    accession = case_when(
+      # For NCBI genomes: extract GCA/GCF number
+      str_detect(genome_filename, "^GC[AF]_") ~ str_extract(genome_filename, "^GC[AF]_[0-9]+\\.[0-9]+"),
+      # For EHI genomes: the filename IS the identifier
+      TRUE ~ genome_filename
+    )
+  ) %>%
+  # Join with master index using genome_identifier
+  left_join(
+    master_index %>% select(mag_id = ID, genome_identifier),
+    by = c("accession" = "genome_identifier")
+  ) %>%
+  select(gene, mag_id, genome = genome_filename, contig, accession, everything()) %>%
+  filter(!is.na(mag_id))
+
 ```
 
 ### Distill annotations into GIFTs 
 
 ```{r distill_annotations, warning=FALSE, comments="", message=FALSE, eval=FALSE}
-genome_gifts <- distill(genome_annotations,GIFT_db,genomecol= 2, annotcol=c(6,7,8,9), verbosity = T)
+genome_gifts <- distill(genome_annotations,GIFT_db,genomecol= 2, annotcol=c(9,10,11,12), verbosity = T)
 ```
-
 
 
 ## Wrap working objects
@@ -83,6 +182,11 @@ save(ehi_mags,
      phylum_colors,
      genome_annotations,
      genome_gifts,
+     contig_to_genome,
+     gtdb_metadata,
+     ehi_metadata,
+     master_index,
+     combined_metadata,
      file = "data/data.Rdata")
 ```
 
