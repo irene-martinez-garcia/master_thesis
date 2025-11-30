@@ -13,7 +13,7 @@ sample-metadata
 genome-annotations
 distill-annotations-into-gifts
 wrap-working-objects
-data-preparation-1
+ehi-mags-exploration
 ehi-mags-1
 host-classes
 host-classes--after-filtering

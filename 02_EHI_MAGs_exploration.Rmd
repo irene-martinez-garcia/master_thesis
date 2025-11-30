@@ -1,4 +1,4 @@
-# Data preparation
+# EHI MAGs exploration
 
 ### EHI MAGs
 ```{r load data preparation}

@@ -231,20 +231,23 @@ GIFTs_domains <- to.domains(GIFTs_functions,GIFT_db)
 ```
 
 ```{r gift plots}
-coords_for_join <- coords_for_join %>% distinct(Genome, .keep_all = TRUE)
+coords_for_join <- coords %>% distinct(MAG, .keep_all = TRUE)
 
 genome_order <- coords_for_join %>%
-  distinct(Genome, cluster) %>%
-  arrange(cluster, Genome) %>%
-  pull(Genome)
+  distinct(MAG, cluster) %>%
+  arrange(cluster, MAG) %>%
+  pull(MAG)
+
+library(RColorBrewer)
+library(reshape2)
 
 GIFTs_elements %>%
   reshape2::melt() %>%
-  rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
-  left_join(coords_for_join, by = "Genome") %>%
+  rename(MAG = Var1, Code_element = Var2, GIFT = value) %>%
+  left_join(coords_for_join, by = "MAG") %>%
   left_join(GIFT_db, by = "Code_element") %>%
-  mutate(Genome = factor(Genome, levels = genome_order)) %>%
-  ggplot(aes(x = Code_element, y = Genome, fill = GIFT, group = Code_function)) +
+  mutate(MAG = factor(MAG, levels = genome_order)) %>%
+  ggplot(aes(x = Code_element, y = MAG, fill = GIFT, group = Code_function)) +
     geom_tile() +
     scale_y_discrete(guide = guide_axis(check.overlap = TRUE)) +
     scale_x_discrete(guide = guide_axis(check.overlap = TRUE)) +
@@ -257,7 +260,7 @@ GIFTs_elements %>%
 
 ```
 ```{r functions plot}
-coords_for_join_2 <- coords_for_join %>% rename(Sample = Genome)
+coords_for_join_2 <- coords_for_join %>% rename(Sample = MAG)
 
 # Create ordered sample list by cluster
 sample_order <- coords_for_join_2 %>%
