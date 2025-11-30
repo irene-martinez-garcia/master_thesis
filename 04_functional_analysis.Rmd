@@ -6,6 +6,15 @@ load("data/data.Rdata")
 
 ## Functional overview
 
+```{r genomes annotated}
+n_genes <- genome_annotations %>%
+  group_by(genome) %>%
+  summarize(n_genes = n())
+
+n_genes
+```
+
+
 #### Predicted genes
 ```{r predicted_stats, message=FALSE, warning=FALSE}
 pred_genes <- genome_annotations %>%
@@ -82,7 +91,7 @@ set.seed(101)
 scale <- 20 # scale for vector loadings (to make arrows visible)
 gift_pcoa_vectors %>% 
   rownames_to_column(var="ID") %>% 
-  left_join(combined_metadata, by="ID") %>%
+  left_join(genome_metadata, by="ID") %>%
   ggplot() +
       #genome positions
       scale_color_manual(values=source_colors)+
@@ -107,8 +116,8 @@ gift_pcoa_vectors %>%
     geom_label_repel(data = gift_pcoa_gifts,
                      aes(label = label, x = Axis.1 * scale, y = Axis.2 * scale),
                      segment.color = 'transparent') +
-    xlim(-1,1) + 
-    ylim(-1.5,1.5) +
+    xlim(-0.8,1) + 
+    ylim(-1,1.5) +
     theme_minimal() + 
   
   labs(
@@ -172,21 +181,21 @@ mags_by_cluster
 ### Checking each cluster at once
 ```{r clusters}
 cluster1_MAGs <- mags_by_cluster[[1]]
-combined_metadata %>% filter(ID %in% cluster1_MAGs)
+genome_metadata %>% filter(ID %in% cluster1_MAGs)
 
 cluster2_MAGs <- mags_by_cluster[[2]]
-combined_metadata %>% filter(ID %in% cluster2_MAGs)
+genome_metadata %>% filter(ID %in% cluster2_MAGs)
 
 cluster3_MAGs <- mags_by_cluster[[3]]
-combined_metadata %>% filter(ID %in% cluster3_MAGs)
+genome_metadata %>% filter(ID %in% cluster3_MAGs)
 
 cluster4_MAGs <- mags_by_cluster[[4]]
-combined_metadata %>% filter(ID %in% cluster4_MAGs)
+genome_metadata %>% filter(ID %in% cluster4_MAGs)
 ```
 
 
 ```{r combined table}
-metadata_with_cluster <- combined_metadata %>%
+metadata_with_cluster <- genome_metadata %>%
   left_join(coords %>% select(MAG, cluster), by = c("ID" = "MAG"))
 
 metadata_with_cluster %>%
@@ -197,7 +206,7 @@ metadata_with_cluster %>%
 # Group summaries
 metadata_with_cluster %>%
   group_by(cluster) %>%
-  summarise(mean_genome_size = mean(length, na.rm = TRUE),
+  summarise(mean_genome_size = mean(genome_size, na.rm = TRUE),
             median_contamination = median(contamination, na.rm = TRUE),
             .groups = "drop")
 
@@ -206,7 +215,7 @@ metadata_with_cluster %>%
 
 Plots
 ```{r summary plots}
-ggplot(metadata_with_cluster, aes(x = size, y = GC, col = cluster))+
+ggplot(metadata_with_cluster, aes(x = genome_size, y = GC, col = cluster))+
   geom_point()+
   theme_bw()
 
@@ -214,7 +223,7 @@ ggplot(metadata_with_cluster, aes(x = assembly_type, y = source, col = cluster))
   geom_point()+
   theme_bw()
 
-ggplot(metadata_with_cluster, aes(x = cluster, y = size, col = cluster))+
+ggplot(metadata_with_cluster, aes(x = cluster, y = genome_size, col = cluster))+
   geom_point()+
   theme_bw()
 ```
@@ -230,61 +239,34 @@ GIFTs_domains <- to.domains(GIFTs_functions,GIFT_db)
 
 ```
 
-```{r gift plots}
-coords_for_join <- coords %>% distinct(MAG, .keep_all = TRUE)
 
-genome_order <- coords_for_join %>%
-  distinct(MAG, cluster) %>%
-  arrange(cluster, MAG) %>%
-  pull(MAG)
 
-library(RColorBrewer)
-library(reshape2)
-
+```{r comumnity_elem_plot_gut, comment="", message=FALSE, warning=FALSE, fig.height=14, fig.width=12, fig.fullwidth=TRUE}
 GIFTs_elements %>%
-  reshape2::melt() %>%
-  rename(MAG = Var1, Code_element = Var2, GIFT = value) %>%
-  left_join(coords_for_join, by = "MAG") %>%
-  left_join(GIFT_db, by = "Code_element") %>%
-  mutate(MAG = factor(MAG, levels = genome_order)) %>%
-  ggplot(aes(x = Code_element, y = MAG, fill = GIFT, group = Code_function)) +
-    geom_tile() +
-    scale_y_discrete(guide = guide_axis(check.overlap = TRUE)) +
-    scale_x_discrete(guide = guide_axis(check.overlap = TRUE)) +
-    scale_fill_gradientn(limits = c(0,1), colours = brewer.pal(7, "YlGnBu")) +
-    facet_grid(. ~ Code_function, scales = "free", space = "free") +
-    theme_grey(base_size = 8) +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-          strip.text.x = element_text(angle = 90))
-
-
-```
-```{r functions plot}
-coords_for_join_2 <- coords_for_join %>% rename(Sample = MAG)
-
-# Create ordered sample list by cluster
-sample_order <- coords_for_join_2 %>%
-  distinct(Sample, cluster) %>%
-  arrange(cluster, Sample) %>%
-  pull(Sample)
-
-GIFTs_functions %>%
-  reshape2::melt() %>%
-  rename(Sample = Var1, Code_function = Var2, GIFT = value) %>%
-  left_join(coords_for_join_2, by = "Sample") %>%        # add cluster info
-  left_join(GIFT_db, by = "Code_function") %>%
-  mutate(Sample = factor(Sample, levels = sample_order)) %>%  # reorder!
-  ggplot(aes(x = Code_function, y = Sample, fill = GIFT)) +
-    geom_tile() +
-    scale_y_discrete(guide = guide_axis(check.overlap = TRUE)) +
-    scale_x_discrete(guide = guide_axis(check.overlap = TRUE)) +
-    scale_fill_gradientn(limits = c(0, 1), colours = brewer.pal(7, "YlGnBu")) +
-    theme_grey(base_size = 8) +
-    theme(
-      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-      strip.text.x = element_text(angle = 90)
-    )
-
+    as.data.frame() %>%
+    rownames_to_column(var="MAG")%>%
+    pivot_longer(!MAG,names_to="trait",values_to="gift") %>%
+    left_join(metadata_with_cluster, by = join_by(MAG == ID)) %>%
+    mutate(functionid = substr(trait, 1, 3)) %>%
+    mutate(trait = case_when(
+      trait %in% GIFT_db$Code_element ~ GIFT_db$Element[match(trait, GIFT_db$Code_element)],
+      TRUE ~ trait
+    )) %>%
+    mutate(functionid = case_when(
+      functionid %in% GIFT_db$Code_function ~ GIFT_db$Function[match(functionid, GIFT_db$Code_function)],
+      TRUE ~ functionid
+    )) %>%
+    mutate(trait=factor(trait,levels=unique(GIFT_db$Element))) %>%
+    mutate(functionid=factor(functionid,levels=unique(GIFT_db$Function))) %>%
+    ggplot(aes(x=MAG,y=trait,fill=gift)) +
+        geom_tile(colour="white", linewidth=0.2)+
+        scale_fill_gradientn(colours=rev(c("#d53e4f", "#f46d43", "#fdae61", "#fee08b", "#e6f598", "#abdda4", "#ddf1da")))+
+        facet_grid(functionid ~ cluster, scales="free",space="free") +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size=5),
+              strip.text.y = element_text(angle = 0)
+              ) +
+        labs(y="Traits",x="Samples",fill="GIFT")
 ```
 
 

@@ -2052,10 +2052,10 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 <div class="sourceCode" id="cb33"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb33-1"><a href="ehi-mags-exploration.html#cb33-1" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&quot;data/data.Rdata&quot;</span>)</span></code></pre></div>
 <div class="sourceCode" id="cb34"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb34-1"><a href="ehi-mags-exploration.html#cb34-1" tabindex="-1"></a>ehi_mags <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;data/ehi_mags.csv&quot;</span>)</span></code></pre></div>
 <pre><code>Rows: 8846 Columns: 52
-── Column specification ──────────────────────────────────────────────────────────────────────────────────
+── Column specification ──────────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;,&quot;
-chr (36): ID, mag_name, link_to_assembly, AB_batch, eha_number, GTDB_version, GTDB_release, domain, ph...
-dbl (15): fastani_ani, closest_placement_ani, closest_placement_af, completeness, contamination, size,...
+chr (36): ID, mag_name, link_to_assembly, AB_batch, eha_number, GTDB_version, GTDB_release, domain, phylum, cl...
+dbl (15): fastani_ani, closest_placement_ani, closest_placement_af, completeness, contamination, size, N50, co...
 lgl  (1): annotated
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
@@ -2161,18 +2161,18 @@ No shared levels found between `names(values)` of the manual scale and the data&
 <span id="cb44-16"><a href="ehi-mags-exploration.html#cb44-16" tabindex="-1"></a></span>
 <span id="cb44-17"><a href="ehi-mags-exploration.html#cb44-17" tabindex="-1"></a>species_selection</span></code></pre></div>
 <pre class="script-output"><code># A tibble: 34 × 5
-   species                         n_mags n_host_classes host_classes                       phylum        
-   &lt;chr&gt;                            &lt;int&gt;          &lt;int&gt; &lt;chr&gt;                              &lt;chr&gt;         
- 1 s__Hafnia alvei                     61              4 Amphibia, Aves, Mammalia, Reptilia p__Pseudomona…
- 2 s__Pseudomonas aeruginosa           99              4 Amphibia, Aves, Mammalia, Reptilia p__Pseudomona…
- 3 s__Aeromonas encheleia              18              3 Amphibia, Mammalia, Reptilia       p__Pseudomona…
- 4 s__Bacteroides caccae               13              3 Aves, Mammalia, Reptilia           p__Bacteroido…
- 5 s__Bacteroides fragilis             20              3 Aves, Mammalia, Reptilia           p__Bacteroido…
- 6 s__Bacteroides nordii               23              3 Aves, Mammalia, Reptilia           p__Bacteroido…
- 7 s__Bacteroides thetaiotaomicron     42              3 Aves, Mammalia, Reptilia           p__Bacteroido…
- 8 s__Bacteroides uniformis            84              3 Aves, Mammalia, Reptilia           p__Bacteroido…
- 9 s__Bacteroides xylanisolvens        27              3 Aves, Mammalia, Reptilia           p__Bacteroido…
-10 s__Bilophila wadsworthia            12              3 Aves, Mammalia, Reptilia           p__Desulfobac…
+   species                         n_mags n_host_classes host_classes                       phylum             
+   &lt;chr&gt;                            &lt;int&gt;          &lt;int&gt; &lt;chr&gt;                              &lt;chr&gt;              
+ 1 s__Hafnia alvei                     61              4 Amphibia, Aves, Mammalia, Reptilia p__Pseudomonadota  
+ 2 s__Pseudomonas aeruginosa           99              4 Amphibia, Aves, Mammalia, Reptilia p__Pseudomonadota  
+ 3 s__Aeromonas encheleia              18              3 Amphibia, Mammalia, Reptilia       p__Pseudomonadota  
+ 4 s__Bacteroides caccae               13              3 Aves, Mammalia, Reptilia           p__Bacteroidota    
+ 5 s__Bacteroides fragilis             20              3 Aves, Mammalia, Reptilia           p__Bacteroidota    
+ 6 s__Bacteroides nordii               23              3 Aves, Mammalia, Reptilia           p__Bacteroidota    
+ 7 s__Bacteroides thetaiotaomicron     42              3 Aves, Mammalia, Reptilia           p__Bacteroidota    
+ 8 s__Bacteroides uniformis            84              3 Aves, Mammalia, Reptilia           p__Bacteroidota    
+ 9 s__Bacteroides xylanisolvens        27              3 Aves, Mammalia, Reptilia           p__Bacteroidota    
+10 s__Bilophila wadsworthia            12              3 Aves, Mammalia, Reptilia           p__Desulfobacterota
 # ℹ 24 more rows</code></pre>
 <div class="sourceCode" id="cb46"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb46-1"><a href="ehi-mags-exploration.html#cb46-1" tabindex="-1"></a>species_selection <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(phylum)<span class="sc">%&gt;%</span></span>
 <span id="cb46-2"><a href="ehi-mags-exploration.html#cb46-2" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">n_species =</span> <span class="fu">n</span>())</span></code></pre></div>
@@ -2206,18 +2206,18 @@ No shared levels found between `names(values)` of the manual scale and the data&
 <span id="cb48-17"><a href="ehi-mags-exploration.html#cb48-17" tabindex="-1"></a></span>
 <span id="cb48-18"><a href="ehi-mags-exploration.html#cb48-18" tabindex="-1"></a>species_selection_f</span></code></pre></div>
 <pre class="script-output"><code># A tibble: 10 × 5
-   species                       n_mags n_host_classes host_classes                       phylum          
-   &lt;chr&gt;                          &lt;int&gt;          &lt;int&gt; &lt;chr&gt;                              &lt;chr&gt;           
- 1 s__Escherichia coli               64              3 Aves, Mammalia, Reptilia           p__Pseudomonado…
- 2 s__Pseudomonas aeruginosa         55              4 Amphibia, Aves, Mammalia, Reptilia p__Pseudomonado…
- 3 s__Lactococcus lactis             38              3 Aves, Mammalia, Reptilia           p__Bacillota    
- 4 s__Hafnia paralvei                25              3 Amphibia, Mammalia, Reptilia       p__Pseudomonado…
- 5 s__Parabacteroides distasonis     25              3 Aves, Mammalia, Reptilia           p__Bacteroidota 
- 6 s__Enterococcus faecalis          21              3 Aves, Mammalia, Reptilia           p__Bacillota    
- 7 s__Bacteroides uniformis          19              3 Aves, Mammalia, Reptilia           p__Bacteroidota 
- 8 s__Phocaeicola vulgatus           19              3 Aves, Mammalia, Reptilia           p__Bacteroidota 
- 9 s__Citrobacter braakii            16              3 Amphibia, Mammalia, Reptilia       p__Pseudomonado…
-10 s__Moellerella wisconsensis       13              3 Amphibia, Aves, Mammalia           p__Pseudomonado…</code></pre>
+   species                       n_mags n_host_classes host_classes                       phylum           
+   &lt;chr&gt;                          &lt;int&gt;          &lt;int&gt; &lt;chr&gt;                              &lt;chr&gt;            
+ 1 s__Escherichia coli               64              3 Aves, Mammalia, Reptilia           p__Pseudomonadota
+ 2 s__Pseudomonas aeruginosa         55              4 Amphibia, Aves, Mammalia, Reptilia p__Pseudomonadota
+ 3 s__Lactococcus lactis             38              3 Aves, Mammalia, Reptilia           p__Bacillota     
+ 4 s__Hafnia paralvei                25              3 Amphibia, Mammalia, Reptilia       p__Pseudomonadota
+ 5 s__Parabacteroides distasonis     25              3 Aves, Mammalia, Reptilia           p__Bacteroidota  
+ 6 s__Enterococcus faecalis          21              3 Aves, Mammalia, Reptilia           p__Bacillota     
+ 7 s__Bacteroides uniformis          19              3 Aves, Mammalia, Reptilia           p__Bacteroidota  
+ 8 s__Phocaeicola vulgatus           19              3 Aves, Mammalia, Reptilia           p__Bacteroidota  
+ 9 s__Citrobacter braakii            16              3 Amphibia, Mammalia, Reptilia       p__Pseudomonadota
+10 s__Moellerella wisconsensis       13              3 Amphibia, Aves, Mammalia           p__Pseudomonadota</code></pre>
 <div class="sourceCode" id="cb50"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb50-1"><a href="ehi-mags-exploration.html#cb50-1" tabindex="-1"></a>species_selection_list<span class="ot">&lt;-</span> species_selection_f <span class="sc">%&gt;%</span> <span class="fu">pull</span>(species)</span></code></pre></div>
 <div class="sourceCode" id="cb51"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb51-1"><a href="ehi-mags-exploration.html#cb51-1" tabindex="-1"></a>species_selection_f <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(phylum)<span class="sc">%&gt;%</span></span>
 <span id="cb51-2"><a href="ehi-mags-exploration.html#cb51-2" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">n_species =</span> <span class="fu">n</span>())</span></code></pre></div>
