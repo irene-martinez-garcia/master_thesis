@@ -2023,6 +2023,10 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 <li class="chapter" data-level="5.2.1" data-path="functional-analysis.html"><a href="functional-analysis.html#checking-each-cluster-at-once"><i class="fa fa-check"></i><b>5.2.1</b> Checking each cluster at once</a></li>
 </ul></li>
 </ul></li>
+<li class="chapter" data-level="6" data-path="antibiotic-resistance-analysis.html"><a href="antibiotic-resistance-analysis.html"><i class="fa fa-check"></i><b>6</b> Antibiotic resistance analysis</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="antibiotic-resistance-analysis.html"><a href="antibiotic-resistance-analysis.html#building-an-amr-abundance-table"><i class="fa fa-check"></i><b>6.1</b> Building an AMR abundance table</a></li>
+</ul></li>
 <li class="divider"></li>
 <li><a href="https://www.alberdilab.dk" target="blank"><b>www.alberdilab.dk</b></a></li>
 <li><a href="https://www.earthhologenome.org" target="blank"><b>www.earthhologenome.org</b></a></li>
@@ -2096,10 +2100,10 @@ Run the create_index.R script to create an index of all the MAGs and the downloa
 <h3><span class="header-section-number">2.4.1</span> EHI MAGs<a href="data-preparation.html#ehi-mags" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb9-1"><a href="data-preparation.html#cb9-1" tabindex="-1"></a>ehi_mags <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;data/ehi_mags.csv&quot;</span>)</span></code></pre></div>
 <pre><code>Rows: 8846 Columns: 52
-── Column specification ──────────────────────────────────────────────────────────────────────────────────────────
+── Column specification ─────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;,&quot;
-chr (36): ID, mag_name, link_to_assembly, AB_batch, eha_number, GTDB_version, GTDB_release, domain, phylum, cl...
-dbl (15): fastani_ani, closest_placement_ani, closest_placement_af, completeness, contamination, size, N50, co...
+chr (36): ID, mag_name, link_to_assembly, AB_batch, eha_number, GTDB_version, GTDB_release, domain, phylu...
+dbl (15): fastani_ani, closest_placement_ani, closest_placement_af, completeness, contamination, size, N5...
 lgl  (1): annotated
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
@@ -2124,7 +2128,7 @@ lgl  (1): annotated
 <h3><span class="header-section-number">2.4.3</span> Sample metadata<a href="data-preparation.html#sample-metadata" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb13-1"><a href="data-preparation.html#cb13-1" tabindex="-1"></a>gtdb_search_metadata <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/p_dist_gtdb_metadata.tsv&quot;</span>)</span></code></pre></div>
 <pre><code>Rows: 69 Columns: 9
-── Column specification ──────────────────────────────────────────────────────────────────────────────────────────
+── Column specification ─────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;\t&quot;
 chr (6): Accession, Organism Name, NCBI Taxonomy, GTDB Taxonomy, GTDB Type Material, Isolation Source
 dbl (2): CheckM Completeness, CheckM2 Contamination
@@ -2135,11 +2139,11 @@ lgl (1): GTDB Representative of Species
 <div class="sourceCode" id="cb15"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb15-1"><a href="data-preparation.html#cb15-1" tabindex="-1"></a>gtdb_accession_metadata<span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/parabacteroides_distasonis_GTDB_accession_metadata.tsv&quot;</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb15-2"><a href="data-preparation.html#cb15-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">cleaned_accession =</span> <span class="fu">str_replace</span>(accession, <span class="st">&quot;^(RS_|GB_)&quot;</span>, <span class="st">&quot;&quot;</span>))</span></code></pre></div>
 <pre><code>Rows: 67 Columns: 115
-── Column specification ──────────────────────────────────────────────────────────────────────────────────────────
+── Column specification ─────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;\t&quot;
-chr  (69): accession, checkm2_model, checkm_marker_lineage, gtdb_genome_representative, gtdb_taxonomy, gtdb_ty...
-dbl  (39): ambiguous_bases, checkm2_completeness, checkm2_contamination, checkm_completeness, checkm_contamina...
-lgl   (5): gtdb_representative, gtdb_type_species_of_genus, mimag_high_quality, mimag_low_quality, mimag_mediu...
+chr  (69): accession, checkm2_model, checkm_marker_lineage, gtdb_genome_representative, gtdb_taxonomy, gt...
+dbl  (39): ambiguous_bases, checkm2_completeness, checkm2_contamination, checkm_completeness, checkm_cont...
+lgl   (5): gtdb_representative, gtdb_type_species_of_genus, mimag_high_quality, mimag_low_quality, mimag_...
 date  (2): ncbi_date, ncbi_seq_rel_date
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
@@ -2147,10 +2151,10 @@ date  (2): ncbi_date, ncbi_seq_rel_date
 <div class="sourceCode" id="cb17"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb17-1"><a href="data-preparation.html#cb17-1" tabindex="-1"></a>ehi_metadata <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/mags_metadata/parabacteroides_distasonis_metadata.tsv&quot;</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb17-2"><a href="data-preparation.html#cb17-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">GC =</span> <span class="fu">as.numeric</span>(<span class="fu">str_remove</span>(GC, <span class="st">&quot;%&quot;</span>)))</span></code></pre></div>
 <pre><code>Rows: 25 Columns: 52
-── Column specification ──────────────────────────────────────────────────────────────────────────────────────────
+── Column specification ─────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;\t&quot;
-chr (36): ID, mag_name, link_to_assembly, AB_batch, eha_number, GTDB_version, GTDB_release, domain, phylum, cl...
-dbl (15): fastani_ani, closest_placement_ani, closest_placement_af, completeness, contamination, size, N50, co...
+chr (36): ID, mag_name, link_to_assembly, AB_batch, eha_number, GTDB_version, GTDB_release, domain, phylu...
+dbl (15): fastani_ani, closest_placement_ani, closest_placement_af, completeness, contamination, size, N5...
 lgl  (1): annotated
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
@@ -2214,7 +2218,7 @@ lgl  (1): annotated
 <span id="cb20-11"><a href="data-preparation.html#cb20-11" tabindex="-1"></a>    )</span>
 <span id="cb20-12"><a href="data-preparation.html#cb20-12" tabindex="-1"></a>  )</span></code></pre></div>
 <pre><code>Rows: 287 Columns: 4
-── Column specification ──────────────────────────────────────────────────────────────────────────────────────────
+── Column specification ─────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;\t&quot;
 chr (4): species, ID, MAG_url, out_path
 
@@ -2244,7 +2248,7 @@ chr (4): species, ID, MAG_url, out_path
 <span id="cb26-2"><a href="data-preparation.html#cb26-2" tabindex="-1"></a>contig_to_genome <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/p_dist_contig_to_genome.tsv&quot;</span>,</span>
 <span id="cb26-3"><a href="data-preparation.html#cb26-3" tabindex="-1"></a>                              <span class="at">col_names =</span> <span class="fu">c</span>(<span class="st">&quot;contig&quot;</span>, <span class="st">&quot;genome_filename&quot;</span>))</span></code></pre></div>
 <pre><code>Rows: 13976 Columns: 2
-── Column specification ──────────────────────────────────────────────────────────────────────────────────────────
+── Column specification ─────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;\t&quot;
 chr (2): contig, genome_filename
 
@@ -2277,7 +2281,7 @@ chr (2): contig, genome_filename
   dat &lt;- vroom(...)
   problems(dat)</code></pre>
 <pre><code>Rows: 374229 Columns: 13
-── Column specification ──────────────────────────────────────────────────────────────────────────────────────────
+── Column specification ─────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;\t&quot;
 chr (11): gene, strand, kegg, ec, pfam, cazy, resistance_type, resistance_target, vf, vf_type, signalp
 dbl  (2): start, end

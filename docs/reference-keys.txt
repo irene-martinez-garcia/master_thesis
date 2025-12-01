@@ -27,3 +27,5 @@ number-of-annotated-genes-and-percentages
 number-of-kegg-annotatated-genes-and-percentages
 functional-ordination
 checking-each-cluster-at-once
+antibiotic-resistance-analysis
+building-an-amr-abundance-table
