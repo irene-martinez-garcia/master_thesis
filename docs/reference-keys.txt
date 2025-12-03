@@ -10,8 +10,10 @@ load-data
 ehi-mags
 prepare-color-scheme
 sample-metadata
+load-genome-mapping
 genome-annotations
 distill-annotations-into-gifts
+load-trees
 wrap-working-objects
 ehi-mags-exploration
 ehi-mags-1
@@ -20,6 +22,8 @@ host-classes--after-filtering
 count-host-classes-per-species
 data-statistics
 load-data-1
+phylogenetic-analysis
+load-data-2
 functional-analysis
 functional-overview
 predicted-genes

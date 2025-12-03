@@ -47,6 +47,15 @@ drakkar annotating -b /maps/projects/alberdilab/people/pjq449/comparative_metage
 ```
 
 
+8) Annotate with prokka and make phylogenetic tree with getphylo
+```{bash, eval = FALSE}
+snakemake -s snakefiles/prokka_and_pangenome.smk --profile snakefiles/slurm_profile
+
+```
+
+9) Run genome_mapping.sh to map the mag ids to the corresponding names 
+
+
 ## R Studio- Data Analysis
 ## Load data
 
@@ -83,8 +92,7 @@ gtdb_search_metadata <- read_tsv("data/p_dist_gtdb_metadata.tsv")
 ```
 
 ```{r load gtdb accession metadata}
-gtdb_accession_metadata<- read_tsv("data/parabacteroides_distasonis_GTDB_accession_metadata.tsv") %>%
-  mutate(cleaned_accession = str_replace(accession, "^(RS_|GB_)", ""))
+gtdb_accession_metadata<- read_tsv("data/parabacteroides_distasonis_GTDB_accession_metadata.tsv") 
 ```
 
 
@@ -92,7 +100,13 @@ gtdb_accession_metadata<- read_tsv("data/parabacteroides_distasonis_GTDB_accessi
 ehi_metadata <- read_tsv("data/mags_metadata/parabacteroides_distasonis_metadata.tsv") %>%
   mutate(GC = as.numeric(str_remove(GC, "%")))
 ```
+### Load genome mapping
+```{r load genome mapping}
+genome_mapping <- read_tsv("data/genome_mapping.tsv") 
 
+gtdb_accession_metadata_2 <- left_join(gtdb_accession_metadata, genome_mapping, by = c("search_accession" = "genome_id")
+  )
+```
 
 ```{r join the metadatas}
 # Prepare EHI metadata with standardized column names
@@ -110,19 +124,23 @@ ehi_clean <- ehi_metadata %>%
     host_order,
     host_class,
     assembly_type,
-    isolation_source= sample_type
+    isolation_source= sample_type,
+    mag_name, 
+    eha_number
   ) %>%
   mutate(source = "EHI")
 
 # Prepare GTDB metadata
 # Join search and accession metadata
-gtdb_metadata <- full_join(gtdb_accession_metadata, gtdb_search_metadata,  by = c("cleaned_accession" = "Accession")
+gtdb_metadata <- full_join(gtdb_accession_metadata_2, gtdb_search_metadata,  by = c("search_accession" = "Accession")
   )
+
+
 
 # Prepare GTDB metadata
 gtdb_clean <- gtdb_metadata %>%
   select(
-    ID = cleaned_accession,
+    ID = search_accession,
     species = "Organism Name",
     completeness = "CheckM Completeness",
     contamination = "CheckM2 Contamination",
@@ -135,7 +153,8 @@ gtdb_clean <- gtdb_metadata %>%
     ncbi_country,
     mimag_high_quality,
     mimag_medium_quality,
-    gtdb_representative
+    gtdb_representative,
+    mag_name = genome_file
   )%>%
   mutate(source = "GTDB")
 
@@ -208,6 +227,23 @@ genome_gifts <- distill(genome_annotations,GIFT_db,genomecol= 2, annotcol=c(9,10
 ```
 
 
+
+### Load trees
+```{r load trees}
+genome_metadata$mag_name <- sub("\\.fa$", "", genome_metadata$mag_name)#remove .fa from the mag names so that they match the tree ids
+
+
+getphylo_tree <- read_tree("data/combined_alignment.tree")
+getphylo_tree$tip.label <- gsub("'", "", getphylo_tree$tip.label)
+tip_df <- data.frame(label = getphylo_tree$tip.label) %>%
+  left_join(genome_metadata, by = c("label" = "mag_name"))
+
+#replace long mag names with IDs
+getphylo_tree$tip.label <- tip_df$ID
+
+```
+
+
 ## Wrap working objects
 
 All working objects are wrapped into a single Rdata object to facilitate downstream usage.
@@ -223,6 +259,7 @@ save(ehi_mags,
      master_index,
      genome_metadata,
      source_colors,
+     getphylo_tree,
      file = "data/data.Rdata")
 ```
 

@@ -7,12 +7,12 @@ load("data/data.Rdata")
 
 Total number of MAGs
 ```{r count n MAGS}
-combined_metadata %>%
+genome_metadata %>%
   count(source)
 ```
 
 ```{r mean completeness and contamination}
-combined_metadata %>% 
+genome_metadata %>% 
   summarise(
     mean_c = mean(completeness, na.rm = TRUE) %>% round(2),
     sd_c = sd(completeness, na.rm = TRUE) %>% round(2),
@@ -28,7 +28,7 @@ combined_metadata %>%
 ```{r genome_quality_plot, message=FALSE, warning=FALSE, fig.height=6, fig.width=10, fig.fullwidth=TRUE}
 
 #Generate quality biplot
-genome_biplot <- combined_metadata %>%
+genome_biplot <- genome_metadata %>%
   dplyr::select(c(ID,completeness,contamination)) %>%
   ggplot(aes(x=completeness,y=contamination)) +
               geom_point(alpha=0.7) +
@@ -39,7 +39,7 @@ genome_biplot <- combined_metadata %>%
                     theme(legend.position = "none")
 
 #Generate contamination boxplot
-genome_contamination <- combined_metadata %>%
+genome_contamination <- genome_metadata %>%
             ggplot(aes(y=contamination)) +
                     ylim(c(10,0)) +
                     geom_boxplot(colour = "#999999", fill="#cccccc") +
@@ -52,7 +52,7 @@ genome_contamination <- combined_metadata %>%
                         plot.margin = unit(c(0, 0, 0.40, 0),"inches")) #add bottom-margin (top, right, bottom, left)
 
 #Generate completeness boxplot
-genome_completeness <- combined_metadata %>%
+genome_completeness <- genome_metadata %>%
         ggplot(aes(x=completeness)) +
                 xlim(c(70,100)) +
                 geom_boxplot(colour = "#999999", fill="#cccccc") +

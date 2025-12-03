@@ -1,0 +1,121 @@
+# Phylogenetic Analysis
+
+### Load data
+```{r load data phylogenetics}
+load("data/data.Rdata")
+```
+
+
+
+
+```{r check tree, fig.height=8, fig.width=16, fig.fullwidth=TRUE}
+# Merge tip data with tree
+tip_df <- data.frame(label = getphylo_tree$tip.label) %>%
+  left_join(genome_metadata, by = c("label" = "ID"))
+
+p <- ggtree(getphylo_tree) %<+% tip_df +
+  geom_tiplab(aes(color = source), size = 3) +
+  theme_tree2() +
+  scale_color_manual(values = source_colors)
+
+p
+
+```
+
+
+```{r remove low size mag, fig.height=8, fig.width=10, fig.fullwidth=TRUE}
+#Remove GCA_015060925.1
+getphylo_tree_trimmed <- drop.tip(getphylo_tree, "GCA_015060925.1")
+
+tip_df_trimmed <- tip_df %>% 
+  filter(label != "GCA_015060925.1")
+
+p <- ggtree(getphylo_tree_trimmed) %<+% tip_df_trimmed +
+  geom_tiplab(aes(color = source), size = 3) +
+  theme_tree2() +
+  scale_color_manual(values = source_colors)
+
+p
+
+```
+
+
+Circular tree with genome size and completeness
+```{r genome_phylogeny_completeness, message=FALSE, warning=FALSE, fig.height=7, fig.width=7, fig.fullwidth=TRUE}
+# Generate  basal tree
+circular_tree <- force.ultrametric(getphylo_tree_trimmed, method="extend") %>% # extend to ultrametric for the sake of visualization
+    ggtree(., layout="fan", open.angle=10, size=0.5)
+
+# Add completeness ring
+circular_tree <- circular_tree +
+        new_scale_fill() +
+        scale_fill_gradient(low = "#d1f4ba", high = "#f4baba") +
+        geom_fruit(
+                data=genome_metadata,
+                geom=geom_bar,
+                mapping = aes(x=completeness, y=ID, fill=contamination),
+                offset = 0.24,
+                pwidth = 0.1,
+                orientation="y",
+              stat="identity")+
+  labs(fill="Contamination")
+
+# Add genome-size ring
+circular_tree <-  circular_tree + new_scale_fill()
+
+circular_tree <-  circular_tree +
+  geom_fruit(
+    data=genome_metadata,
+    geom=geom_bar,
+    mapping = aes(x=genome_size, y=ID),
+    fill = "#1e6e55",
+    offset = 0.05,
+    orientation="y",
+    stat="identity")
+
+
+
+#Plot circular tree
+circular_tree %>% open_tree(30) %>% rotate_tree(90)
+```
+
+Circular tree with host and source
+
+```{r genome_phylogeny_plot, message=FALSE, warning=FALSE, fig.height=7, fig.width=7, fig.fullwidth=TRUE}
+# Generate  basal tree
+circular_tree <- force.ultrametric(getphylo_tree_trimmed, method="extend") %>% # extend to ultrametric for the sake of visualisation
+    ggtree(., layout="fan", open.angle=10, size=0.4)
+
+#Host species ring
+circular_tree <- circular_tree +
+  new_scale_fill() +
+  geom_fruit(
+    data = genome_metadata,
+    geom = geom_tile,
+    mapping = aes(y = ID, fill = host_species),
+    width = 0.005,
+    offset = 0.10
+  ) +
+  scale_fill_brewer(palette = "Set3") +
+  labs(fill = "Host")
+
+#source ring
+circular_tree <- circular_tree +
+  new_scale_fill() +
+  geom_fruit(
+    data = genome_metadata,
+    geom = geom_tile,
+    mapping = aes(y = ID, fill = source),
+    width = 0.005,
+    offset = 0.15
+  ) +
+  scale_fill_manual(values = source_colors) +
+  labs(fill = "Source")
+
+# Plot
+circular_tree %>% open_tree(30) %>% rotate_tree(90)
+
+```
+
+
+
