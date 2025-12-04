@@ -2060,21 +2060,21 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 <div id="searching-for-the-mags" class="section level2 hasAnchor" number="2.1">
 <h2><span class="header-section-number">2.1</span> Searching for the MAGs<a href="data-preparation.html#searching-for-the-mags" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <ol style="list-style-type: decimal">
-<li>Choose the MAGs
+<li>Choose the MAGs<br />
 In this case, we will be working with <em>Parabacteroides distasonis</em> and <em>Phocaeicola vulgatus</em>. In the EHI database, select the MAGs with &gt; 90% completeness and &lt; 2.5 contamination. Do the same in the GTDB, but also filter for isolation source CONTAINS feces.</li>
 </ol>
 </div>
 <div id="downloading-the-mags" class="section level2 hasAnchor" number="2.2">
 <h2><span class="header-section-number">2.2</span> Downloading the MAGs<a href="data-preparation.html#downloading-the-mags" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <ol start="2" style="list-style-type: decimal">
-<li>Download genome indices and metadata
+<li>Download genome indices and metadata<br />
 Download the EHI_MAG index for each species (in /data/mags_metadata folder) and the curl file and search metadata tsv from the GTDB and place in each species directory in Mjolnir.</li>
 </ol>
-<p>2.5) Extract genome metadata
-- Make list will all the accession numbers of the MAGs and run this script to obtain more metadata. (modify script a bit to make it scalable).</p>
+<p>2.5) Extract genome metadata<br />
+- Use the GTDB search tsv to run this script to obtain more metadata. (modify script a bit to make it scalable).</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb3-1"><a href="data-preparation.html#cb3-1" tabindex="-1"></a> <span class="ex">python</span> scripts/extract_gtdb_metadata.py</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
-<li>Create the master index
+<li>Create the master index<br />
 Run the create_index.R script to create an index of all the MAGs and the download paths (needs a list of species as input and right now it is hardcoded in the script)</li>
 </ol>
 <div class="sourceCode" id="cb4"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb4-1"><a href="data-preparation.html#cb4-1" tabindex="-1"></a><span class="ex">conda</span> activate mags_r_env</span>
@@ -2082,9 +2082,12 @@ Run the create_index.R script to create an index of all the MAGs and the downloa
 <ol start="4" style="list-style-type: decimal">
 <li>Run the downloading_mags.smk to download all the genomes</li>
 </ol>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb5-1"><a href="data-preparation.html#cb5-1" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-s</span> snakefiles/downloading_mags.smk <span class="at">--cores</span> 8</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb5-1"><a href="data-preparation.html#cb5-1" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-s</span> snakefiles/downloading_mags.smk <span class="dt">\</span></span>
+<span id="cb5-2"><a href="data-preparation.html#cb5-2" tabindex="-1"></a>    <span class="at">--executor</span> slurm <span class="dt">\</span></span>
+<span id="cb5-3"><a href="data-preparation.html#cb5-3" tabindex="-1"></a>    <span class="at">--jobs</span> 50 <span class="dt">\</span></span></code></pre></div>
 <ol start="5" style="list-style-type: decimal">
-<li>Unzip all the MAGs and make sure they are in the same folder: run</li>
+<li>Unzip all the MAGs and make sure they are in the same folder: run<br />
+(maybe add this to the downloading_mags.smk)</li>
 </ol>
 <div class="sourceCode" id="cb6"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb6-1"><a href="data-preparation.html#cb6-1" tabindex="-1"></a><span class="fu">bash</span> scripts/unzip_mags.sh parabacteroides_distasonis  </span>
 <span id="cb6-2"><a href="data-preparation.html#cb6-2" tabindex="-1"></a><span class="fu">bash</span> scripts/unzip_mags.sh phocaeicola_vulgatus</span></code></pre></div>

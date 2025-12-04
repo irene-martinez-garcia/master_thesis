@@ -2,21 +2,21 @@
 
 
 ## Searching for the MAGs
-1) Choose the MAGs
+1) Choose the MAGs   
 In this case, we will be working with _Parabacteroides distasonis_ and _Phocaeicola vulgatus_. In the EHI database, select the MAGs with > 90% completeness and < 2.5 contamination. Do the same in the GTDB, but also filter for isolation source CONTAINS feces.
 
 ## Downloading the MAGs
-2) Download genome indices and metadata
+2) Download genome indices and metadata    
 Download the EHI_MAG index for each species (in /data/mags_metadata folder) and the curl file and search metadata tsv from the GTDB and place in each species directory in Mjolnir.
 
-2.5) Extract genome metadata
-- Make list will all the accession numbers of the MAGs and run this script to obtain more metadata. (modify script a bit to make it scalable).
+2.5) Extract genome metadata   
+- Use the GTDB search tsv to run this script to obtain more metadata. (modify script a bit to make it scalable).
 ```{bash, eval = FALSE}
  python scripts/extract_gtdb_metadata.py
 ```
 
 
-3) Create the master index 
+3) Create the master index   
 Run the create_index.R script to create an index of all the MAGs and the download paths (needs a list of species as input  and right now it is hardcoded in the script)
 ```{bash, eval = FALSE}
 conda activate mags_r_env
@@ -25,11 +25,14 @@ Rscript scripts/create_index.R
 
 4) Run the downloading_mags.smk to download all the genomes
 ```{bash, eval = FALSE}
-snakemake -s snakefiles/downloading_mags.smk --cores 8
+snakemake -s snakefiles/downloading_mags.smk \
+    --executor slurm \
+    --jobs 50 \
 ```
 
 
-5) Unzip all the MAGs and make sure they are in the same folder: run
+5) Unzip all the MAGs and make sure they are in the same folder: run    
+(maybe add this to the downloading_mags.smk)
 ```{bash, eval = FALSE}
 bash scripts/unzip_mags.sh parabacteroides_distasonis  
 bash scripts/unzip_mags.sh phocaeicola_vulgatus
