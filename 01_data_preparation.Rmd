@@ -28,6 +28,16 @@ Rscript scripts/create_index.R
 snakemake -s snakefiles/downloading_mags.smk \
     --executor slurm \
     --jobs 50 \
+    --rerun-incomplete \
+    --keep-going
+    
+    
+#testing with the HUMAN_EHI
+snakemake -s snakefiles/downloading_and_unzipping.smk \
+    --executor slurm \
+    --jobs 50 \
+    --rerun-incomplete \
+    --keep-going
 ```
 
 
@@ -86,7 +96,8 @@ phylum_colors <- read_tsv("https://raw.githubusercontent.com/earthhologenome/EHI
 
 
 ```{r colors}
-source_colors <- c(EHI = "#8BC63F", GTDB = "#2D522D")
+#source_colors <- c(EHI = "#8BC63F", GTDB = "#2D522D")
+source_colors <- c(EHI = "#8BC63F", GTDB = "#A90D00")
 ```
 
 ### Sample metadata

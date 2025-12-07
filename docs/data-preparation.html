@@ -2084,7 +2084,17 @@ Run the create_index.R script to create an index of all the MAGs and the downloa
 </ol>
 <div class="sourceCode" id="cb5"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb5-1"><a href="data-preparation.html#cb5-1" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-s</span> snakefiles/downloading_mags.smk <span class="dt">\</span></span>
 <span id="cb5-2"><a href="data-preparation.html#cb5-2" tabindex="-1"></a>    <span class="at">--executor</span> slurm <span class="dt">\</span></span>
-<span id="cb5-3"><a href="data-preparation.html#cb5-3" tabindex="-1"></a>    <span class="at">--jobs</span> 50 <span class="dt">\</span></span></code></pre></div>
+<span id="cb5-3"><a href="data-preparation.html#cb5-3" tabindex="-1"></a>    <span class="at">--jobs</span> 50 <span class="dt">\</span></span>
+<span id="cb5-4"><a href="data-preparation.html#cb5-4" tabindex="-1"></a>    <span class="at">--rerun-incomplete</span> <span class="dt">\</span></span>
+<span id="cb5-5"><a href="data-preparation.html#cb5-5" tabindex="-1"></a>    <span class="at">--keep-going</span></span>
+<span id="cb5-6"><a href="data-preparation.html#cb5-6" tabindex="-1"></a>    </span>
+<span id="cb5-7"><a href="data-preparation.html#cb5-7" tabindex="-1"></a>    </span>
+<span id="cb5-8"><a href="data-preparation.html#cb5-8" tabindex="-1"></a><span class="co">#testing with the HUMAN_EHI</span></span>
+<span id="cb5-9"><a href="data-preparation.html#cb5-9" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-s</span> snakefiles/downloading_and_unzipping.smk <span class="dt">\</span></span>
+<span id="cb5-10"><a href="data-preparation.html#cb5-10" tabindex="-1"></a>    <span class="at">--executor</span> slurm <span class="dt">\</span></span>
+<span id="cb5-11"><a href="data-preparation.html#cb5-11" tabindex="-1"></a>    <span class="at">--jobs</span> 50 <span class="dt">\</span></span>
+<span id="cb5-12"><a href="data-preparation.html#cb5-12" tabindex="-1"></a>    <span class="at">--rerun-incomplete</span> <span class="dt">\</span></span>
+<span id="cb5-13"><a href="data-preparation.html#cb5-13" tabindex="-1"></a>    <span class="at">--keep-going</span></span></code></pre></div>
 <ol start="5" style="list-style-type: decimal">
 <li>Unzip all the MAGs and make sure they are in the same folder: run<br />
 (maybe add this to the downloading_mags.smk)</li>
@@ -2138,7 +2148,8 @@ lgl  (1): annotated
 <span id="cb12-8"><a href="data-preparation.html#cb12-8" tabindex="-1"></a>    <span class="fu">unique</span>() <span class="sc">%&gt;%</span></span>
 <span id="cb12-9"><a href="data-preparation.html#cb12-9" tabindex="-1"></a>    <span class="fu">arrange</span>(phylum) <span class="sc">%&gt;%</span></span>
 <span id="cb12-10"><a href="data-preparation.html#cb12-10" tabindex="-1"></a>    <span class="fu">pull</span>(colors, <span class="at">name=</span>phylum)</span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb13-1"><a href="data-preparation.html#cb13-1" tabindex="-1"></a>source_colors <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">EHI =</span> <span class="st">&quot;#8BC63F&quot;</span>, <span class="at">GTDB =</span> <span class="st">&quot;#2D522D&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb13-1"><a href="data-preparation.html#cb13-1" tabindex="-1"></a><span class="co">#source_colors &lt;- c(EHI = &quot;#8BC63F&quot;, GTDB = &quot;#2D522D&quot;)</span></span>
+<span id="cb13-2"><a href="data-preparation.html#cb13-2" tabindex="-1"></a>source_colors <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">EHI =</span> <span class="st">&quot;#8BC63F&quot;</span>, <span class="at">GTDB =</span> <span class="st">&quot;#A90D00&quot;</span>)</span></code></pre></div>
 </div>
 <div id="sample-metadata" class="section level3 hasAnchor" number="2.4.3">
 <h3><span class="header-section-number">2.4.3</span> Sample metadata<a href="data-preparation.html#sample-metadata" class="anchor-section" aria-label="Anchor link to header"></a></h3>
