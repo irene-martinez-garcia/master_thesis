@@ -21,8 +21,16 @@ amr_abundance <- genome_annotations %>%
 ```
 
 ```{r join with metadata}
-#amr_cluster <- amr_abundance %>%
-#  dplyr::full_join(metadata_with_cluster, by= join_by(mag_id == ID))
+amr_cluster <- amr_abundance %>%
+  dplyr::full_join(metadata_with_cluster, by= join_by(mag_id == ID))
+```
+
+```{r investigation}
+amr_cluster %>%
+  dplyr::select("BETA-LACTAM", "MACROLIDE", mag_id, cluster) %>%
+  group_by( cluster) %>%
+  summarise(mean_beta_lactam = mean(`BETA-LACTAM`, na.rm = TRUE),
+            mean_macrolide = mean(MACROLIDE, na.rm = TRUE))
 ```
 
 
@@ -136,28 +144,67 @@ permanova_result <- adonis2(amr_dist ~ source,
                             data = amr_rel_nz_meta, 
                             permutations = 999)
 print(permanova_result)
+
+# PERMANOVA test accounting for genome size
+adonis2(
+  amr_dist ~ genome_size + source,
+  data = amr_rel_nz_meta,
+  permutations = 999,
+  by = "margin"
+)
 ```
 
 
 ```{r pcoa amr}
 pcoa_res <- cmdscale(amr_dist, k = 2, eig = TRUE)
-pcoa_df <- data.frame(PC1 = pcoa_res$points[,1], PC2 = pcoa_res$points[,2], ID = rownames(amr_rel_nz))
 
+# Calculate variance explained from PCoA eigenvalues
+variance_explained <- pcoa_res$eig / sum(pcoa_res$eig)
 
-pcoa_df <- pcoa_df %>%
-  left_join(genome_metadata, by = "ID")
+pcoa_df <- data.frame(
+  PC1 = pcoa_res$points[,1], 
+  PC2 = pcoa_res$points[,2], 
+  ID = rownames(amr_rel_nz)
+) %>%
+  left_join(metadata_with_cluster, by = "ID")
+
 
 ggplot(pcoa_df, aes(PC1, PC2, color = source)) +
   geom_point(size = 2) +
   theme_minimal() +
-  #scale_color_manual()+
   labs(
     title = "PCoA of AMR annotations across MAGs",
-    x = paste0("PC1 (", round(summary(pca)$importance[2,1] * 100, 1), "%)"),
-    y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
+    x = paste0("PCoA1 (", round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
   )
 
+ggplot(pcoa_df, aes(PC1, PC2, color = cluster)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of AMR annotations across MAGs colored by GIFT clustering",
+    x = paste0("PCoA1 (", round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
+  )
+
+ggplot(pcoa_df, aes(PC1, PC2, color = genome_size)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of AMR annotations across MAGs",
+    x = paste0("PCoA1 (", round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
+  )
+
+
+
 ```
+```{r how many mags have amr genes}
+cat("MAGs with AMR genes:", nrow(amr_rel_nz), "\n")
+cat("Total AMR genes detected:", ncol(amr_rel_nz), "\n")
+```
+
+
 ```{r deseq_amr}
 library(DESeq2)
 
@@ -296,6 +343,57 @@ fisher_results <- fisher_results %>%
 
 print(fisher_results)
 ```
+```{r aldex2 amr}
+# Prepare count matrix for ALDEx2 (raw counts, not normalized)
+amr_counts_aldex <- amr_counts %>%
+  column_to_rownames("mag_id")
+
+# Transpose for ALDEx2 (features as rows, samples as columns)
+amr_counts_t <- t(amr_counts_aldex)
+
+# Remove features with zero counts across all samples
+amr_counts_t <- amr_counts_t[rowSums(amr_counts_t) > 0, ]
+
+# Create conditions vector matching column order
+conditions <- genome_metadata %>%
+  filter(ID %in% colnames(amr_counts_t)) %>%
+  arrange(match(ID, colnames(amr_counts_t))) %>%
+  pull(source)
+
+# Run ALDEx2
+set.seed(123)
+aldex_amr <- aldex.clr(amr_counts_t, conditions, mc.samples = 128, denom = "all")
+aldex_amr_test <- aldex.ttest(aldex_amr, paired.test = FALSE)
+aldex_amr_effect <- aldex.effect(aldex_amr, CI = TRUE)
+
+# Combine results
+aldex_amr_results <- data.frame(aldex_amr_test, aldex_amr_effect) %>%
+  rownames_to_column("AMR_gene") %>%
+  arrange(wi.eBH)
+
+# Significant AMR genes (FDR < 0.05)
+significant_amr <- aldex_amr_results %>%
+  filter(wi.eBH < 0.05) %>%
+  mutate(enriched_in = ifelse(effect > 0, 
+                               levels(factor(conditions))[2],
+                               levels(factor(conditions))[1]))
+
+cat("\nSignificant AMR genes:", nrow(significant_amr), "\n")
+print(significant_amr)
+
+# Visualization
+ggplot(aldex_amr_results, aes(x = effect, y = -log10(wi.eBH))) +
+  geom_point(aes(color = wi.eBH < 0.05), alpha = 0.6) +
+  scale_color_manual(values = c("grey", "red")) +
+  geom_hline(yintercept = -log10(0.05), linetype = "dashed") +
+  theme_minimal() +
+  labs(
+    title = "ALDEx2 results for AMR genes",
+    x = "Effect size",
+    y = "-log10(BH-adjusted p-value)",
+    color = "Significant"
+  )
+```
 
 
 
@@ -320,11 +418,12 @@ vf_abundance <- genome_annotations %>%
     values_fill = 0
   )
 
+dim(vf_abundance)
 ```
 
 ```{r vf join with metadata}
-#vf_cluster <- vf_abundance %>%
- # dplyr::full_join(genome_metadata, by= join_by(mag_id == ID))
+vf_cluster <- vf_abundance %>%
+  dplyr::full_join(genome_metadata, by= join_by(mag_id == ID))
 ```
 
 
@@ -385,6 +484,143 @@ pheatmap(
 
 ```
 
+```{r pcoa vf}
+pcoa_res <- cmdscale(vf_dist, k = 2, eig = TRUE)
+
+# Calculate variance explained from PCoA eigenvalues
+variance_explained <- pcoa_res$eig / sum(pcoa_res$eig)
+
+pcoa_df <- data.frame(
+  PC1 = pcoa_res$points[,1], 
+  PC2 = pcoa_res$points[,2], 
+  ID = rownames(amr_rel_nz)
+) %>%
+  left_join(metadata_with_cluster, by = "ID")
 
 
+ggplot(pcoa_df, aes(PC1, PC2, color = source)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of VF annotations across MAGs",
+    x = paste0("PCoA1 (", round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
+  )
+
+ggplot(pcoa_df, aes(PC1, PC2, color = genome_size)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of VF annotations across MAGs",
+    x = paste0("PCoA1 (", round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
+  )
+
+ggplot(pcoa_df, aes(PC1, PC2, color = cluster)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of VF annotations across MAGs colored by GIFT cluster",
+    x = paste0("PCoA1 (", round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
+  )
+
+
+```
+
+
+```{r permanova_vf}
+vf_counts <- genome_annotations %>%
+  filter(mag_id != "GCA_015060925.1") %>%
+  filter(!is.na(vf)) %>%
+  dplyr::count(mag_id, vf) %>%            
+  pivot_wider(names_from = vf, values_from = n, values_fill = 0) %>%
+  filter(rowSums(dplyr::select(., -mag_id)) > 0) # Removes MAGs with no vf genes found
+
+# Fixed normalization
+vf_rel <- vf_counts %>%
+  column_to_rownames("mag_id")
+vf_rel <- vf_rel / rowSums(vf_rel)  # Each row sums to 1
+
+# Remove zero variance
+vf_rel_nz <- vf_rel[, apply(vf_rel, 2, sd) > 0]
+
+# Distance matrix from normalized data
+vf_dist <- vegdist(vf_rel_nz, method = "bray")  # or euclidean
+
+# Add metadata
+vf_rel_nz_meta <- vf_rel_nz %>%
+  rownames_to_column("ID") %>%
+  left_join(genome_metadata, by = "ID")
+
+#Beta dispersion test
+dispersion <- betadisper(vf_dist, vf_rel_nz_meta$source)
+anova(dispersion) 
+
+
+# PERMANOVA test
+permanova_result <- adonis2(vf_dist ~ source, 
+                            data = vf_rel_nz_meta, 
+                            permutations = 999)
+print(permanova_result)
+
+# PERMANOVA test accounting for genome size
+adonis2(
+  vf_dist ~ genome_size + source,
+  data = vf_rel_nz_meta,
+  permutations = 999,
+  by = "margin"
+)
+```
+```{r aldex2 vf}
+# Prepare count matrix for ALDEx2 (raw counts, not normalized)
+vf_counts_aldex <- vf_counts %>%
+  column_to_rownames("mag_id")
+
+# Transpose for ALDEx2 (features as rows, samples as columns)
+vf_counts_t <- t(vf_counts_aldex)
+
+# Remove features with zero counts across all samples
+vf_counts_t <- vf_counts_t[rowSums(vf_counts_t) > 0, ]
+
+# Create conditions vector matching column order
+conditions <- genome_metadata %>%
+  filter(ID %in% colnames(vf_counts_t)) %>%
+  arrange(match(ID, colnames(vf_counts_t))) %>%
+  pull(source)
+
+# Run ALDEx2
+set.seed(123)
+aldex_vf <- aldex.clr(vf_counts_t, conditions, mc.samples = 128, denom = "all")
+aldex_vf_test <- aldex.ttest(aldex_vf, paired.test = FALSE)
+aldex_vf_effect <- aldex.effect(aldex_vf, CI = TRUE)
+
+# Combine results
+aldex_vf_results <- data.frame(aldex_vf_test, aldex_vf_effect) %>%
+  rownames_to_column("vf_gene") %>%
+  arrange(wi.eBH)
+
+# Significant vf genes (FDR < 0.05)
+significant_vf <- aldex_vf_results %>%
+  filter(wi.eBH < 0.05) %>%
+  mutate(enriched_in = ifelse(effect > 0, 
+                               levels(factor(conditions))[2],
+                               levels(factor(conditions))[1]))
+
+cat("\nSignificant vf genes:", nrow(significant_vf), "\n")
+print(significant_vf)
+
+# Visualization
+ggplot(aldex_vf_results, aes(x = effect, y = -log10(wi.eBH))) +
+  geom_point(aes(color = wi.eBH < 0.05), alpha = 0.6) +
+  scale_color_manual(values = c("grey", "red")) +
+  geom_hline(yintercept = -log10(0.05), linetype = "dashed") +
+  theme_minimal() +
+  labs(
+    title = "ALDEx2 results for vf genes",
+    x = "Effect size",
+    y = "-log10(BH-adjusted p-value)",
+    color = "Significant"
+  )
+```
 

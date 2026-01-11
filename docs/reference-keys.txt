@@ -39,7 +39,7 @@ load-data-1
 phylogenetic-analysis
 load-data-2
 pangenome-analysis
-phylogenetic-analysis-1
+phylogenetic-analysis-human
 load-data-3
 functional-analysis
 functional-overview
@@ -70,5 +70,5 @@ antibiotic-resistance-analysis
 building-an-amr-abundance-table
 virulence-factors-analysis
 building-an-virulence-factor-abundance-table
-antibiotic-resistance-analysis-1
+antibiotic-resistance-analysis-human
 building-an-amr-abundance-table-1

@@ -37,7 +37,7 @@ genome_biplot <- genome_metadata %>%
                     ylim(c(2.5,0)) +
                     labs(y= "Contamination", x = "Completeness") +
                     theme_classic() +
-                    theme(legend.position = "none")
+                    theme(legend.position = "left")
 
 #Generate contamination boxplot
 genome_contamination <- genome_metadata %>%
@@ -95,9 +95,16 @@ ggplot(genome_metadata, aes(x= ID, y = genome_size, fill = source))+
 ggplot(genome_metadata, aes(x= source, y = genome_size, fill = source))+
   scale_fill_manual(values = source_colors)+
   geom_boxplot()+ 
+  geom_point()+
   theme_classic()+
   labs(y = "Genome Size", x = "Source")
 ```
+```{r lowest_genome_size}
+genome_metadata%>%
+  filter(genome_size == min(genome_size))
+```
+
+
 
 
 ```{r contamination and completeness plots}

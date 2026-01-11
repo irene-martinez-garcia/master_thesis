@@ -89,6 +89,7 @@ scores <- scores %>%
 
 ggplot(scores, aes(PC1, PC2, color = source)) +
   geom_point(size = 2) +
+   scale_color_manual(values = source_colors)+
   theme_minimal() +
   labs(
     title = "PCA of KEGG annotations across MAGs",
@@ -97,6 +98,7 @@ ggplot(scores, aes(PC1, PC2, color = source)) +
   )
 
 ggplot(scores, aes(PC2, PC3, color = source)) +
+   scale_color_manual(values = source_colors)+
   geom_point(size = 2) +
   theme_minimal() +
   labs(
@@ -106,6 +108,7 @@ ggplot(scores, aes(PC2, PC3, color = source)) +
   )
 
 ggplot(scores, aes(PC3, PC4, color = source)) +
+   scale_color_manual(values = source_colors)+
   geom_point(size = 2) +
   theme_minimal() +
   labs(
@@ -124,6 +127,14 @@ ggplot(scores, aes(PC1, PC2, color = genome_size)) +
     y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
   )
 
+ggplot(scores, aes(PC1, PC2, color = completeness)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "KEGG PCA colored by completeness",
+    x = paste0("PC1 (", round(summary(pca)$importance[2,1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
+  )
 
 ggplot(scores, aes(PC1, PC2, color = host_species)) +
   geom_point(size = 2) +
@@ -247,8 +258,9 @@ pcoa_df <- data.frame(
 ) %>%
   left_join(genome_metadata, by = "ID")
 
-# Plot with CORRECT variance labels
+
 ggplot(pcoa_df, aes(PC1, PC2, color = source)) +
+  scale_color_manual(values = source_colors)+
   geom_point(size = 2) +
   theme_minimal() +
   labs(
@@ -879,6 +891,24 @@ metadata_with_cluster %>%
             .groups = "drop")
 
 ```
+
+```{r save the cluster info into rdata}
+save(ehi_mags,
+     phylum_colors,
+     genome_annotations,
+     genome_gifts,
+     contig_to_genome,
+     gtdb_metadata,
+     ehi_metadata,
+     master_index,
+     genome_metadata,
+     source_colors,
+     getphylo_tree,
+     metadata_with_cluster,
+     file = "data/data.Rdata")
+```
+
+
 
 
 Is the genome size different between clusters?

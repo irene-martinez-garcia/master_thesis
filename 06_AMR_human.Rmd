@@ -1,4 +1,4 @@
-# Antibiotic resistance analysis
+# Antibiotic resistance analysis (HUMAN)
 
 ```{r load_data_mag_amr_human, message=FALSE, warning=FALSE, echo=FALSE}
 load("data/data.Rdata")
