@@ -1,0 +1,84 @@
+# Data statistics
+
+### Load data
+```{r load data statistics_human}
+load("data/human/data.Rdata")
+```
+
+Total number of MAGs
+```{r count n MAGS_human}
+genome_metadata %>%
+  dplyr::count(source)
+```
+
+```{r mean completeness and contamination_human}
+genome_metadata %>% 
+  summarise(
+    mean_c = mean(completeness, na.rm = TRUE) %>% round(2),
+    sd_c = sd(completeness, na.rm = TRUE) %>% round(2),
+    mean_con = mean(contamination, na.rm = TRUE) %>% round(2),
+    sd_con = sd(contamination, na.rm = TRUE) %>% round(2)
+  ) %>%
+  unite("Completeness", mean_c, sd_c, sep = " ± ") %>%
+  unite("Contamination", mean_con, sd_con, sep = " ± ") %>%
+  tt()
+```
+
+
+```{r genome_quality_plot_human, message=FALSE, warning=FALSE, fig.height=6, fig.width=10, fig.fullwidth=TRUE}
+
+#Generate quality biplot
+genome_biplot <- genome_metadata %>%
+  dplyr::select(c(ID,completeness,contamination)) %>%
+  ggplot(aes(x=completeness,y=contamination)) +
+              geom_point(alpha=0.7) +
+                    xlim(c(90,100)) +
+                    ylim(c(2.5,0)) +
+                    labs(y= "Contamination", x = "Completeness") +
+                    theme_classic() +
+                    theme(legend.position = "none")
+
+#Generate contamination boxplot
+genome_contamination <- genome_metadata %>%
+            ggplot(aes(y=contamination)) +
+                    ylim(c(10,0)) +
+                    geom_boxplot(colour = "#999999", fill="#cccccc") +
+                    theme_classic() +
+                    theme(legend.position = "none",
+                    axis.line = element_blank(),
+                    axis.title = element_blank(),
+                    axis.text=element_blank(),
+                    axis.ticks=element_blank(),
+                        plot.margin = unit(c(0, 0, 0.40, 0),"inches")) #add bottom-margin (top, right, bottom, left)
+
+#Generate completeness boxplot
+genome_completeness <- genome_metadata %>%
+        ggplot(aes(x=completeness)) +
+                xlim(c(70,100)) +
+                geom_boxplot(colour = "#999999", fill="#cccccc") +
+                theme_classic() +
+                theme(legend.position = "none",
+                    axis.line = element_blank(),
+                    axis.title = element_blank(),
+                    axis.text=element_blank(),
+                    axis.ticks=element_blank(),
+                    plot.margin = unit(c(0, 0, 0, 0.50),"inches")) #add left-margin (top, right, bottom, left)
+
+#Render composite figure
+#pdf("figures/completeness_contamination.pdf",width=10, height=5)
+grid.arrange(grobs = list(genome_completeness,genome_biplot,genome_contamination),
+        layout_matrix = rbind(c(1,1,1,1,1,1,1,1,1,1,1,4),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3)))
+#dev.off()
+```
+

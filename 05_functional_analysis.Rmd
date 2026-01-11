@@ -48,7 +48,462 @@ cat(kegg_annota)
 kegg_annota*100/genome_annota
 ```
 
+
 ## Functional ordination
+
+PCA of KEGG annotations:
+```{r pca of kegg}
+kegg_counts <- genome_annotations %>%
+  filter(mag_id != "GCA_015060925.1")%>% #this is the smaller mag that's weird
+  filter(!is.na(kegg)) %>%          
+  dplyr::count(mag_id, kegg) %>%           
+  pivot_wider(
+    names_from = kegg,
+    values_from = n,
+    values_fill = 0
+  )
+
+# Normalization
+kegg_rel <- kegg_counts %>%
+  column_to_rownames("mag_id")
+kegg_rel <- kegg_rel / rowSums(kegg_rel)  # Each row sums to 1
+
+# Remove zero variance
+kegg_rel_nz <- kegg_rel[, apply(kegg_rel, 2, sd) > 0]
+
+# PCA with scaling
+pca <- prcomp(kegg_rel_nz, scale. = TRUE)
+
+# Check variance explained
+summary(pca)$importance[,1:5]
+```
+
+
+```{r plot pca kegg}
+scores <- as.data.frame(pca$x)
+scores$ID <- rownames(scores)
+
+scores <- scores %>%
+  left_join(genome_metadata, by = "ID")
+
+ggplot(scores, aes(PC1, PC2, color = source)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCA of KEGG annotations across MAGs",
+    x = paste0("PC1 (", round(summary(pca)$importance[2,1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
+  )
+
+ggplot(scores, aes(PC2, PC3, color = source)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "P2 vs PC3 of KEGG annotations across MAGs",
+    x = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)"),
+    y = paste0("PC3 (", round(summary(pca)$importance[2,3] * 100, 1), "%)")
+  )
+
+ggplot(scores, aes(PC3, PC4, color = source)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "P3 vs PC4 of KEGG annotations across MAGs",
+    x = paste0("PC3 (", round(summary(pca)$importance[2,3] * 100, 1), "%)"),
+    y = paste0("PC4 (", round(summary(pca)$importance[2,4] * 100, 1), "%)")
+  )
+
+
+ggplot(scores, aes(PC1, PC2, color = genome_size)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "KEGG PCA colored by genome size",
+    x = paste0("PC1 (", round(summary(pca)$importance[2,1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
+  )
+
+
+ggplot(scores, aes(PC1, PC2, color = host_species)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "KEGG PCA colored by host species ",
+    x = paste0("PC1 (", round(summary(pca)$importance[2,1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
+  )
+```
+```{r loadings pca total}
+loadings <- pca$rotation
+
+abs_loadings <- apply(abs(loadings[, 1:2]), 1, sum)
+top_combined <- sort(abs_loadings, decreasing = TRUE)[1:10]
+top_combined
+
+
+```
+```{r pca loadings pc1}
+library(KEGGREST)
+
+top_loadings <- loadings %>%
+  as.data.frame() %>%
+  rownames_to_column("KEGG") %>%
+  arrange(desc(abs(PC1))) 
+
+head(top_loadings)
+
+top_kos <- head(top_loadings)%>%pull(KEGG)
+
+ko_pathways <- lapply(top_kos, function(k) {
+  info <- keggGet(paste0("ko:", k))[[1]]
+  pathways <- info$PATHWAY
+  if(is.null(pathways)) pathways <- NA
+  return(pathways)
+})
+
+names(ko_pathways) <- top_kos
+ko_pathways
+```
+
+
+## KEGG heatmap
+```{r kegg heatmap}
+# Relative abundance heatmap
+pheatmap(kegg_rel_nz,
+  color = viridis(100, option = "viridis"),
+  cluster_rows = TRUE,
+  cluster_cols = TRUE,
+  fontsize = 9,
+  border_color = NA
+)
+
+# For scaled heatmap -> remove zero variance columns 
+col_vars <- apply(kegg_rel_nz, 2, var, na.rm = TRUE)
+matrix_filtered <- kegg_rel_nz[, col_vars > 0 & !is.na(col_vars)]
+
+# Scale the filtered matrix
+scaled <- scale(matrix_filtered, center = TRUE, scale = TRUE)
+
+# Check for any remaining Inf/NaN values
+if(any(!is.finite(scaled))) {
+  scaled[!is.finite(scaled)] <- 0  # Replace Inf/NaN with 0
+}
+
+# Scaled heatmap
+pheatmap(scaled,
+  color = viridis(100, option = "viridis"),
+  cluster_rows = TRUE,
+  cluster_cols = TRUE,
+  fontsize = 5,
+  border_color = NA
+)
+
+```
+
+
+## Testing the differences in KEGG annotations with PERMANOVA
+
+```{r permanova_kegg}
+# Distance matrix from normalized data
+kegg_dist <- vegdist(kegg_rel_nz, method = "bray")  # or euclidean
+
+# Add metadata
+kegg_rel_nz_meta <- kegg_rel_nz %>%
+  rownames_to_column("ID") %>%
+  left_join(genome_metadata, by = "ID")
+
+#Beta dispersion test
+dispersion <- betadisper(kegg_dist, kegg_rel_nz_meta$source)
+anova(dispersion) 
+
+
+# PERMANOVA test
+permanova_result <- adonis2(kegg_dist ~ source, 
+                            data = kegg_rel_nz_meta, 
+                            permutations = 999)
+print(permanova_result)
+```
+```{r pcoa_kegg_dist}
+pcoa_res <- cmdscale(kegg_dist, k = 2, eig = TRUE)
+pcoa_df <- data.frame(PC1 = pcoa_res$points[,1], PC2 = pcoa_res$points[,2], ID = rownames(kegg_rel_nz))
+
+
+pcoa_df <- pcoa_df %>%
+  left_join(genome_metadata, by = "ID")
+
+ggplot(pcoa_df, aes(PC1, PC2, color = source)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of KEGG annotations across MAGs",
+    x = paste0("PC1 (", round(summary(pca)$importance[2,1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
+  )
+
+
+ggplot(pcoa_df, aes(PC1, PC2, color = genome_size)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of KEGG annotations across MAGs",
+    x = paste0("PC1 (", round(summary(pca)$importance[2,1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
+  )
+```
+```{r deseq_kegg}
+library(DESeq2)
+
+# Prepare the count matrix (KOs as rows, MAGs as columns)
+# Ensure only integer columns are kept
+counts_mtx <- kegg_counts %>%
+  column_to_rownames("mag_id") %>%
+  t() 
+
+# Prepare metadata (Must match column names of counts_mtx)
+metadata <- genome_metadata %>%
+  filter(ID %in% colnames(counts_mtx)) %>%
+  column_to_rownames("ID")
+
+# Ensure order matches exactly
+metadata <- metadata[colnames(counts_mtx), , drop = FALSE]
+
+#Create DESeq2 object
+dds <- DESeqDataSetFromMatrix(countData = counts_mtx,
+                              colData = metadata,
+                              design = ~ source)
+
+# Run the differential analysis
+dds <- DESeq(dds)
+
+# save results (Wildlife vs Human)
+res <- results(dds, contrast=c("source", "EHI", "GTDB"), alpha=0.05)
+
+
+summary(res)
+
+
+
+```
+
+
+
+```{r saving res_1}
+res_df <-res %>% as.data.frame %>% 
+  rownames_to_column("KO") %>% 
+  as_tibble
+```
+
+
+```{r plot deseq ma plot}
+ggplot(res_df,aes(x=baseMean, y=log2FoldChange)) + 
+  geom_point(alpha=0.8) + 
+  geom_smooth() + 
+  scale_x_log10() + 
+  geom_hline(yintercept = 0, alpha = 0.75,
+  color="red")+
+  theme_bw()+ coord_cartesian(ylim=c(-10, 10))
+```
+```{r volcano plot}
+res_df_2<- res_df%>% 
+  mutate(label2= ifelse (abs(log2FoldChange) > 0.58 ,KO, ""))
+
+ggplot(res_df_2, aes(x=baseMean, 
+                 y=log2FoldChange, 
+                 col=padj<0.05, label=label2)) + 
+  geom_point(alpha=0.5) + 
+  scale_x_log10() + 
+  geom_hline(yintercept = 0, alpha = 0.75,
+  color="red")+
+  geom_text_repel()+
+  theme_bw()+ coord_cartesian(ylim=c(-10, 10))
+
+
+ggplot(res_df_2, aes(x=log2FoldChange, y=-log10(pvalue), color=padj < 0.05, label=label2)) + 
+  geom_point(alpha=0.5) +
+  geom_vline(xintercept = 1, alpha = 0.75, 
+  linetype="dashed")+
+  geom_vline(xintercept = -1, alpha = 0.75, 
+  linetype="dashed")+
+   geom_text_repel() +
+  theme_bw()
+```
+
+
+
+
+```{r wilcoxon_keggs}
+#Transform to long format and run test for every KO
+wilcox_results <- kegg_rel_nz_meta %>%
+  pivot_longer(cols = starts_with("K"), 
+               names_to = "KO", 
+               values_to = "rel_abundance") %>%
+  group_by(KO) %>%
+  do(tidy(wilcox.test(rel_abundance ~ source, data = .))) %>%
+  ungroup()
+
+#  Adjust p-values
+wilcox_results <- wilcox_results %>%
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>%
+  filter(p.adj < 0.05) %>%
+  arrange(p.adj)
+
+head(wilcox_results)
+```
+
+```{r plotting top term}
+res_df <- as.data.frame(res) %>%
+  rownames_to_column("KO") %>%
+  filter(padj < 0.05) %>%
+  arrange(padj)
+
+# Find KOs that are significant in BOTH tests
+common_KOs <- intersect(res_df$KO, wilcox_results$KO)
+
+# Boxplot of the top hit
+top_ko <- common_KOs[1]
+
+ggplot(kegg_rel_nz_meta, aes(x = source, y = .data[[top_ko]], fill = source)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(width = 0.2, alpha = 0.5) +
+  theme_minimal() +
+  labs(title = paste("Distribution of", top_ko),
+       y = "Relative Abundance")
+```
+
+```{r plot all}
+# Filter data to only include the common KOs
+plot_data <- kegg_rel_nz_meta %>%
+  select(ID, source, all_of(common_KOs)) %>%
+  pivot_longer(cols = all_of(common_KOs), 
+               names_to = "KO", 
+               values_to = "Relative_Abundance")
+
+
+ggplot(plot_data, aes(x = source, y = Relative_Abundance, fill = source)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(width = 0.2, alpha = 0.4, size = 1) +
+  facet_wrap(~KO, scales = "free_y", ncol = 5) + # 'free_y' is important as abundance scales vary
+  scale_fill_manual(values = source_colors) +
+  theme_minimal() +
+  theme(strip.text = element_text(face = "bold"),
+        legend.position = "bottom") +
+  labs(title = "Relative Abundance of Consensus Significant KOs",
+       x = "Host Source",
+       y = "Relative Abundance")
+```
+
+Check alignment with DESeq:
+```{r checking medians} 
+# Calculate medians for each group to see direction
+direction_check <- kegg_rel_nz_meta %>%
+  select(source, all_of(common_KOs)) %>%
+  pivot_longer(-source, names_to = "KO", values_to = "val") %>%
+  group_by(KO, source) %>%
+  summarize(median_val = median(val), .groups = 'drop') %>%
+  pivot_wider(names_from = source, values_from = median_val) %>%
+  mutate(Enriched_In = ifelse(GTDB > EHI, "GTDB", "EHI"))
+
+# Merge with your DESeq2 results to see if they align
+final_comparison <- res_df %>%
+  filter(KO %in% common_KOs) %>%
+  select(KO, log2FoldChange, padj) %>%
+  left_join(direction_check, by = "KO")
+
+print(final_comparison)
+```
+
+
+```{r get the ko pathways}
+target_kos <- common_KOs 
+
+# Function to get info from KEGG
+get_kegg_info <- function(ko_id) {
+  query <- keggGet(ko_id)[[1]]
+  
+  # Extract Name and Definition
+  name <- ifelse(!is.null(query$NAME), query$NAME, "N/A")
+  definition <- ifelse(!is.null(query$DEFINITION), query$DEFINITION, "N/A")
+  
+  # Extract Pathways (often multiple)
+  pathways <- if(!is.null(query$PATHWAY)) {
+    paste(names(query$PATHWAY), query$PATHWAY, sep = ": ", collapse = "; ")
+  } else {
+    "No pathway assigned"
+  }
+  
+  return(c(KO = ko_id, Name = name, Definition = definition, Pathways = pathways))
+}
+
+
+ko_info_list <- lapply(target_kos, get_kegg_info)
+ko_summary <- as.data.frame(do.call(rbind, ko_info_list))
+
+print(ko_summary)
+```
+
+
+```{r heatmap ko from wilcoxon and deseq}
+#Prepare the matrix (KOs as rows, MAGs as columns)
+heatmap_mat <- kegg_rel_nz_meta %>%
+  column_to_rownames("ID") %>%
+  select(all_of(common_KOs)) %>%
+  as.matrix() %>%
+  t()
+
+#  Prepare the annotation data frame
+annotation_col <- data.frame(Source = kegg_rel_nz_meta$source)
+rownames(annotation_col) <- kegg_rel_nz_meta$ID
+
+# Check if they match
+all(colnames(heatmap_mat) == rownames(annotation_col))
+
+#colors
+ann_colors <- list(
+  Source = source_colors
+)
+
+# Plot
+pheatmap(heatmap_mat, 
+         annotation_col = annotation_col, 
+         annotation_colors = ann_colors,
+         scale = "row",          
+         show_colnames = TRUE, 
+         cluster_cols = TRUE,    
+         main = "Consensus KOs: Human vs Wildlife")
+```
+
+```{r heatmap with all significant ko from wilcoxon}
+#Prepare the matrix (KOs as rows, MAGs as columns)
+heatmap_mat <- kegg_rel_nz_meta %>%
+  column_to_rownames("ID") %>%
+  select(all_of(wilcox_results$KO)) %>%
+  as.matrix() %>%
+  t()
+
+#  Prepare the annotation data frame
+annotation_col <- data.frame(Source = kegg_rel_nz_meta$source)
+rownames(annotation_col) <- kegg_rel_nz_meta$ID
+
+# Check if they match
+all(colnames(heatmap_mat) == rownames(annotation_col))
+
+#colors
+ann_colors <- list(
+  Source = source_colors
+)
+
+# Plot
+pheatmap(heatmap_mat, 
+         annotation_col = annotation_col, 
+         annotation_colors = ann_colors,
+         scale = "row",          
+         show_colnames = TRUE, 
+         cluster_cols = TRUE,    
+         main = "Consensus KOs: Human vs Wildlife")
+```
+
+
+## GIFTs
 
 PCoA with Euclidean distances:
 ```{r pcoa_ordination, message=FALSE, fig.height=8, fig.width=10, fig.fullwidth=TRUE}
@@ -78,14 +533,14 @@ gift_pcoa_eigenvalues <- gift_pcoa$values$Eigenvalues[c(1,2)]
 gift_pcoa_gifts <- cov(genome_gifts, scale(gift_pcoa_vectors)) %*%
   diag((gift_pcoa_eigenvalues/(nrow(genome_gifts)-1))^(-0.5)) %>%
   as.data.frame() %>% 
-  rename(Axis.1=1,Axis.2=2) %>% 
+  dplyr::rename(Axis.1=1,Axis.2=2) %>% 
   rownames_to_column(var="label") %>% 
   #get function summary vectors
   mutate(func=substr(label,1,3)) %>% 
   group_by(func) %>% #grouping by function
   summarise(Axis.1=mean(Axis.1),
             Axis.2=mean(Axis.2)) %>% 
-  rename(label=func) %>% 
+  dplyr::rename(label=func) %>% 
   filter(!label %in% c("S01","S02","S03"))
 
 
@@ -133,24 +588,7 @@ gift_pcoa_vectors %>%
 
 ```
 
-```{r arrow functions euclidean}
-arrow_functions <- gift_pcoa_gifts %>%
-  left_join(GIFT_db, by = c("label" = "Code_function")) %>%
-  group_by(label) %>%
-  summarise(
-    Axis.1 = mean(Axis.1),
-    Axis.2 = mean(Axis.2),
-    Function = first(Function),
-    Domain  = first(Domain),
-    Length  = sqrt(Axis.1^2 + Axis.2^2), # vector length
-    .groups = "drop"
-  ) %>%
-  arrange(desc(Length))  # sort so most important arrows are first
 
-arrow_functions
-
-
-```
 
 
 Using k-means to cluster the groups and check which MAGs cluster together:
@@ -282,7 +720,7 @@ library(reshape2)
 
 GIFTs_elements %>%
   reshape2::melt() %>%
-  rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
+  dplyr::rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
   inner_join(GIFT_db,by="Code_element") %>%
   ggplot(., aes(x=Code_element, y=Genome, fill=GIFT, group=Code_function))+
     geom_tile()+
@@ -295,7 +733,7 @@ GIFTs_elements %>%
 ```
 
 
-```{r}
+```{r checking_which_function_is_d09}
 head(GIFT_db)
 
 GIFT_db%>%
@@ -304,9 +742,10 @@ GIFT_db%>%
 
 
 ```{r amr_gift_plot, fig.height=10, fig.width=8, fig.fullwidth=TRUE}
+library(reshape2)
 GIFTs_elements %>%
   melt() %>%
-  rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
+  dplyr::rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
   inner_join(GIFT_db, by = "Code_element") %>%
   filter(str_starts(Code_element, "D09")) %>%  # only antibiotic degradation
   left_join(metadata_with_cluster, by = join_by(Genome == ID)) %>%

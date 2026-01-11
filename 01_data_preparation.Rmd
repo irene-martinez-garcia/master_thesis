@@ -5,7 +5,7 @@
 1) Choose the MAGs   
 In this case, we will be working with _Parabacteroides distasonis_ and _Phocaeicola vulgatus_. In the EHI database, select the MAGs with > 90% completeness and < 2.5 contamination. Do the same in the GTDB, but also filter for isolation source CONTAINS feces.
 
-## Downloading the MAGs
+## Downloading the MAGs and generating data
 2) Download genome indices and metadata    
 Download the EHI_MAG index for each species (in /data/mags_metadata folder) and the curl file and search metadata tsv from the GTDB and place in each species directory in Mjolnir.
 
@@ -68,9 +68,37 @@ snakemake -s snakefiles/prokka_and_pangenome.smk --profile snakefiles/slurm_prof
 
 9) Run genome_mapping.sh to map the mag ids to the corresponding names 
 
+10) Run drep
+```{bash, eval = FALSE}
+ sbatch scripts/drep_compare.slurm
+```
+
+11) Run create_pangolin_input.R to create the input file ppanggolin needs
+```{bash, eval = FALSE}
+conda activate mags_r_env
+Rscript scripts/create_pangolin_input.R
+
+#or if we want to use the annotation files by prokka:
+Rscript scripts/create_pangolin_input_gff.R
+```
+
+
+12) Pangenome analysis with ppanggolin
+```{bash, eval = FALSE}
+conda activate ppanggolin
+
+ppanggolin all --fasta /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/data/parabacteroides_distasonis/ppanggolin_input.tsv
+
+#with annotation files:
+ppanggolin all --anno maps/projects/alberdilab/people/pjq449/comparative_metagenomics/data/parabacteroides_distasonis/genome_gff_paths.tsv --rarefaction 
+
+##if you are runnning this in the species folder, write local path not absolute.
+```
+
+
+
 
 ## R Studio- Data Analysis
-## Load data
 
 ### EHI MAGs
 ```{r load ehi mags first}
@@ -101,7 +129,7 @@ source_colors <- c(EHI = "#8BC63F", GTDB = "#A90D00")
 ```
 
 ### Sample metadata
-```{r load gtdb search metadata}
+```{r load gtdb search metadata_1}
 gtdb_search_metadata <- read_tsv("data/p_dist_gtdb_metadata.tsv")
 ```
 
@@ -120,6 +148,21 @@ genome_mapping <- read_tsv("data/genome_mapping.tsv")
 
 gtdb_accession_metadata_2 <- left_join(gtdb_accession_metadata, genome_mapping, by = c("search_accession" = "genome_id")
   )
+
+
+
+#Make a genome_mapping with all the MAGs (including EHI)
+
+#First select the ehi IDs from ehi_metadata
+ehi_ids <- ehi_metadata %>% 
+  select(ID, mag_name) %>%
+  dplyr::rename(genome_id = ID,
+         genome_file = mag_name)
+
+ehi_ids$genome_file <- sub("\\.fa$", "", ehi_ids$genome_file)#remove .fa 
+
+genome_mapping_all <- genome_mapping %>%
+  bind_rows(ehi_ids)
 ```
 
 ```{r join the metadatas}
@@ -168,7 +211,8 @@ gtdb_clean <- gtdb_metadata %>%
     mimag_high_quality,
     mimag_medium_quality,
     gtdb_representative,
-    mag_name = genome_file
+    mag_name = genome_file,
+    ncbi_date
   )%>%
   mutate(source = "GTDB")
 
@@ -243,7 +287,7 @@ genome_gifts <- distill(genome_annotations,GIFT_db,genomecol= 2, annotcol=c(9,10
 
 
 ### Load trees
-```{r load trees}
+```{r load getphylo tree}
 genome_metadata$mag_name <- sub("\\.fa$", "", genome_metadata$mag_name)#remove .fa from the mag names so that they match the tree ids
 
 
@@ -256,6 +300,268 @@ tip_df <- data.frame(label = getphylo_tree$tip.label) %>%
 getphylo_tree$tip.label <- tip_df$ID
 
 ```
+
+```{r load drep files}
+fastani_comparisons <- read_csv("data/Ndb.csv")  #Secondary comparison results
+```
+
+```{r recreate drep tree}
+genomes <- unique(c(fastani_comparisons$reference, fastani_comparisons$querry))
+
+# Create empty matrix
+ani_matrix <- matrix(0, nrow = length(genomes), ncol = length(genomes))
+rownames(ani_matrix) <- genomes
+colnames(ani_matrix) <- genomes
+
+# Fill the matrix
+for(i in 1:nrow(fastani_comparisons)) {
+  ref <- fastani_comparisons$reference[i]
+  qry <- fastani_comparisons$querry[i]
+  ani_val <- fastani_comparisons$ani[i]
+  
+  ani_matrix[ref, qry] <- ani_val
+  ani_matrix[qry, ref] <- ani_val  # Make symmetric
+}
+
+# Set diagonal to 100
+diag(ani_matrix) <- 100
+
+# Convert to distance matrix (for tree building)
+dist_matrix <- as.dist(1 - ani_matrix)
+
+# Build tree
+hc <- hclust(dist_matrix, method = "average") #drep uses hierarchical clustering
+tree <- as.phylo(hc)
+
+ggtree(tree) + 
+  geom_tiplab(size = 2) +
+  theme_tree2()
+```
+```{r final drep tree}
+#remove this outlier that is >95% different (it must be another species)
+outlier <- "GCA_015060925.1_ASM1506092v1_genomic.fna"
+
+fastani_filtered <- fastani_comparisons %>%
+  filter(reference != outlier,
+         querry != outlier)
+
+#create the matrix
+genomes <- unique(c(fastani_filtered$reference,
+                    fastani_filtered$querry))
+
+ani_matrix <- matrix(0,
+                     nrow = length(genomes),
+                     ncol = length(genomes),
+                     dimnames = list(genomes, genomes))
+
+#fill in the matrix with the distances
+for(i in seq_len(nrow(fastani_filtered))) {
+  ref <- fastani_filtered$reference[i]
+  qry <- fastani_filtered$querry[i]
+  ani <- fastani_filtered$ani[i]
+
+  ani_matrix[ref, qry] <- ani
+  ani_matrix[qry, ref] <- ani
+}
+
+diag(ani_matrix) <- 1
+
+
+dist_matrix <- as.dist(1 - ani_matrix )
+
+#hierarchical clustering ti generate the tree
+hc <- hclust(dist_matrix, method = "average")
+tree <- as.phylo(hc)
+
+#use the short labels 
+tip_df <- tibble(
+  label = tree$tip.label,
+label_clean = sub("\\.fna$|\\.fa$", "", tree$tip.label)
+)
+
+tip_df <- tip_df %>%
+  left_join(genome_metadata, by = c("label_clean" = "mag_name"))
+
+tree$tip.label <- ifelse(
+  is.na(tip_df$ID),
+  tip_df$label_clean,
+  tip_df$ID
+)
+
+#check
+sum(is.na(tip_df$ID))
+
+tips_to_remove <- tree$tip.label[is.na(tip_df$ID)]
+tree <- ape::drop.tip(tree, tips_to_remove)
+
+# Update tip_df to match the pruned tree
+tip_df <- tip_df %>%
+  filter(!is.na(ID))
+
+```
+
+```{r plot the final tree}
+tree_reversed <- tree
+# Get the maximum distance (root to furthest tip)
+max_dist <- max(node.depth.edgelength(tree))
+# Reverse: make tips = 0 and root = max
+tree_reversed$edge.length <- tree$edge.length
+node_depths <- node.depth.edgelength(tree)
+# Calculate new positions (invert from tips)
+for(i in 1:length(tree_reversed$edge.length)) {
+  tree_reversed$edge.length[i] <- tree$edge.length[i]
+}
+
+p <- ggtree(tree) +
+  geom_tiplab(size = 2, hjust =  0.8)+
+  scale_x_continuous(
+    breaks = seq(0, 0.02, by = 0.002),
+    labels = function(x) round(100 * (1 - abs(x - 0.02)), 1),  # Reverse the labels
+    trans = "reverse"  # Reverse the axis
+  ) +
+  coord_cartesian(xlim = c(0.02, 0)) +
+  labs(x = "Average Nucleotide Identity (ANI, %)") +
+  theme_tree2()
+
+p
+```
+
+## Load pangenome data
+
+PPanggolin
+```{r pangolin presence absence}
+gene_matrix <- read.table("data/gene_presence_absence.Rtab", header = TRUE, row.names = 1)
+```
+
+```{r pca on presence absence matrix}
+gene_matrix_transposed <- gene_matrix %>% t()
+
+pca_gene_matrix <- prcomp(gene_matrix_transposed)
+
+plot_pca_gene_matrix <- as_tibble(pca_gene_matrix$x)%>% bind_cols(genome_metadata)
+
+percent_variance <- summary(pca_gene_matrix)$importance["Proportion of Variance",] * 100
+  
+```
+
+```{r plot pca}
+ggplot( plot_pca_gene_matrix, aes(x=PC1, y=PC2, col=host_species, label = ID)) + 
+  geom_point() + 
+  geom_text(hjust=0, vjust=0, size=2) +
+  xlab(paste("PC1 ", percent_variance[1], "%"))+ 
+  ylab(label = paste("PC2 ", percent_variance[2], "%")) +
+  theme_bw()
+
+
+# Removing outlier
+outlier_to_remove <- "GCA_958371025.1" 
+gene_matrix_filtered <- gene_matrix[, !colnames(gene_matrix) %in% outlier_to_remove]
+
+# Rerun PCA without outlier
+gene_matrix_transposed_filtered <- gene_matrix_filtered %>% t()
+pca_gene_matrix_filtered <- prcomp(gene_matrix_transposed_filtered)
+plot_pca_filtered <- as_tibble(pca_gene_matrix_filtered$x) %>% 
+  bind_cols(genome_metadata %>% filter(!rownames(.) %in% outlier_to_remove))
+percent_variance_filtered <- summary(pca_gene_matrix_filtered)$importance["Proportion of Variance",] * 100
+
+plot_pca_filtered <- plot_pca_filtered %>%
+  mutate(
+    collection_date = as.Date(ncbi_date),  
+    date_numeric = as.numeric(ncbi_date)
+  )
+
+# Plot colored by date with gradient
+ggplot(plot_pca_filtered, aes(x=PC1, y=PC2, color=collection_date)) + 
+  geom_point(size=3) + 
+  scale_color_viridis_c(option="viridis") +  # or use "plasma", "inferno", etc.
+  xlab(paste("PC1 ", percent_variance_filtered[1], "%"))+ 
+  ylab(paste("PC2 ", percent_variance_filtered[2], "%")) +
+  labs(color="Collection Date") +
+  theme_bw()
+
+```
+
+
+
+```{r mapping the tree to the gene matrix}
+mapping_from_tip_df <- setNames(tip_df$ID, tip_df$label_clean)
+
+# Check the mapping
+cat("First 10 mappings from tip_df:\n")
+head(mapping_from_tip_df, 10)
+
+# How many gene_matrix columns match?
+cat("\nGene_matrix columns in tip_df mapping:", 
+    sum(colnames(gene_matrix) %in% names(mapping_from_tip_df)), "\n")
+
+# Which gene_matrix columns are NOT in tip_df?
+not_in_tipdf <- colnames(gene_matrix)[!colnames(gene_matrix) %in% names(mapping_from_tip_df)]
+cat("Not in tip_df (", length(not_in_tipdf), "):\n")
+print(head(not_in_tipdf, 20))
+
+# Apply the mapping from tip_df
+new_colnames <- mapping_from_tip_df[colnames(gene_matrix)]
+
+cat("\nNumber of successful mappings:", sum(!is.na(new_colnames)), "\n")
+cat("Number of NAs:", sum(is.na(new_colnames)), "\n")
+
+# Apply new names
+colnames(gene_matrix) <- ifelse(
+  is.na(new_colnames),
+  colnames(gene_matrix),  # Keep original if no mapping
+  new_colnames            # Use mapped EHM ID
+)
+
+# Now check matching with tree
+cat("\nAfter mapping - columns matching tree:", 
+    sum(colnames(gene_matrix) %in% tree$tip.label), "\n")
+
+# Common genomes
+common_genomes <- intersect(colnames(gene_matrix), tree$tip.label)
+cat("Common genomes:", length(common_genomes), "\n")
+
+# Should be 91 now (or close to it)!
+gene_matrix_filtered <- gene_matrix[, common_genomes]
+gene_matrix_t <- t(gene_matrix_filtered)
+gene_matrix_t <- gene_matrix_t[tree$tip.label, ]
+
+cat("\nFinal verification - Perfect match?", 
+    all(rownames(gene_matrix_t) == tree$tip.label), "\n")
+```
+
+
+
+```{r final_pangenome_fig_heatmap_tree, fig.height=8, fig.width=16, fig.fullwidth=TRUE}
+hc <- as.hclust(tree)
+
+
+pheatmap(
+  gene_matrix_t,
+  cluster_rows = hc,     
+  cluster_cols = TRUE,
+  show_rownames = TRUE,
+  show_colnames = FALSE,
+  fontsize = 5,
+  color = c("white", "blue")
+)
+
+```
+## Exploring ppanggolin outputs
+```{r load all pangolin outputs}
+functional_modules <- read_tsv("data/pangolin/functional_modules.tsv")
+gene_families <- read_tsv("data/pangolin/gene_families.tsv", col_names = FALSE)
+mean_persistent_duplication <- read_tsv("data/pangolin/mean_persistent_duplication.tsv")
+modules_in_genomes <- read_tsv("data/pangolin/modules_in_genomes.tsv")
+modules_RGP_lists <- read_tsv("data/pangolin/modules_RGP_lists.tsv")
+modules_spots <- read_tsv("data/pangolin/modules_spots.tsv")
+modules_summary <- read_tsv("data/pangolin/modules_summary.tsv")
+spot_borders <- read_tsv("data/pangolin/spot_borders.tsv")
+spots <- read_tsv("data/pangolin/spots.tsv")
+summarize_spots <- read_tsv("data/pangolin/summarize_spots.tsv")
+genomes_statistics <- read_tsv("data/pangolin/genomes_statistics.tsv", comment= "#")
+regions_of_genomic_plasticity <- read_tsv("data/pangolin/regions_of_genomic_plasticity.tsv")
+```
+
 
 
 ## Wrap working objects

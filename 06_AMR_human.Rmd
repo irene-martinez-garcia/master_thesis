@@ -1,0 +1,96 @@
+# Antibiotic resistance analysis
+
+```{r load_data_mag_amr_human, message=FALSE, warning=FALSE, echo=FALSE}
+load("data/data.Rdata")
+```
+
+## Building an AMR abundance table
+
+```{r amr table_human}
+amr_abundance <- genome_annotations %>%
+  filter(resistance_type == "AMR") %>%
+  group_by(mag_id, resistance_target) %>%
+  summarise(count = n(), .groups="drop") %>%
+  tidyr::pivot_wider(
+    names_from = resistance_target,
+    values_from = count,
+    values_fill = 0
+  )
+
+```
+
+```{r join with metadata_human}
+amr_cluster <- amr_abundance %>%
+  dplyr::full_join(metadata_with_cluster, by= join_by(mag_id == ID))
+```
+
+
+```{r AMR abundance heatmap_human,  fig.height=14, fig.width=12, fig.fullwidth=TRUE}
+amr_matrix <- amr_abundance %>%
+  column_to_rownames("mag_id") %>%
+  as.matrix()
+
+
+min_val <- 0
+max_val <- max(amr_matrix, na.rm = TRUE)
+
+library(viridis)
+
+colors <- viridis(100, option = "viridis")
+
+breaks <- seq(min_val, max_val, length.out = 101)   
+
+
+
+pheatmap( amr_matrix,
+  color = colors,
+  cluster_rows = TRUE,
+  cluster_cols = TRUE,
+  fontsize = 9,
+  border_color = NA
+)
+
+
+amr_scaled <- scale(amr_matrix, center = TRUE, scale = TRUE)
+
+min_val <- 0
+max_val <- max(amr_scaled, na.rm = TRUE)
+
+library(viridis)
+
+colors <- viridis(100, option = "viridis")
+
+breaks <- seq(min_val, max_val, length.out = 101)   
+
+
+
+pheatmap( amr_scaled,
+  color = colors,
+  cluster_rows = TRUE,
+  cluster_cols = TRUE,
+  fontsize = 9,
+  border_color = NA
+)
+```
+
+
+
+```{r AMR presence heatmap_human,  fig.height=14, fig.width=12, fig.fullwidth=TRUE}
+amr_presence <- amr_abundance %>%
+  column_to_rownames("mag_id") %>%   
+  mutate(across(everything(), ~ ifelse(. > 0, 1, 0)))%>%
+  as.matrix()
+
+
+pheatmap(
+  amr_presence,
+  cluster_rows = TRUE,
+  cluster_cols = TRUE,
+  color = c("white", "black"),     # white = absent, black = present
+  legend_breaks = c(0,1),
+  legend_labels = c("Absent", "Present"),
+  border_color = NA
+)
+
+```
+

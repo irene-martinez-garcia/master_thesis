@@ -7,6 +7,7 @@ load("data/data.Rdata")
 ## Building an AMR abundance table
 
 ```{r amr table}
+# select the AMR annotations
 amr_abundance <- genome_annotations %>%
   filter(resistance_type == "AMR") %>%
   group_by(mag_id, resistance_target) %>%
@@ -20,8 +21,8 @@ amr_abundance <- genome_annotations %>%
 ```
 
 ```{r join with metadata}
-amr_cluster <- amr_abundance %>%
-  dplyr::full_join(metadata_with_cluster, by= join_by(mag_id == ID))
+#amr_cluster <- amr_abundance %>%
+#  dplyr::full_join(metadata_with_cluster, by= join_by(mag_id == ID))
 ```
 
 
@@ -30,33 +31,28 @@ amr_matrix <- amr_abundance %>%
   column_to_rownames("mag_id") %>%
   as.matrix()
 
-
-min_val <- 0
+# Abundance heatmap
+min_val <- min(amr_matrix, na.rm = TRUE)
 max_val <- max(amr_matrix, na.rm = TRUE)
-
-library(viridis)
 
 colors <- viridis(100, option = "viridis")
 
 breaks <- seq(min_val, max_val, length.out = 101)   
 
-
-
 pheatmap( amr_matrix,
   color = colors,
-  cluster_rows = TRUE,
+  cluster_rows = FALSE,
   cluster_cols = TRUE,
   fontsize = 9,
   border_color = NA
 )
 
 
+#Scaled abundance heatmap
 amr_scaled <- scale(amr_matrix, center = TRUE, scale = TRUE)
 
-min_val <- 0
+min_val <- min(amr_scaled, na.rm = TRUE)
 max_val <- max(amr_scaled, na.rm = TRUE)
-
-library(viridis)
 
 colors <- viridis(100, option = "viridis")
 
@@ -66,7 +62,7 @@ breaks <- seq(min_val, max_val, length.out = 101)
 
 pheatmap( amr_scaled,
   color = colors,
-  cluster_rows = TRUE,
+  cluster_rows = FALSE,
   cluster_cols = TRUE,
   fontsize = 9,
   border_color = NA
@@ -75,7 +71,7 @@ pheatmap( amr_scaled,
 
 
 
-```{r AMR presence heatmap,  fig.height=14, fig.width=12, fig.fullwidth=TRUE}
+```{r AMR presence heatmap_1,  fig.height=14, fig.width=12, fig.fullwidth=TRUE}
 amr_presence <- amr_abundance %>%
   column_to_rownames("mag_id") %>%   
   mutate(across(everything(), ~ ifelse(. > 0, 1, 0)))%>%
@@ -86,11 +82,309 @@ pheatmap(
   amr_presence,
   cluster_rows = TRUE,
   cluster_cols = TRUE,
-  color = c("white", "black"),     # white = absent, black = present
+  color = c("white", "darkblue"),     # white = absent, black = present
   legend_breaks = c(0,1),
   legend_labels = c("Absent", "Present"),
   border_color = NA
 )
 
 ```
+```{r heatmap presence absence by ehi vs gtdb,  fig.height=14, fig.width=12, fig.fullwidth=TRUE}
+pheatmap(
+  amr_presence,
+  cluster_rows = FALSE,
+  cluster_cols = TRUE,
+  color = c("white", "darkblue"),     # white = absent, black = present
+  legend_breaks = c(0,1),
+  legend_labels = c("Absent", "Present"),
+  border_color = NA
+)
+```
+
+
+```{r permanova_amr}
+amr_counts <- genome_annotations %>%
+  filter(mag_id != "GCA_015060925.1") %>%
+  filter(resistance_type == "AMR") %>%
+  dplyr::count(mag_id, resistance_target) %>%            
+  pivot_wider(names_from = resistance_target, values_from = n, values_fill = 0) %>%
+  filter(rowSums(select(., -mag_id)) > 0) # Removes MAGs with no AMR genes found
+
+# Fixed normalization
+amr_rel <- amr_counts %>%
+  column_to_rownames("mag_id")
+amr_rel <- amr_rel / rowSums(amr_rel)  # Each row sums to 1
+
+# Remove zero variance
+amr_rel_nz <- amr_rel[, apply(amr_rel, 2, sd) > 0]
+
+# Distance matrix from normalized data
+amr_dist <- vegdist(amr_rel_nz, method = "bray")  # or euclidean
+
+# Add metadata
+amr_rel_nz_meta <- amr_rel_nz %>%
+  rownames_to_column("ID") %>%
+  left_join(genome_metadata, by = "ID")
+
+#Beta dispersion test
+dispersion <- betadisper(amr_dist, amr_rel_nz_meta$source)
+anova(dispersion) 
+
+
+# PERMANOVA test
+permanova_result <- adonis2(amr_dist ~ source, 
+                            data = amr_rel_nz_meta, 
+                            permutations = 999)
+print(permanova_result)
+```
+
+
+```{r pcoa amr}
+pcoa_res <- cmdscale(amr_dist, k = 2, eig = TRUE)
+pcoa_df <- data.frame(PC1 = pcoa_res$points[,1], PC2 = pcoa_res$points[,2], ID = rownames(amr_rel_nz))
+
+
+pcoa_df <- pcoa_df %>%
+  left_join(genome_metadata, by = "ID")
+
+ggplot(pcoa_df, aes(PC1, PC2, color = source)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  #scale_color_manual()+
+  labs(
+    title = "PCoA of AMR annotations across MAGs",
+    x = paste0("PC1 (", round(summary(pca)$importance[2,1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
+  )
+
+```
+```{r deseq_amr}
+library(DESeq2)
+
+# Prepare the count matrix (AMR_Targets as rows, MAGs as columns)
+# Ensure only integer columns are kept
+counts_mtx <- amr_counts %>%
+  column_to_rownames("mag_id") %>%
+  t() 
+
+# Prepare metadata (Must match column names of counts_mtx)
+metadata <- genome_metadata %>%
+  filter(ID %in% colnames(counts_mtx)) %>%
+  column_to_rownames("ID")
+
+# Ensure order matches exactly
+metadata <- metadata[colnames(counts_mtx), , drop = FALSE]
+
+#Create DESeq2 object
+dds <- DESeqDataSetFromMatrix(countData = counts_mtx,
+                              colData = metadata,
+                              design = ~ source)
+
+#Run initial steps manually instead of using DESeq()
+dds <- estimateSizeFactors(dds)
+dds <- estimateDispersionsGeneEst(dds)
+dispersions(dds) <- mcols(dds)$dispGeneEst # Force the use of gene-wise estimates
+
+# Run the Wald test
+dds <- nbinomWaldTest(dds)
+
+# save results (Wildlife vs Human)
+res <- results(dds, contrast=c("source", "EHI", "GTDB"), alpha=0.05)
+
+
+summary(res)
+
+```
+```{r save res amr}
+res_df <-res %>% as.data.frame %>% rownames_to_column("AMR_Target") %>% as_tibble
+
+res_df <- filter(res_df, padj<0.05)
+```
+
+```{r wilcoxon_amr}
+wilcox_amr <- amr_rel_nz_meta %>%
+  pivot_longer(
+    cols = where(is.numeric),
+    names_to = "AMR_Target", 
+    values_to = "rel_abundance"
+  ) %>%
+  group_by(AMR_Target) %>%
+  do(broom::tidy(wilcox.test(rel_abundance ~ source, data = .))) %>%
+  ungroup()
+
+# Adjust p-values
+wilcox_amr_results <- wilcox_amr %>%
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>%
+  filter(p.adj < 0.05) %>%
+  arrange(p.adj)
+
+wilcox_amr_results
+```
+
+```{r checking frequency, eval = FALSE}
+#amr frequency
+amr_frequency <- amr_rel_nz_meta %>%
+  select(source, all_of(wilcox_amr_results$AMR_Target)) %>%
+  pivot_longer(-source, names_to = "AMR_Target", values_to = "val") %>%
+  group_by(AMR_Target, source) %>%
+  summarise(percent_presence = mean(val > 0) * 100, .groups = 'drop')
+
+
+ggplot(amr_frequency, aes(x = AMR_Target, y = percent_presence, fill = source)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  coord_flip() 
+  scale_fill_manual(values = source_colors) +
+  theme_minimal() +
+  labs(title = "Prevalence of AMR Genes: Human vs Wildlife",
+       y = "% of MAGs carrying the gene", x = "")
+```
+
+```{r plot all_amr}
+# Filter data to only include the common KOs
+common_AMR_Target <- (wilcox_amr_results$AMR_Target)
+
+plot_data <- amr_rel_nz_meta %>%
+  select(ID, source, all_of(common_AMR_Target)) %>%
+  pivot_longer(cols = all_of(common_AMR_Target), 
+               names_to = "AMR_Target", 
+               values_to = "Relative_Abundance")
+
+
+ggplot(plot_data, aes(x = source, y = Relative_Abundance, fill = source)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(width = 0.2, alpha = 0.4, size = 1) +
+  facet_wrap(~AMR_Target, scales = "free_y", ncol = 5) + # 'free_y' is important as abundance scales vary
+  scale_fill_manual(values = source_colors) +
+  theme_minimal() +
+  theme(strip.text = element_text(face = "bold"),
+        legend.position = "bottom") +
+  labs(title = "Relative Abundance of Consensus Significant AMR Targets",
+       x = "Host Source",
+       y = "Relative Abundance")
+```
+
+
+```{r testing prevalence with fischer test}
+amr_binary <- amr_counts %>%
+  left_join(genome_metadata %>% select(ID, source), by = c("mag_id" = "ID")) %>%
+  # Convert all numeric columns to 0 or 1
+  mutate(across(where(is.numeric), ~ ifelse(.x > 0, 1, 0)))
+
+#Function to run Fischer test for each gene
+run_fisher <- function(gene_name, df) {
+  tab <- table(df$source, df[[gene_name]])
+  
+  # Only run if the table is actually 2x2 
+  if(ncol(tab) == 2) {
+    test <- fisher.test(tab)
+    return(tidy(test) %>% mutate(AMR_Target = gene_name))
+  } else {
+    return(NULL)
+  }
+}
+
+# Apply the function to all AMR columns
+amr_names <- colnames(amr_counts)[-1] # everything except mag_id
+
+fisher_results <- map_df(amr_names, ~ run_fisher(.x, amr_binary))
+
+# Adjust for multiple testing (FDR)
+fisher_results <- fisher_results %>%
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>%
+  #filter(p.adj < 0.05) %>%
+  arrange(p.adj)
+
+print(fisher_results)
+```
+
+
+
+# Virulence factors analysis
+
+## Building an virulence factor abundance table
+
+```{r select virulence factor data from gene annotations}
+vf_data <- genome_annotations %>%
+  select(mag_id, vf, vf_type) 
+```
+
+
+```{r vf table}
+vf_abundance <- genome_annotations %>%
+  select(mag_id, vf) %>%
+  group_by(mag_id, vf) %>%
+  summarise(count = n(), .groups="drop") %>%
+  tidyr::pivot_wider(
+    names_from = vf,
+    values_from = count,
+    values_fill = 0
+  )
+
+```
+
+```{r vf join with metadata}
+#vf_cluster <- vf_abundance %>%
+ # dplyr::full_join(genome_metadata, by= join_by(mag_id == ID))
+```
+
+
+
+```{r vf heatmaps}
+# make into a matrix
+vf_matrix <- vf_abundance %>%
+  column_to_rownames("mag_id") %>%
+  as.matrix()
+
+# Unscaled abundance heatmap
+pheatmap(vf_matrix,
+  color = viridis(100, option = "viridis"),
+  cluster_rows = FALSE,
+  cluster_cols = TRUE,
+  fontsize = 9,
+  border_color = NA
+)
+
+# For scaled heatmap -> remove zero variance columns 
+col_vars <- apply(vf_matrix, 2, var, na.rm = TRUE)
+vf_matrix_filtered <- vf_matrix[, col_vars > 0 & !is.na(col_vars)]
+
+# Scale the filtered matrix
+vf_scaled <- scale(vf_matrix_filtered, center = TRUE, scale = TRUE)
+
+# Check for any remaining Inf/NaN values
+if(any(!is.finite(vf_scaled))) {
+  vf_scaled[!is.finite(vf_scaled)] <- 0  # Replace Inf/NaN with 0
+}
+
+# Scaled heatmap
+pheatmap(vf_scaled,
+  color = viridis(100, option = "viridis"),
+  cluster_rows = FALSE,
+  cluster_cols = TRUE,
+  fontsize = 5,
+  border_color = NA
+)
+```
+## Virulence presence/absence heatmap
+```{r VF presence heatmap,  fig.height=14, fig.width=12, fig.fullwidth=TRUE}
+vf_presence <- vf_abundance %>%
+  column_to_rownames("mag_id") %>%   
+  mutate(across(everything(), ~ ifelse(. > 0, 1, 0)))%>%
+  as.matrix()
+
+
+pheatmap(
+  vf_presence,
+  cluster_rows = FALSE,
+  cluster_cols = TRUE,
+  color = c("white", "darkblue"),     
+  legend_breaks = c(0,1),
+  legend_labels = c("Absent", "Present"),
+  border_color = NA
+)
+
+```
+
+
+
 

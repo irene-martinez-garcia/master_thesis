@@ -8,7 +8,7 @@ load("data/data.Rdata")
 Total number of MAGs
 ```{r count n MAGS}
 genome_metadata %>%
-  count(source)
+  dplyr::count(source)
 ```
 
 ```{r mean completeness and contamination}
@@ -29,8 +29,9 @@ genome_metadata %>%
 
 #Generate quality biplot
 genome_biplot <- genome_metadata %>%
-  dplyr::select(c(ID,completeness,contamination)) %>%
-  ggplot(aes(x=completeness,y=contamination)) +
+  dplyr::select(c(ID,completeness,contamination, source)) %>%
+  ggplot(aes(x=completeness,y=contamination, color = source)) +
+  scale_color_manual(values = source_colors)+
               geom_point(alpha=0.7) +
                     xlim(c(90,100)) +
                     ylim(c(2.5,0)) +
@@ -80,5 +81,107 @@ grid.arrange(grobs = list(genome_completeness,genome_biplot,genome_contamination
                               c(2,2,2,2,2,2,2,2,2,2,2,3),
                               c(2,2,2,2,2,2,2,2,2,2,2,3)))
 #dev.off()
+```
+
+
+
+```{r genome size plot}
+ggplot(genome_metadata, aes(x= ID, y = genome_size, fill = source))+
+  scale_fill_manual(values = source_colors)+
+  geom_col()+ 
+  theme_classic()
+
+
+ggplot(genome_metadata, aes(x= source, y = genome_size, fill = source))+
+  scale_fill_manual(values = source_colors)+
+  geom_boxplot()+ 
+  theme_classic()+
+  labs(y = "Genome Size", x = "Source")
+```
+
+
+```{r contamination and completeness plots}
+ggplot(genome_metadata, aes(x= ID, y = contamination, fill = source))+
+  scale_fill_manual(values = source_colors)+
+  geom_col()+ 
+  theme_classic()
+
+
+ggplot(genome_metadata, aes(x= source, y = contamination, fill = source))+
+  scale_fill_manual(values = source_colors)+
+  geom_boxplot()+ 
+  theme_classic()+
+  labs(y = "Contamination", x = "Source")
+
+ggplot(genome_metadata, aes(x= ID, y = completeness, fill = source))+
+  scale_fill_manual(values = source_colors)+
+  geom_col()+ 
+  theme_classic()
+
+
+ggplot(genome_metadata, aes(x= source, y = completeness, fill = source))+
+  scale_fill_manual(values = source_colors)+
+  geom_point()+
+  geom_boxplot()+ 
+  theme_classic()+
+  labs(y = "Completeness", x = "Source")
+```
+
+
+```{r stats_comparing}
+wilcox.test(contamination ~ source, data=genome_metadata)  %>%
+  tidy()
+
+wilcox.test(completeness ~ source, data=genome_metadata)  %>%
+  tidy()
+
+wilcox.test(genome_size ~ source, data=genome_metadata)  %>%
+  tidy()
+
+```
+
+
+
+```{r stats_mean}
+# Combine the summaries
+ehi_stats <- genome_metadata %>%
+  filter(source == "EHI") %>%
+  mutate(genome_size_mb = genome_size/1000000) %>%
+  summarise(
+    m_gs = round(mean(genome_size_mb), 2),
+    sd_gs = round(sd(genome_size_mb), 2), 
+    m_cont = round(mean(contamination), 2),
+    sd_cont = round(sd(contamination), 2),
+    m_comp = round(mean(completeness), 2),
+    sd_comp = round(sd(completeness), 2)
+  ) %>%
+  unite("Mean genome size",m_gs, sd_gs, sep = " ± ", remove = TRUE) %>%
+  unite("Mean completeness",m_comp, sd_comp, sep = " ± ", remove = TRUE) %>%
+  unite("Mean contamination",m_cont, sd_cont, sep = " ± ", remove = TRUE) %>%
+  mutate(Source = "EHI") %>%
+  select(Source, everything())
+
+gtdb_stats <- genome_metadata %>%
+  filter(source == "GTDB") %>%
+  filter(!is.na(genome_size)) %>%
+  mutate(genome_size_mb = genome_size/1000000) %>%
+  summarise(
+    m_gs = round(mean(genome_size_mb), 2),
+    sd_gs = round(sd(genome_size_mb), 2),
+    m_cont = round(mean(contamination), 2),
+    sd_cont = round(sd(contamination), 2),
+    m_comp = round(mean(completeness), 2),
+    sd_comp = round(sd(completeness), 2)
+  ) %>%
+   unite("Mean genome size",m_gs, sd_gs, sep = " ± ", remove = TRUE) %>%
+  unite("Mean completeness",m_comp, sd_comp, sep = " ± ", remove = TRUE) %>%
+  unite("Mean contamination",m_cont, sd_cont, sep = " ± ", remove = TRUE) %>%
+  mutate(Source = "GTDB") %>%
+  select(Source, everything())
+
+# Combine into one table
+summary_table <- bind_rows(ehi_stats, gtdb_stats)
+
+summary_table
 ```
 

@@ -50,7 +50,7 @@ The following R packages are required for the data analysis.
 library(R.utils)
 library(knitr)
 library(tidyverse)
-library(devtools)
+#library(devtools)
 library(tinytable)
 library(rairtable)
 library(janitor)
