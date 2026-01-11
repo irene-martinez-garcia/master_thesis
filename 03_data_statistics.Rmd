@@ -159,7 +159,7 @@ ehi_stats <- genome_metadata %>%
   unite("Mean completeness",m_comp, sd_comp, sep = " ± ", remove = TRUE) %>%
   unite("Mean contamination",m_cont, sd_cont, sep = " ± ", remove = TRUE) %>%
   mutate(Source = "EHI") %>%
-  select(Source, everything())
+  dplyr::select(Source, everything())
 
 gtdb_stats <- genome_metadata %>%
   filter(source == "GTDB") %>%
@@ -177,7 +177,7 @@ gtdb_stats <- genome_metadata %>%
   unite("Mean completeness",m_comp, sd_comp, sep = " ± ", remove = TRUE) %>%
   unite("Mean contamination",m_cont, sd_cont, sep = " ± ", remove = TRUE) %>%
   mutate(Source = "GTDB") %>%
-  select(Source, everything())
+  dplyr::select(Source, everything())
 
 # Combine into one table
 summary_table <- bind_rows(ehi_stats, gtdb_stats)

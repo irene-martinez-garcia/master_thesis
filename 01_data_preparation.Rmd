@@ -155,7 +155,7 @@ gtdb_accession_metadata_2 <- left_join(gtdb_accession_metadata, genome_mapping, 
 
 #First select the ehi IDs from ehi_metadata
 ehi_ids <- ehi_metadata %>% 
-  select(ID, mag_name) %>%
+  dplyr::select(ID, mag_name) %>%
   dplyr::rename(genome_id = ID,
          genome_file = mag_name)
 
@@ -168,7 +168,7 @@ genome_mapping_all <- genome_mapping %>%
 ```{r join the metadatas}
 # Prepare EHI metadata with standardized column names
 ehi_clean <- ehi_metadata %>%
-  select(
+  dplyr::select(
     ID,
     species = species,  
     completeness,
@@ -196,7 +196,7 @@ gtdb_metadata <- full_join(gtdb_accession_metadata_2, gtdb_search_metadata,  by 
 
 # Prepare GTDB metadata
 gtdb_clean <- gtdb_metadata %>%
-  select(
+  dplyr::select(
     ID = search_accession,
     species = "Organism Name",
     completeness = "CheckM Completeness",
@@ -242,7 +242,7 @@ master_index <- read_tsv("data/master_mag_index.tsv") %>%
 # Check the mapping
 print("Master index mapping:")
 master_index %>% 
-  select(ID, genome_identifier, out_path) %>%
+  dplyr::select(ID, genome_identifier, out_path) %>%
   head(10) %>%
   print()
 
@@ -270,10 +270,10 @@ genome_annotations <- read_tsv("data/gene_annotations.tsv.xz") %>%
   ) %>%
   # Join with master index using genome_identifier
   left_join(
-    master_index %>% select(mag_id = ID, genome_identifier),
+    master_index %>% dplyr::select(mag_id = ID, genome_identifier),
     by = c("accession" = "genome_identifier")
   ) %>%
-  select(gene, mag_id, genome = genome_filename, contig, accession, everything()) %>%
+  dplyr::select(gene, mag_id, genome = genome_filename, contig, accession, everything()) %>%
   filter(!is.na(mag_id))
 
 ```
@@ -560,6 +560,16 @@ spots <- read_tsv("data/pangolin/spots.tsv")
 summarize_spots <- read_tsv("data/pangolin/summarize_spots.tsv")
 genomes_statistics <- read_tsv("data/pangolin/genomes_statistics.tsv", comment= "#")
 regions_of_genomic_plasticity <- read_tsv("data/pangolin/regions_of_genomic_plasticity.tsv")
+```
+```{r add genome sizes missing}
+genome_metadata <- genome_metadata %>%
+  mutate(
+    genome_size = case_when(
+      ID == "GCF_001406015.1" & is.na(genome_size) ~ 5073478,
+      ID == "GCF_002206325.1" & is.na(genome_size) ~ 4963958,
+      TRUE ~ genome_size
+    )
+  )
 ```
 
 

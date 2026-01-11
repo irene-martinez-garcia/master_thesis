@@ -230,7 +230,7 @@ p_dist <- ehi_mags %>%
 write_tsv(p_dist, "data/mags_metadata/parabacteroides_distasonis_metadata.tsv")
 
 p_dist_index <- p_dist %>%
-  select(ID, MAG_url)
+  dplyr::select(ID, MAG_url)
 
 write_tsv(p_dist_index, "data/mags_metadata/parabacteroides_distasonis_index.tsv")
 ```
@@ -252,7 +252,7 @@ for (i in 1:nrow(species_selection_f)) {
   
   #get index
   species_index <- species_data  %>%
-  select(ID, MAG_url)
+  dplyr::select(ID, MAG_url)
 
   #Filename from species name
   filename <- current_species %>%

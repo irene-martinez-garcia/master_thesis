@@ -1,4 +1,4 @@
-# Functional Analysis
+# Functional Analysis (HUMAN)
 
 ```{r load_data_mag_human_funct, message=FALSE, warning=FALSE, echo=FALSE}
 load("data/human/data.Rdata")
@@ -186,7 +186,7 @@ genome_metadata %>% filter(ID %in% cluster4_MAGs)
 
 ```{r combined table_human}
 metadata_with_cluster <- genome_metadata %>%
-  left_join(coords %>% select(MAG, cluster), by = c("ID" = "MAG"))
+  left_join(coords %>% dplyr::select(MAG, cluster), by = c("ID" = "MAG"))
 
 metadata_with_cluster %>%
   group_by(cluster, source) %>%

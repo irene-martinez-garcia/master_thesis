@@ -1,4 +1,4 @@
-# Data preparation
+# Data preparation (HUMAN)
 
 MAKING SURE THAT THE MAGS FROM GTDB ARE HUMAN
 
@@ -149,7 +149,7 @@ ehi_metadata <- read_tsv("data/mags_metadata/parabacteroides_distasonis_metadata
 ```{r join the metadatas_human}
 # Prepare EHI metadata with standardized column names
 ehi_clean <- ehi_metadata %>%
-  select(
+  dplyr::select(
     ID,
     species,  
     completeness,
@@ -177,7 +177,7 @@ gtdb_metadata <- full_join(gtdb_accession_metadata, gtdb_search_metadata,  by = 
 
 # Prepare GTDB metadata
 gtdb_clean <- gtdb_metadata %>%
-  select(
+  dplyr::select(
     ID = search_accession,
     completeness = "checkm2_completeness",
     contamination = "checkm2_contamination",
@@ -222,7 +222,7 @@ master_index <- read_tsv("data/human/master_mag_index_2.tsv") %>%
 # Check the mapping
 print("Master index mapping:")
 master_index %>% 
-  select(ID, genome_identifier, out_path) %>%
+  dplyr::select(ID, genome_identifier, out_path) %>%
   head(10) %>%
   print()
 

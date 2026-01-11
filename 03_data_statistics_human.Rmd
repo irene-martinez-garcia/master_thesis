@@ -1,4 +1,4 @@
-# Data statistics
+# Data statistics (HUMAN)
 
 ### Load data
 ```{r load data statistics_human}

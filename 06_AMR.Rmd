@@ -108,7 +108,7 @@ amr_counts <- genome_annotations %>%
   filter(resistance_type == "AMR") %>%
   dplyr::count(mag_id, resistance_target) %>%            
   pivot_wider(names_from = resistance_target, values_from = n, values_fill = 0) %>%
-  filter(rowSums(select(., -mag_id)) > 0) # Removes MAGs with no AMR genes found
+  filter(rowSums(dplyr::select(., -mag_id)) > 0) # Removes MAGs with no AMR genes found
 
 # Fixed normalization
 amr_rel <- amr_counts %>%
@@ -224,7 +224,7 @@ wilcox_amr_results
 ```{r checking frequency, eval = FALSE}
 #amr frequency
 amr_frequency <- amr_rel_nz_meta %>%
-  select(source, all_of(wilcox_amr_results$AMR_Target)) %>%
+  dplyr::select(source, all_of(wilcox_amr_results$AMR_Target)) %>%
   pivot_longer(-source, names_to = "AMR_Target", values_to = "val") %>%
   group_by(AMR_Target, source) %>%
   summarise(percent_presence = mean(val > 0) * 100, .groups = 'drop')
@@ -244,7 +244,7 @@ ggplot(amr_frequency, aes(x = AMR_Target, y = percent_presence, fill = source)) 
 common_AMR_Target <- (wilcox_amr_results$AMR_Target)
 
 plot_data <- amr_rel_nz_meta %>%
-  select(ID, source, all_of(common_AMR_Target)) %>%
+  dplyr::select(ID, source, all_of(common_AMR_Target)) %>%
   pivot_longer(cols = all_of(common_AMR_Target), 
                names_to = "AMR_Target", 
                values_to = "Relative_Abundance")
@@ -266,7 +266,7 @@ ggplot(plot_data, aes(x = source, y = Relative_Abundance, fill = source)) +
 
 ```{r testing prevalence with fischer test}
 amr_binary <- amr_counts %>%
-  left_join(genome_metadata %>% select(ID, source), by = c("mag_id" = "ID")) %>%
+  left_join(genome_metadata %>% dplyr::select(ID, source), by = c("mag_id" = "ID")) %>%
   # Convert all numeric columns to 0 or 1
   mutate(across(where(is.numeric), ~ ifelse(.x > 0, 1, 0)))
 
@@ -305,13 +305,13 @@ print(fisher_results)
 
 ```{r select virulence factor data from gene annotations}
 vf_data <- genome_annotations %>%
-  select(mag_id, vf, vf_type) 
+  dplyr::select(mag_id, vf, vf_type) 
 ```
 
 
 ```{r vf table}
 vf_abundance <- genome_annotations %>%
-  select(mag_id, vf) %>%
+  dplyr::select(mag_id, vf) %>%
   group_by(mag_id, vf) %>%
   summarise(count = n(), .groups="drop") %>%
   tidyr::pivot_wider(
