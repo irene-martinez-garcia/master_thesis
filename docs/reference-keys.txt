@@ -14,6 +14,7 @@ genome-annotations
 distill-annotations-into-gifts
 load-trees
 load-pangenome-data
+exploring-ppanggolin-outputs
 wrap-working-objects
 data-preparation-human
 searching-for-the-mags-1
@@ -33,14 +34,14 @@ host-classes
 host-classes--after-filtering
 count-host-classes-per-species
 data-statistics
-load-data
+mean-completeness-and-contamination
 data-statistics-human
-load-data-1
+load-data
 phylogenetic-analysis
-load-data-2
+load-data-1
 pangenome-analysis
 phylogenetic-analysis-human
-load-data-3
+load-data-2
 functional-analysis
 functional-overview
 predicted-genes
@@ -68,6 +69,10 @@ functional-ordination-1
 checking-each-cluster-at-once-1
 antibiotic-resistance-analysis
 building-an-amr-abundance-table
+permanova
+pcoa
+deseq2
+wilcoxon-1
 virulence-factors-analysis
 building-an-virulence-factor-abundance-table
 antibiotic-resistance-analysis-human

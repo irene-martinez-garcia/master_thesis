@@ -278,6 +278,15 @@ ggplot(pcoa_df, aes(PC1, PC2, color = genome_size)) +
     x = paste0("PC1 (",round(variance_explained[1] * 100, 1), "%)"),
     y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
   )
+
+ggplot(pcoa_df, aes(PC1, PC2, color = host_species)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of KEGG annotations across MAGs (colored by host species)",
+    x = paste0("PC1 (",round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
+  )
 ```
 
 ### Differential abundance
@@ -366,7 +375,7 @@ ggplot(res_df_2, aes(x=log2FoldChange, y=-log10(pvalue), color=padj < 0.05, labe
 
 ### Wilcoxon
 
-```{r wilcoxon_keggs}
+```{r wilcoxon_keggs, message = FALSE, warning = FALSE}
 #Transform to long format and run test for every KO
 wilcox_results <- kegg_rel_nz_meta %>%
   pivot_longer(cols = starts_with("K"), 
@@ -385,7 +394,7 @@ wilcox_results <- wilcox_results %>%
 head(wilcox_results)
 ```
 
-```{r plotting top term}
+```{r plotting top term, message = FALSE, warning = FALSE}
 res_df <- as.data.frame(res) %>%
   rownames_to_column("KO") %>%
   filter(padj < 0.05) %>%
@@ -405,7 +414,7 @@ ggplot(kegg_rel_nz_meta, aes(x = source, y = .data[[top_ko]], fill = source)) +
        y = "Relative Abundance")
 ```
 
-```{r plot all}
+```{r plot all, message = FALSE, warning = FALSE}
 # Filter data to only include the common KOs
 plot_data <- kegg_rel_nz_meta %>%
   dplyr::select(ID, source, all_of(common_KOs)) %>%
@@ -428,7 +437,7 @@ ggplot(plot_data, aes(x = source, y = Relative_Abundance, fill = source)) +
 ```
 
 Check alignment with DESeq:
-```{r checking medians} 
+```{r checking medians, message = FALSE, warning = FALSE} 
 # Calculate medians for each group to see direction
 direction_check <- kegg_rel_nz_meta %>%
   dplyr::select(source, all_of(common_KOs)) %>%
@@ -448,7 +457,7 @@ print(final_comparison)
 ```
 
 
-```{r get the ko pathways}
+```{r get the ko pathways, message = FALSE, warning = FALSE}
 target_kos <- common_KOs 
 
 # Function to get info from KEGG
@@ -477,7 +486,7 @@ print(ko_summary)
 ```
 
 
-```{r heatmap ko from wilcoxon and deseq}
+```{r heatmap ko from wilcoxon and deseq, message = FALSE, warning = FALSE}
 #Prepare the matrix (KOs as rows, MAGs as columns)
 heatmap_mat <- kegg_rel_nz_meta %>%
   column_to_rownames("ID") %>%
@@ -507,7 +516,7 @@ pheatmap(heatmap_mat,
          main = "Consensus KOs: Human vs Wildlife")
 ```
 
-```{r heatmap with all significant ko from wilcoxon}
+```{r heatmap with all significant ko from wilcoxon, message = FALSE, warning = FALSE}
 #Prepare the matrix (KOs as rows, MAGs as columns)
 heatmap_mat <- kegg_rel_nz_meta %>%
   column_to_rownames("ID") %>%
@@ -540,7 +549,7 @@ pheatmap(heatmap_mat,
 
 
 ### ALDEX2
-```{r testing aldex raw}
+```{r testing aldex raw, message = FALSE, warning = FALSE}
 kegg_raw_mat <- kegg_counts %>%
   column_to_rownames("mag_id") %>%
   as.matrix()
@@ -592,7 +601,7 @@ GENOME SIZE is significantly larger in GTDB MAGs --> correct for genome size
 
 Which functions are enriched per unit genome by source?
 
-```{r adjust kegg matrix by genome size}
+```{r adjust kegg matrix by genome size, message = FALSE, warning = FALSE}
 genome_sizes <- genome_metadata %>%
   dplyr::select(ID, genome_size)
 
@@ -608,7 +617,7 @@ kegg_per_mb <- kegg_counts_gs[, -ncol(kegg_counts_gs)] /
 
 
 
-```{r preparation for aldex2}
+```{r preparation for aldex2, message = FALSE, warning = FALSE}
 kegg_mat <- as.matrix(kegg_per_mb)
 
 # Replace any NA
@@ -637,7 +646,7 @@ kegg_pseudo <- round(kegg_per_mb * scale_factor)
 kegg_pseudo[kegg_pseudo == 0] <- 1
 
 ```
-```{r aldex2}
+```{r aldex2, message = FALSE, warning = FALSE}
 library(ALDEx2)
 
 aldex_clr <- aldex.clr(
@@ -675,7 +684,7 @@ sig_kegg
 
 
 
-```{r clr wilcoxon}
+```{r clr wilcoxon, message = FALSE, warning = FALSE}
 library(compositions)
 
 clr_mat <- clr(kegg_per_mb + 1e-6)
@@ -688,7 +697,7 @@ res_adj <- p.adjust(res, method = "BH")
 
 ```
 
-```{r check}
+```{r check, message = FALSE, warning = FALSE}
 clr_res <- data.frame(
   KEGG = names(res),
   p_value = res,
@@ -712,7 +721,7 @@ sum(res_lm_adj < 0.05)
 
 
 ```
-```{r linear model results}
+```{r linear model results, message = FALSE, warning = FALSE}
 
 clr_res_lm <- data.frame(
   KEGG = colnames(clr_mat),
@@ -1086,7 +1095,7 @@ GIFTs_elements %>%
 
 #### Cluster-wise
 Element GIFTs different between clusters of pcoa
-```{r testing gifts between clusters}
+```{r testing gifts between clusters, message = FALSE, warning = FALSE}
 # Get only the GIFT columns
 gift_cols <- colnames(GIFTs_elements)[!(colnames(GIFTs_elements) %in% c("MAG_ID","cluster","source"))]
 
@@ -1117,7 +1126,7 @@ kruskal_table %>% filter(p_adj<0.05)
 ```
 
 
-```{r testing gifts between clusters pairwise}
+```{r testing gifts between clusters pairwise, message = FALSE, warning = FALSE}
 pairwise_results <- lapply(gift_cols, function(g) {
   pairwise.wilcox.test(
     x = gift_df_meta[[g]],
@@ -1151,7 +1160,7 @@ pairwise_sig_table
 
 ```
 
-```{r sig_cluster_gift_plot, fig.height=10, fig.width=8, fig.fullwidth=TRUE}
+```{r sig_cluster_gift_plot, message = FALSE, warning = FALSE, fig.height=10, fig.width=8, fig.fullwidth=TRUE}
 library(reshape2)
 library(RColorBrewer)
 
@@ -1187,7 +1196,7 @@ GIFTs_elements %>%
 
 #### Source-wise
 GIFTs that are different between EHI and GTDB
-```{r testing gifts between sources pairwise}
+```{r testing gifts between sources pairwise, message = FALSE, warning = FALSE}
 wilcox_results <- sapply(gift_cols, function(g) {
   wilcox.test(as.formula(paste(g, "~ source")), data = gift_df_meta)$p.value
 })

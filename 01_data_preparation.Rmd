@@ -546,8 +546,70 @@ pheatmap(
 )
 
 ```
+
+```{r dendogram matrix figure, fig.height=10, fig.width=16, fig.fullwidth=TRUE}
+annotation_row <- data.frame(
+  source = genome_metadata$source
+)
+rownames(annotation_row) <- genome_metadata$ID
+
+ann_colors <- list(
+  source = source_colors  
+)
+
+# keep only rows in the matrix
+annotation_row <- annotation_row[rownames(gene_matrix_t), , drop = FALSE]
+
+pheatmap(
+  gene_matrix_t,
+  cluster_rows = hc,
+  cluster_cols = TRUE,
+  treeheight_row = 120,
+  show_rownames = TRUE,
+  show_colnames = FALSE,
+  fontsize = 5,
+  color = c("white", "blue"),
+  annotation_row = annotation_row,
+  annotation_colors = ann_colors,
+  legend_breaks = c(0, 1),
+  legend_labels = c("Absent", "Present")
+)
+
+```
+
+
+```{r testing with complexheatmap to include ani values of dendogram, fig.height=10, fig.width=16, fig.fullwidth=TRUE}
+library(ComplexHeatmap)
+library(circlize)
+
+# Heatmap colors
+col_fun <- colorRamp2(c(0, 1), c("white", "blue"))
+
+# Row annotation
+row_ha <- rowAnnotation(
+  source = annotation_row$source,
+  col = list(source = ann_colors$source)
+)
+
+Heatmap(
+  gene_matrix_t,
+  name = "Gene presence",
+  col = col_fun,
+  cluster_rows = hc,
+  cluster_columns = TRUE,
+  show_row_names = TRUE,
+  show_column_names = FALSE,
+  row_names_gp = gpar(fontsize = 6),
+  left_annotation = row_ha
+)
+
+```
+
+
+
+
 ## Exploring ppanggolin outputs
-```{r load all pangolin outputs}
+```{r load all pangolin outputs, message = FALSE, warning = FALSE}
 functional_modules <- read_tsv("data/pangolin/functional_modules.tsv")
 gene_families <- read_tsv("data/pangolin/gene_families.tsv", col_names = FALSE)
 mean_persistent_duplication <- read_tsv("data/pangolin/mean_persistent_duplication.tsv")

@@ -1,6 +1,6 @@
 # Data statistics
 
-### Load data
+
 ```{r load data statistics}
 load("data/data.Rdata")
 ```
@@ -11,6 +11,8 @@ genome_metadata %>%
   dplyr::count(source)
 ```
 
+
+### Mean completeness and contamination
 ```{r mean completeness and contamination}
 genome_metadata %>% 
   summarise(
