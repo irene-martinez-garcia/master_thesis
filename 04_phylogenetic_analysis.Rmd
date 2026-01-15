@@ -128,11 +128,8 @@ circular_tree %>% open_tree(30) %>% rotate_tree(90)
 
 
 
-## Pangenome Analysis
 
-```{r pangenome statistics}
-genomes_statistics <- read_tsv("data/genomes_statistics.tsv") 
-```
+
 
 
 

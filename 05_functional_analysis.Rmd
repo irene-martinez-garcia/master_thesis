@@ -48,8 +48,219 @@ cat(kegg_annota)
 kegg_annota*100/genome_annota
 ```
 
+```{r n genes per mag}
+n_pred_genes <- genome_annotations %>%
+  group_by(mag_id) %>%
+  summarize(n_genes = n()) %>%
+  left_join(
+    genome_metadata %>% dplyr::select(ID, source),
+    by = c("mag_id" = "ID")
+  )
+
+annotated_genes <- genome_annotations %>%
+  filter(if_any(c(kegg, pfam, cazy), ~ !is.na(.))) %>%
+  group_by(mag_id) %>%
+  summarize(n_annotated_genes = n()) %>%
+  left_join(
+    genome_metadata %>% dplyr::select(ID, source),
+    by = c("mag_id" = "ID")
+  )
+```
+
+```{r plotting n genes}
+ggplot(n_pred_genes, aes(x= source, y = n_genes, fill = source))+
+  scale_fill_manual(values = source_colors)+
+  geom_boxplot()+ 
+  geom_point()+
+  theme_classic()+
+  labs(y = "Gene Number", x = "Source")
+
+ggplot(annotated_genes, aes(x= source, y = n_annotated_genes, fill = source))+
+  scale_fill_manual(values = source_colors)+
+  geom_boxplot()+ 
+  geom_point()+
+  theme_classic()+
+  labs(y = "Annotated Gene Number", x = "Source")
+
+wilcox.test(n_genes ~ source, data=n_pred_genes)  %>%
+  tidy()
+
+
+wilcox.test(n_annotated_genes ~ source, data=annotated_genes)  %>%
+  tidy()
+
+```
+
 
 ## KEGG
+### Nº of MAGs with KOs
+```{r mag counts per kegg}
+#Proportion of MAGs belonging to each group per KEGG
+#I want to know for example 5% of MAGs in the EHI group have this KEGG, but 40 % of MAGs in the GTDB group have it
+
+# KEGG presence/absence
+kegg_presence <- genome_annotations %>%
+  filter(mag_id != "GCA_015060925.1") %>%   # remove weird MAG
+  filter(!is.na(kegg)) %>%
+  dplyr::select(mag_id, kegg) %>%
+  distinct() 
+
+#Add the source info
+kegg_with_source <- kegg_presence %>%
+  left_join(
+    genome_metadata %>% dplyr::select(ID, source),
+    by = c("mag_id" = "ID")
+  )
+
+# Count how many MAGs in each KEGG
+kegg_mag_counts <- kegg_with_source %>%
+  group_by(source, kegg) %>%
+  summarise(
+    n_mags = n(),
+    .groups = "drop"
+  )
+
+#Count total MAGs per source (except the outlier)
+total_mags_per_source <- genome_metadata %>%
+  filter(ID != "GCA_015060925.1") %>%
+  group_by(source) %>%
+  summarise(
+    total_mags = n_distinct(ID),
+    .groups = "drop"
+  )
+
+#Calculate proportions of MAGs from each source in each KEGG
+kegg_mag_proportions <- kegg_mag_counts %>%
+  left_join(total_mags_per_source, by = "source") %>%
+  mutate(
+    proportion = n_mags / total_mags,
+    absent = total_mags - n_mags
+  )
+
+```
+
+#### Plotting KEGG MAG proportions
+```{r plotting kegg mag proportions}
+kegg_mag_proportions %>%
+  filter(n_mags >= 20)
+
+ggplot(kegg_mag_proportions,
+       aes(x = kegg, y = proportion, fill = source)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = source_colors) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  ) +
+  labs(
+    x = "KEGG ortholog",
+    y = "Proportion of MAGs"
+  )
+
+```
+
+#### Statistical testing of MAG proportions
+```{r statistical testing mag proportions}
+fisher_results <- kegg_mag_proportions %>%
+  dplyr::select(kegg, source, n_mags, absent) %>%
+  pivot_wider(
+    names_from = source,
+    values_from = c(n_mags, absent),
+    values_fill = 0
+  ) %>%
+  rowwise() %>%
+  mutate(
+    p_value = fisher.test(
+      matrix(
+        c(n_mags_EHI,  absent_EHI,
+          n_mags_GTDB, absent_GTDB),
+        nrow = 2,
+        byrow = TRUE
+      )
+    )$p.value
+  ) %>%
+  ungroup() %>%
+  mutate(p_adj = p.adjust(p_value, method = "BH"))
+
+fisher_results <- fisher_results %>%
+  mutate(
+    prop_EHI  = n_mags_EHI  / (n_mags_EHI  + absent_EHI),
+    prop_GTDB = n_mags_GTDB / (n_mags_GTDB + absent_GTDB),
+    diff_prop = prop_GTDB - prop_EHI
+  )
+```
+
+```{r filtering padj}
+sig_fisher_results <- fisher_results%>% filter(p_adj < 0.05) 
+sig_fisher_results
+```
+```{r function to get info from KEGG}
+library(KEGGREST)
+
+# Function to get info from KEGG
+get_kegg_info <- function(ko_id) {
+  query <- keggGet(ko_id)[[1]]
+  
+  # Extract Name and Definition
+  name <- ifelse(!is.null(query$NAME), query$NAME, "N/A")
+  definition <- ifelse(!is.null(query$DEFINITION), query$DEFINITION, "N/A")
+  
+  # Extract Pathways (often multiple)
+  pathways <- if(!is.null(query$PATHWAY)) {
+    paste(names(query$PATHWAY), query$PATHWAY, sep = ": ", collapse = "; ")
+  } else {
+    "No pathway assigned"
+  }
+  
+  return(c(KO = ko_id, Name = name, Definition = definition, Pathways = pathways))
+}
+
+```
+
+```{r significant kos}
+signigicant_kos <- fisher_results%>% filter(p_adj < 0.05) %>% pull(kegg)
+
+
+ko_list <- lapply(signigicant_kos, get_kegg_info)
+ko_summary <- as.data.frame(do.call(rbind, ko_list))
+
+print(ko_summary)
+```
+
+
+```{r heatmap data}
+heatmap_data <- sig_fisher_results %>%
+  dplyr::select(kegg, prop_EHI, prop_GTDB)%>%
+  pivot_longer(!kegg, names_to = "source", values_to= "proportion" ) %>%
+   mutate(
+    source = case_when(
+      source == "prop_EHI"  ~ "EHI",
+      source == "prop_GTDB" ~ "GTDB",
+      TRUE ~ source
+    )
+  )
+```
+
+
+```{r plot the keggs}
+ggplot(heatmap_data,
+       aes(x = source, y = kegg, fill = proportion)) +
+  geom_tile() +
+  scale_fill_viridis_c(
+    name = "Proportion of MAGs",
+    limits = c(0, 1)
+  ) +
+  theme_minimal() +
+  labs(
+    x = "Source",
+    y = "KEGG ortholog",
+    title = "Differential KEGG presence between EHI and GTDB"
+  )
+
+```
+
+
+
 ### Functional Ordination
 
 PCA of KEGG annotations:
@@ -144,6 +355,15 @@ ggplot(scores, aes(PC1, PC2, color = host_species)) +
     x = paste0("PC1 (", round(summary(pca)$importance[2,1] * 100, 1), "%)"),
     y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
   )
+
+# ggplot(scores, aes(PC1, PC2, color = country)) +
+#   geom_point(size = 2) +
+#   theme_minimal() +
+#   labs(
+#     title = "KEGG PCA colored by host species ",
+#     x = paste0("PC1 (", round(summary(pca)$importance[2,1] * 100, 1), "%)"),
+#     y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
+#   )
 ```
 ```{r loadings pca total}
 loadings <- pca$rotation
@@ -287,6 +507,24 @@ ggplot(pcoa_df, aes(PC1, PC2, color = host_species)) +
     x = paste0("PC1 (",round(variance_explained[1] * 100, 1), "%)"),
     y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
   )
+
+# ggplot(pcoa_df, aes(PC1, PC2, color = country)) +
+#   geom_point(size = 2) +
+#   theme_minimal() +
+#   labs(
+#     title = "PCoA of KEGG annotations across MAGs (colored by country)",
+#     x = paste0("PC1 (",round(variance_explained[1] * 100, 1), "%)"),
+#     y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
+#   )
+# 
+# ggplot(pcoa_df, aes(PC1, PC2, color = continent)) +
+#   geom_point(size = 2) +
+#   theme_minimal() +
+#   labs(
+#     title = "PCoA of KEGG annotations across MAGs (colored by continent)",
+#     x = paste0("PC1 (",round(variance_explained[1] * 100, 1), "%)"),
+#     y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
+#   )
 ```
 
 ### Differential abundance
@@ -460,23 +698,6 @@ print(final_comparison)
 ```{r get the ko pathways, message = FALSE, warning = FALSE}
 target_kos <- common_KOs 
 
-# Function to get info from KEGG
-get_kegg_info <- function(ko_id) {
-  query <- keggGet(ko_id)[[1]]
-  
-  # Extract Name and Definition
-  name <- ifelse(!is.null(query$NAME), query$NAME, "N/A")
-  definition <- ifelse(!is.null(query$DEFINITION), query$DEFINITION, "N/A")
-  
-  # Extract Pathways (often multiple)
-  pathways <- if(!is.null(query$PATHWAY)) {
-    paste(names(query$PATHWAY), query$PATHWAY, sep = ": ", collapse = "; ")
-  } else {
-    "No pathway assigned"
-  }
-  
-  return(c(KO = ko_id, Name = name, Definition = definition, Pathways = pathways))
-}
 
 
 ko_info_list <- lapply(target_kos, get_kegg_info)
@@ -550,6 +771,7 @@ pheatmap(heatmap_mat,
 
 ### ALDEX2
 ```{r testing aldex raw, message = FALSE, warning = FALSE}
+library(ALDEx2)
 kegg_raw_mat <- kegg_counts %>%
   column_to_rownames("mag_id") %>%
   as.matrix()
@@ -647,7 +869,7 @@ kegg_pseudo[kegg_pseudo == 0] <- 1
 
 ```
 ```{r aldex2, message = FALSE, warning = FALSE}
-library(ALDEx2)
+
 
 aldex_clr <- aldex.clr(
   reads = t(kegg_pseudo),

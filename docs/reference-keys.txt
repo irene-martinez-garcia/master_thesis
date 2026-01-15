@@ -39,7 +39,6 @@ data-statistics-human
 load-data
 phylogenetic-analysis
 load-data-1
-pangenome-analysis
 phylogenetic-analysis-human
 load-data-2
 functional-analysis
@@ -48,6 +47,9 @@ predicted-genes
 number-of-annotated-genes-and-percentages
 number-of-kegg-annotatated-genes-and-percentages
 kegg
+nº-of-mags-with-kos
+plotting-kegg-mag-proportions
+statistical-testing-of-mag-proportions
 functional-ordination
 kegg-heatmap
 testing-the-differences-in-kegg-annotations-with-permanova
@@ -68,12 +70,16 @@ number-of-kegg-annotatated-genes-and-percentages-1
 functional-ordination-1
 checking-each-cluster-at-once-1
 antibiotic-resistance-analysis
+nº-of-mags-with-amrs
+statistical-testing-of-mag-proportions-1
 building-an-amr-abundance-table
 permanova
 pcoa
 deseq2
 wilcoxon-1
 virulence-factors-analysis
+nº-of-mags-with-vfs
+statistical-testing-of-mag-proportions-2
 building-an-virulence-factor-abundance-table
 antibiotic-resistance-analysis-human
 building-an-amr-abundance-table-1

@@ -3,7 +3,7 @@
 
 ## Searching for the MAGs
 1) Choose the MAGs   
-In this case, we will be working with _Parabacteroides distasonis_ and _Phocaeicola vulgatus_. In the EHI database, select the MAGs with > 90% completeness and < 2.5 contamination. Do the same in the GTDB, but also filter for isolation source CONTAINS feces.
+In this case, we will be working with _Parabacteroides distasonis_. In the EHI database, select the MAGs with > 90% completeness and < 2.5 contamination. Do the same in the GTDB, but also filter for isolation source CONTAINS feces.
 
 ## Downloading the MAGs and generating data
 2) Download genome indices and metadata    
@@ -102,7 +102,7 @@ ppanggolin all --anno maps/projects/alberdilab/people/pjq449/comparative_metagen
 
 ### EHI MAGs
 ```{r load ehi mags first}
-ehi_mags <- read_csv("data/ehi_mags.csv")
+ehi_mags <- read_csv("data/ehi_metadata_location.csv")
 ```
 ### Prepare color scheme
 
@@ -124,8 +124,8 @@ phylum_colors <- read_tsv("https://raw.githubusercontent.com/earthhologenome/EHI
 
 
 ```{r colors}
-#source_colors <- c(EHI = "#8BC63F", GTDB = "#2D522D")
-source_colors <- c(EHI = "#8BC63F", GTDB = "#A90D00")
+source_colors <- c(EHI = "#8BC63F", GTDB = "#2D522D")
+#source_colors <- c(EHI = "#8BC63F", GTDB = "#A90D00")
 ```
 
 ### Sample metadata
@@ -141,6 +141,10 @@ gtdb_accession_metadata<- read_tsv("data/parabacteroides_distasonis_GTDB_accessi
 ```{r load EHI metadata}
 ehi_metadata <- read_tsv("data/mags_metadata/parabacteroides_distasonis_metadata.tsv") %>%
   mutate(GC = as.numeric(str_remove(GC, "%")))
+
+location_data<- ehi_mags %>% dplyr::select(ID, locality, country)
+
+ehi_metadata_location <- left_join(ehi_metadata, location_data, by = "ID")
 ```
 ### Load genome mapping
 ```{r load genome mapping}
@@ -167,7 +171,7 @@ genome_mapping_all <- genome_mapping %>%
 
 ```{r join the metadatas}
 # Prepare EHI metadata with standardized column names
-ehi_clean <- ehi_metadata %>%
+ehi_clean <- ehi_metadata_location%>%
   dplyr::select(
     ID,
     species = species,  
@@ -183,7 +187,9 @@ ehi_clean <- ehi_metadata %>%
     assembly_type,
     isolation_source= sample_type,
     mag_name, 
-    eha_number
+    eha_number,
+    locality, 
+    country
   ) %>%
   mutate(source = "EHI")
 
@@ -207,7 +213,7 @@ gtdb_clean <- gtdb_metadata %>%
     GC = gc_percentage,
     N50 = n50_contigs,
     contigs = contig_count,
-    ncbi_country,
+    country = ncbi_country,
     mimag_high_quality,
     mimag_medium_quality,
     gtdb_representative,
@@ -218,6 +224,44 @@ gtdb_clean <- gtdb_metadata %>%
 
 #Join
 genome_metadata <- bind_rows(ehi_clean, gtdb_clean)
+
+genome_metadata_clean <- genome_metadata %>%
+  separate_wider_delim(
+    cols = country, 
+    delim = regex(":\\s*"),
+    names = c("country_clean", "extra_locality"),
+    too_few = "align_start"
+  ) %>%
+  mutate(
+    locality = case_when(
+      !is.na(extra_locality) & !is.na(locality) ~ paste(extra_locality, locality, sep = ", "),
+      !is.na(extra_locality) ~ extra_locality,
+      TRUE ~ locality
+    )
+  ) %>%
+  dplyr::rename(country = country_clean)
+
+
+genome_metadata <- genome_metadata_clean %>%
+  mutate(
+    # United States to USA
+    country = case_match(
+      country,
+      "United States" ~ "USA",
+      .default = country
+    ),
+    
+    # Continent column
+    continent = case_when(
+      country %in% c("Spain", "Italy", "Greece", "Portugal", "Malta", 
+                     "Ireland", "Germany", "United Kingdom") ~ "Europe",
+      country %in% c("USA", "Canada", "Greenland") ~ "North America",
+      country %in% c("South Korea", "China", "Japan") ~ "Asia",
+      country == "Australia" ~ "Oceania",
+      TRUE ~ NA_character_  # Handle "none" and NA
+    )
+  )
+
 
 ```
 
@@ -416,7 +460,7 @@ p <- ggtree(tree) +
   geom_tiplab(size = 2, hjust =  0.8)+
   scale_x_continuous(
     breaks = seq(0, 0.02, by = 0.002),
-    labels = function(x) round(100 * (1 - abs(x - 0.02)), 1),  # Reverse the labels
+    labels = function(x) round(100 * (1 - x), 1),  # Reverse the labels
     trans = "reverse"  # Reverse the axis
   ) +
   coord_cartesian(xlim = c(0.02, 0)) +
@@ -425,6 +469,119 @@ p <- ggtree(tree) +
 
 p
 ```
+
+```{r tree final, fig.height = 10, fig.width = 12}
+# Create a proper matching data frame
+tip_data_for_plot <- data.frame(
+  label = tree$tip.label,
+  stringsAsFactors = FALSE
+)
+
+# Match with metadata
+tip_data_for_plot <- tip_data_for_plot %>%
+  left_join(
+    tip_df %>% dplyr::select(ID, source, host_species, country, locality, continent),
+    by = c("label" = "ID")
+  )
+
+# Get the actual x-range of the tree
+tree_data <- fortify(tree)
+max_x <- max(tree_data$x[tree_data$isTip])
+
+# Plot
+p <- ggtree(tree, size = 1) +  
+  geom_vline(xintercept = max_x - 0.005,  # 99.5% ANI (0.005 from tips)
+             linetype = "dashed", 
+             color = "red", 
+             size = 0.8) +
+  geom_tippoint(aes(color = source), size = 3) +
+  geom_tiplab(aes(color = source),
+              size = 4,
+              hjust = -0.1)
+
+p <- p %<+% tip_data_for_plot +
+  scale_color_manual(values = source_colors, name = "Source") +
+  scale_x_continuous(
+    labels = function(x) round(100 * (1 - (max_x - x)), 1)  # Convert based on distance from tips
+  ) +
+  coord_cartesian(xlim = c(0, max_x + 0.005)) +
+  labs(x = "Average Nucleotide Identity (ANI, %)") +
+  theme_tree2() +
+  theme(
+    legend.position = "right",
+    plot.margin = margin(5, 100, 5, 5),
+    axis.text.x = element_text(size = 14),
+    axis.title.x = element_text(size = 16)
+  )
+p
+```
+
+
+```{r tree final_by_host_species, fig.height = 10, fig.width = 12}
+# Get the actual x-range of the tree
+tree_data <- fortify(tree)
+max_x <- max(tree_data$x[tree_data$isTip])
+
+# Plot
+p <- ggtree(tree, size = 1) +  
+  geom_vline(xintercept = max_x - 0.005,  # 99.5% ANI (0.005 from tips)
+             linetype = "dashed", 
+             color = "red", 
+             size = 0.8) +
+  geom_tippoint(aes(color = host_species), size = 3) +
+  geom_tiplab(aes(color = host_species),
+              size = 4,
+              hjust = -0.1)
+
+p <- p %<+% tip_data_for_plot +
+  scale_x_continuous(
+    labels = function(x) round(100 * (1 - (max_x - x)), 1)  # Convert based on distance from tips
+  ) +
+  coord_cartesian(xlim = c(0, max_x + 0.005)) +
+  labs(x = "Average Nucleotide Identity (ANI, %)") +
+  theme_tree2() +
+  theme(
+    legend.position = "right",
+    plot.margin = margin(5, 100, 5, 5),
+    axis.text.x = element_text(size = 14),
+    axis.title.x = element_text(size = 16)
+  )
+p
+```
+
+```{r tree final_by_country, fig.height = 10, fig.width = 12}
+# Get the actual x-range of the tree
+tree_data <- fortify(tree)
+max_x <- max(tree_data$x[tree_data$isTip])
+
+# Plot
+p <- ggtree(tree, size = 1) +  
+  geom_vline(xintercept = max_x - 0.005,  # 99.5% ANI (0.005 from tips)
+             linetype = "dashed", 
+             color = "red", 
+             size = 0.8) +
+  geom_tippoint(aes(color = continent), size = 3) +
+  geom_tiplab(aes(color = continent),
+              size = 4,
+              hjust = -0.1)
+
+p <- p %<+% tip_data_for_plot +
+  scale_x_continuous(
+    labels = function(x) round(100 * (1 - (max_x - x)), 1)  # Convert based on distance from tips
+  ) +
+  coord_cartesian(xlim = c(0, max_x + 0.005)) +
+  labs(x = "Average Nucleotide Identity (ANI, %)") +
+  theme_tree2() +
+  theme(
+    legend.position = "right",
+    plot.margin = margin(5, 100, 5, 5),
+    axis.text.x = element_text(size = 14),
+    axis.title.x = element_text(size = 16)
+  )
+p
+```
+
+
 
 ## Load pangenome data
 
@@ -454,7 +611,7 @@ ggplot( plot_pca_gene_matrix, aes(x=PC1, y=PC2, col=host_species, label = ID)) +
 
 
 # Removing outlier
-outlier_to_remove <- "GCA_958371025.1" 
+outlier_to_remove <- "GCA_015060925.1" 
 gene_matrix_filtered <- gene_matrix[, !colnames(gene_matrix) %in% outlier_to_remove]
 
 # Rerun PCA without outlier
@@ -531,7 +688,7 @@ cat("\nFinal verification - Perfect match?",
 
 
 
-```{r final_pangenome_fig_heatmap_tree, fig.height=8, fig.width=16, fig.fullwidth=TRUE}
+```{r final_pangenome_fig_heatmap_tree, fig.height=8, fig.width=16, fig.fullwidth=TRUE, eval = FALSE}
 hc <- as.hclust(tree)
 
 
@@ -547,7 +704,7 @@ pheatmap(
 
 ```
 
-```{r dendogram matrix figure, fig.height=10, fig.width=16, fig.fullwidth=TRUE}
+```{r dendogram matrix figure, fig.height=10, fig.width=16, fig.fullwidth=TRUE, eval = FALSE}
 annotation_row <- data.frame(
   source = genome_metadata$source
 )
@@ -578,7 +735,7 @@ pheatmap(
 ```
 
 
-```{r testing with complexheatmap to include ani values of dendogram, fig.height=10, fig.width=16, fig.fullwidth=TRUE}
+```{r testing with complexheatmap to include ani values of dendogram, fig.height=10, fig.width=16, fig.fullwidth=TRUE, eval = FALSE}
 library(ComplexHeatmap)
 library(circlize)
 
@@ -611,7 +768,7 @@ Heatmap(
 ## Exploring ppanggolin outputs
 ```{r load all pangolin outputs, message = FALSE, warning = FALSE}
 functional_modules <- read_tsv("data/pangolin/functional_modules.tsv")
-gene_families <- read_tsv("data/pangolin/gene_families.tsv", col_names = FALSE)
+  gene_families <- read_tsv("data/pangolin/gene_families.tsv", col_names = FALSE)
 mean_persistent_duplication <- read_tsv("data/pangolin/mean_persistent_duplication.tsv")
 modules_in_genomes <- read_tsv("data/pangolin/modules_in_genomes.tsv")
 modules_RGP_lists <- read_tsv("data/pangolin/modules_RGP_lists.tsv")

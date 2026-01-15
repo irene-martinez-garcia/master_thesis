@@ -122,7 +122,7 @@ phylum_colors <- read_tsv("https://raw.githubusercontent.com/earthhologenome/EHI
 
 ```{r colors_human}
 #source_colors <- c(EHI = "#8BC63F", GTDB = "#2D522D")
-source_colors <- c(EHI = "#8BC63F", GTDB = "#A90D00")
+source_colors_human <- c(EHI = "#8BC63F", GTDB = "#A90D00")
 ```
 
 ### Sample metadata
