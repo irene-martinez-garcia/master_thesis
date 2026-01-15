@@ -235,7 +235,77 @@ adonis2(
 )
 ```
 
+
+
+```{r amr presence_absence permanova}
+# remove zero-variance KOs
+amr_pa_nz <- amr_presence[, colSums(amr_presence) > 0 & colSums(amr_presence) < nrow(amr_presence)]
+
+meta <- genome_metadata %>%
+  filter(ID %in% rownames(amr_pa_nz)) %>%
+  column_to_rownames("ID")
+
+# VERY IMPORTANT: enforce same order
+meta <- meta[rownames(amr_pa_nz), ]
+
+stopifnot(identical(rownames(meta), rownames(amr_pa_nz)))
+
+
+amr_dist_pa <- vegdist(amr_pa_nz, method = "jaccard", binary = TRUE)
+
+# dispersion check
+disp_pa <- betadisper(amr_dist_pa, meta$source)
+anova(disp_pa)
+
+# PERMANOVA
+adonis2(
+  amr_dist_pa ~ genome_size +completeness+ source,
+  data = meta,
+  permutations = 999
+)
+
+
+```
+
+
+
 ## PCoA
+
+
+```{r pcoa on presence absence amr}
+pcoa_pa <- cmdscale(amr_dist_pa, eig = TRUE, k = 2)
+
+pcoa_df <- data.frame(
+  ID = rownames(amr_pa_nz),
+  PC1 = pcoa_pa$points[,1],
+  PC2 = pcoa_pa$points[,2],
+  source = meta$source
+) %>%
+  left_join(genome_metadata, by = "ID")
+
+
+ggplot(pcoa_df, aes(PC1, PC2, color = source.x, label = ID)) +
+  geom_point(size = 2) +
+  scale_color_manual(values = source_colors) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of AMR annotations across MAGs",
+    x = paste0("PCoA1 (", round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
+  )+ 
+  geom_text()
+
+ggplot(pcoa_df, aes(PC1, PC2, color = completeness)) +
+  geom_point(size = 3, alpha = 0.8) +
+  theme_classic()
+
+ggplot(pcoa_df, aes(PC1, PC2, color = continent)) +
+  geom_point(size = 3, alpha = 0.8) +
+  theme_classic()
+
+```
+
+
 ```{r pcoa amr}
 pcoa_res <- cmdscale(amr_dist, k = 2, eig = TRUE)
 
@@ -279,6 +349,24 @@ ggplot(pcoa_df, aes(PC1, PC2, color = genome_size)) +
   )
 
 
+ggplot(pcoa_df, aes(PC1, PC2, color = completeness)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of AMR annotations across MAGs",
+    x = paste0("PCoA1 (", round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
+  )
+
+
+ggplot(pcoa_df, aes(PC1, PC2, color = continent)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of AMR annotations across MAGs",
+    x = paste0("PCoA1 (", round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
+  )
 
 ```
 ```{r how many mags have amr genes}
@@ -746,6 +834,25 @@ ggplot(pcoa_df, aes(PC1, PC2, color = completeness)) +
   theme_minimal() +
   labs(
     title = "PCoA of VF annotations across MAGs colored by GIFT cluster",
+    x = paste0("PCoA1 (", round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
+  )
+
+ggplot(pcoa_df, aes(PC1, PC2, color = country)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of VF annotations across MAGs colored by GIFT country",
+    x = paste0("PCoA1 (", round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
+  )
+
+
+ggplot(pcoa_df, aes(PC1, PC2, color = continent)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of VF annotations across MAGs colored by GIFT continent",
     x = paste0("PCoA1 (", round(variance_explained[1] * 100, 1), "%)"),
     y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
   )

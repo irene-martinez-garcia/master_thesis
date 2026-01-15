@@ -517,6 +517,57 @@ p
 ```
 
 
+```{r cutting tree}
+# Convert phylo tree to hclust object
+hclust_tree <- as.hclust.phylo(tree)
+
+# Cut at 95% similarity (5% distance)
+# The height corresponds to genetic distance
+# For 95% similarity = 0.05 distance from tips
+cut_height <- 0.05
+
+# Cut the tree
+groups <- cutree(hclust_tree, h = cut_height)
+
+# Add group information to your tip data
+tip_data_for_plot$group <- groups[match(tip_data_for_plot$label, names(groups))]
+
+# See how many groups you have
+table(groups)
+
+# Visualize with groups highlighted
+p <- ggtree(tree, size = 1) +  
+  geom_vline(xintercept = max_x - 0.05,  # 95% ANI (0.05 from tips)
+             linetype = "dashed", 
+             color = "red", 
+             size = 0.8) +
+  geom_tippoint(aes(color = source, shape = as.factor(group)), size = 3) +
+  geom_tiplab(aes(color = source),
+              size = 4,
+              hjust = -0.1)
+
+p <- p %<+% tip_data_for_plot +
+  scale_color_manual(values = source_colors, name = "Source") +
+  scale_shape_manual(values = rep(15:18, length.out = max(groups)), 
+                     name = "95% ANI Group") +
+  scale_x_continuous(
+    labels = function(x) round(100 * (1 - (max_x - x)), 1)
+  ) +
+  coord_cartesian(xlim = c(0, max_x + 0.005)) +
+  labs(x = "Average Nucleotide Identity (ANI, %)") +
+  theme_tree2() +
+  theme(
+    legend.position = "right",
+    plot.margin = margin(5, 100, 5, 5),
+    axis.text.x = element_text(size = 14),
+    axis.title.x = element_text(size = 16)
+  )
+p
+```
+
+
+
+
 ```{r tree final_by_host_species, fig.height = 10, fig.width = 12}
 # Get the actual x-range of the tree
 tree_data <- fortify(tree)
@@ -791,6 +842,23 @@ genome_metadata <- genome_metadata %>%
   )
 ```
 
+```{r remove non_parabacteroidesdistasonis_mag}
+excluded_mags <- c("GCA_015060925.1")
+
+valid_mags <- genome_metadata %>%
+  filter(!ID %in% excluded_mags) %>%
+  pull(ID)
+
+genome_annotations <- genome_annotations %>%
+  filter(mag_id %in% valid_mags)
+
+genome_metadata <- genome_metadata %>%
+  filter(ID %in% valid_mags)
+
+
+genome_gifts <- genome_gifts[rownames(genome_gifts) %in% valid_mags, ]
+
+```
 
 
 ## Wrap working objects

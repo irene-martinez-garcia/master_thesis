@@ -356,14 +356,23 @@ ggplot(scores, aes(PC1, PC2, color = host_species)) +
     y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
   )
 
-# ggplot(scores, aes(PC1, PC2, color = country)) +
-#   geom_point(size = 2) +
-#   theme_minimal() +
-#   labs(
-#     title = "KEGG PCA colored by host species ",
-#     x = paste0("PC1 (", round(summary(pca)$importance[2,1] * 100, 1), "%)"),
-#     y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
-#   )
+ggplot(scores, aes(PC1, PC2, color = country)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "KEGG PCA colored by country ",
+    x = paste0("PC1 (", round(summary(pca)$importance[2,1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
+  )
+
+ggplot(scores, aes(PC1, PC2, color = continent)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "KEGG PCA colored by continent",
+    x = paste0("PC1 (", round(summary(pca)$importance[2,1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(summary(pca)$importance[2,2] * 100, 1), "%)")
+  )
 ```
 ```{r loadings pca total}
 loadings <- pca$rotation
@@ -463,6 +472,69 @@ adonis2(
 )
 ```
 
+```{r kegg presence_absence anova}
+kegg_counts_mat <- kegg_counts %>%
+  column_to_rownames("mag_id")
+
+kegg_pa <- (kegg_counts_mat > 0) * 1
+
+
+# remove zero-variance KOs
+kegg_pa_nz <- kegg_pa[, colSums(kegg_pa) > 0 & colSums(kegg_pa) < nrow(kegg_pa)]
+
+meta <- genome_metadata %>%
+  filter(ID %in% rownames(kegg_pa_nz)) %>%
+  column_to_rownames("ID")
+
+# VERY IMPORTANT: enforce same order
+meta <- meta[rownames(kegg_pa_nz), ]
+
+stopifnot(identical(rownames(meta), rownames(kegg_pa_nz)))
+
+
+kegg_dist_pa <- vegdist(kegg_pa_nz, method = "jaccard", binary = TRUE)
+
+# dispersion check
+disp_pa <- betadisper(kegg_dist_pa, meta$source)
+anova(disp_pa)
+
+# PERMANOVA
+adonis2(
+  kegg_dist_pa ~ genome_size +completeness+ source,
+  data = meta,
+  permutations = 999
+)
+
+
+```
+```{r pcoa on presence absence kegg}
+pcoa_pa <- cmdscale(kegg_dist_pa, eig = TRUE, k = 2)
+
+pcoa_df <- data.frame(
+  ID = rownames(kegg_pa_nz),
+  PC1 = pcoa_pa$points[,1],
+  PC2 = pcoa_pa$points[,2],
+  source = meta$source
+) %>%
+  left_join(genome_metadata, by = "ID")
+
+
+ggplot(pcoa_df, aes(PC1, PC2, color = source.x)) +
+  geom_point(size = 3, alpha = 0.8) +
+  theme_classic()
+
+ggplot(pcoa_df, aes(PC1, PC2, color = completeness)) +
+  geom_point(size = 3, alpha = 0.8) +
+  theme_classic()
+
+ggplot(pcoa_df, aes(PC1, PC2, color = continent)) +
+  geom_point(size = 3, alpha = 0.8) +
+  theme_classic()
+
+```
+
+
+
 ### Principal Coordinate Analysis - KEGG
 
 ```{r pcoa_kegg_dist}
@@ -508,23 +580,23 @@ ggplot(pcoa_df, aes(PC1, PC2, color = host_species)) +
     y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
   )
 
-# ggplot(pcoa_df, aes(PC1, PC2, color = country)) +
-#   geom_point(size = 2) +
-#   theme_minimal() +
-#   labs(
-#     title = "PCoA of KEGG annotations across MAGs (colored by country)",
-#     x = paste0("PC1 (",round(variance_explained[1] * 100, 1), "%)"),
-#     y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
-#   )
-# 
-# ggplot(pcoa_df, aes(PC1, PC2, color = continent)) +
-#   geom_point(size = 2) +
-#   theme_minimal() +
-#   labs(
-#     title = "PCoA of KEGG annotations across MAGs (colored by continent)",
-#     x = paste0("PC1 (",round(variance_explained[1] * 100, 1), "%)"),
-#     y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
-#   )
+ ggplot(pcoa_df, aes(PC1, PC2, color = country)) +
+   geom_point(size = 2) +
+   theme_minimal() +
+   labs(
+   title = "PCoA of KEGG annotations across MAGs (colored by country)",
+     x = paste0("PC1 (",round(variance_explained[1] * 100, 1), "%)"),
+     y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
+   )
+
+ ggplot(pcoa_df, aes(PC1, PC2, color = continent)) +
+   geom_point(size = 2) +
+   theme_minimal() +
+   labs(
+     title = "PCoA of KEGG annotations across MAGs (colored by continent)",
+     x = paste0("PC1 (",round(variance_explained[1] * 100, 1), "%)"),
+     y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
+   )
 ```
 
 ### Differential abundance
@@ -1023,6 +1095,79 @@ gift_pcoa_vectors %>%
       #genome positions
       scale_color_manual(values=source_colors)+
       geom_point(aes(x=Axis.1,y=Axis.2, color = source), 
+                 alpha=0.9, shape=16) +
+      scale_size_continuous(range = c(0.1,5)) +
+      #loading positions
+      geom_segment(data=gift_pcoa_gifts, 
+                   aes(x=0, y=0, xend=Axis.1 * scale, yend=Axis.2 * scale),
+                    arrow = arrow(length = unit(0.3, "cm"), 
+                    type = "open", 
+                    angle = 25),
+                    linewidth = 0.5, 
+                    color = "black") +
+     #Primary and secondary scale adjustments
+     scale_x_continuous(name = paste0("PCoA1 (",round(gift_pcoa_rel_eigen[1]*100, digits = 2), " %)"),
+                      sec.axis = sec_axis(~ . / scale, name = "Loadings on PCoA1")
+            ) +
+     scale_y_continuous(name = paste0("PCoA2 (",round(gift_pcoa_rel_eigen[2]*100, digits = 2), " %)"),
+                      sec.axis = sec_axis(~ . / scale, name = "Loadings on PCoA2")
+            ) +
+    geom_label_repel(data = gift_pcoa_gifts,
+                     aes(label = label, x = Axis.1 * scale, y = Axis.2 * scale),
+                     segment.color = 'transparent') +
+    xlim(-0.8,1) + 
+    ylim(-1,1.5) +
+    theme_minimal() + 
+  
+  labs(
+    x = paste0("PCoA1 (", round(gift_pcoa_rel_eigen[1]*100, 2), " %)"),
+    y = paste0("PCoA2 (", round(gift_pcoa_rel_eigen[2]*100, 2), " %)")
+  )
+
+
+gift_pcoa_vectors %>% 
+  rownames_to_column(var="ID") %>% 
+  left_join(genome_metadata, by="ID") %>%
+  ggplot() +
+      #genome positions
+      geom_point(aes(x=Axis.1,y=Axis.2, color = completeness), 
+                 alpha=0.9, shape=16) +
+      scale_size_continuous(range = c(0.1,5)) +
+      #loading positions
+      geom_segment(data=gift_pcoa_gifts, 
+                   aes(x=0, y=0, xend=Axis.1 * scale, yend=Axis.2 * scale),
+                    arrow = arrow(length = unit(0.3, "cm"), 
+                    type = "open", 
+                    angle = 25),
+                    linewidth = 0.5, 
+                    color = "black") +
+     #Primary and secondary scale adjustments
+     scale_x_continuous(name = paste0("PCoA1 (",round(gift_pcoa_rel_eigen[1]*100, digits = 2), " %)"),
+                      sec.axis = sec_axis(~ . / scale, name = "Loadings on PCoA1")
+            ) +
+     scale_y_continuous(name = paste0("PCoA2 (",round(gift_pcoa_rel_eigen[2]*100, digits = 2), " %)"),
+                      sec.axis = sec_axis(~ . / scale, name = "Loadings on PCoA2")
+            ) +
+    geom_label_repel(data = gift_pcoa_gifts,
+                     aes(label = label, x = Axis.1 * scale, y = Axis.2 * scale),
+                     segment.color = 'transparent') +
+    xlim(-0.8,1) + 
+    ylim(-1,1.5) +
+    theme_minimal() + 
+  
+  labs(
+    x = paste0("PCoA1 (", round(gift_pcoa_rel_eigen[1]*100, 2), " %)"),
+    y = paste0("PCoA2 (", round(gift_pcoa_rel_eigen[2]*100, 2), " %)")
+  )
+
+
+
+gift_pcoa_vectors %>% 
+  rownames_to_column(var="ID") %>% 
+  left_join(genome_metadata, by="ID") %>%
+  ggplot() +
+      #genome positions
+      geom_point(aes(x=Axis.1,y=Axis.2, color = continent), 
                  alpha=0.9, shape=16) +
       scale_size_continuous(range = c(0.1,5)) +
       #loading positions
