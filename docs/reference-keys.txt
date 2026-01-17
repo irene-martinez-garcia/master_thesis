@@ -80,6 +80,6 @@ wilcoxon-1
 virulence-factors-analysis
 nº-of-mags-with-vfs
 statistical-testing-of-mag-proportions-2
-building-an-virulence-factor-abundance-table
+building-a-virulence-factor-abundance-table
 antibiotic-resistance-analysis-human
 building-an-amr-abundance-table-1

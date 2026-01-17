@@ -46,6 +46,26 @@ cat(kegg_annota)
 
 # KEGG annotation percentage
 kegg_annota*100/genome_annota
+
+
+# AMR annotation
+amr_annota <- genome_annotations %>%
+  filter(resistance_type == "AMR") %>%
+  nrow()
+cat(amr_annota)
+
+# AMR annotation percentage
+amr_annota*100/genome_annota
+
+
+# VF annotation
+vf_annota <- genome_annotations %>%
+  filter(!is.na(vf)) %>%
+  nrow()
+cat(vf_annota)
+
+# VF annotation percentage
+vf_annota*100/genome_annota
 ```
 
 ```{r n genes per mag}
@@ -229,9 +249,12 @@ print(ko_summary)
 
 
 ```{r heatmap data}
-heatmap_data <- sig_fisher_results %>%
-  dplyr::select(kegg, prop_EHI, prop_GTDB)%>%
-  pivot_longer(!kegg, names_to = "source", values_to= "proportion" ) %>%
+fish_results_names <- left_join(sig_fisher_results, ko_summary, join_by(kegg== KO))
+
+
+heatmap_data <- fish_results_names %>%
+  dplyr::select(Name, prop_EHI, prop_GTDB)%>%
+  pivot_longer(!Name, names_to = "source", values_to= "proportion" ) %>%
    mutate(
     source = case_when(
       source == "prop_EHI"  ~ "EHI",
@@ -239,12 +262,14 @@ heatmap_data <- sig_fisher_results %>%
       TRUE ~ source
     )
   )
+
+
 ```
 
 
 ```{r plot the keggs}
 ggplot(heatmap_data,
-       aes(x = source, y = kegg, fill = proportion)) +
+       aes(x = source, y = Name, fill = proportion)) +
   geom_tile() +
   scale_fill_viridis_c(
     name = "Proportion of MAGs",
@@ -288,6 +313,38 @@ pca <- prcomp(kegg_rel_nz, scale. = TRUE)
 
 # Check variance explained
 summary(pca)$importance[,1:5]
+```
+```{r country colors}
+country_palette <- c(
+  # Southern Europe
+  "Spain" = "#1B9E77",
+  "Italy" = "#33A02C",
+  "Greece" = "#66C2A5",
+  "Portugal" = "#2CA25F",
+  "Malta" = "#99D8C9",
+
+  # Northern/Central Europe
+  "Germany" = "#1F78B4",
+  "United Kingdom" = "#4A90E2",
+  "Ireland" = "#6BAED6",
+
+  # East Asia 
+  "Japan" = "#E31A1C",
+  "South Korea" = "#FB6A4A",
+  "China" = "#CB181D",
+
+  # North America 
+  "USA" = "#756BB1",
+  "Canada" = "#9E9AC8",
+
+  # Distinct
+  "Australia" = "#FFD92F",   
+  "Greenland" = "#A6CEE3",
+
+  "none" = "grey70"
+)
+
+
 ```
 
 
@@ -359,6 +416,7 @@ ggplot(scores, aes(PC1, PC2, color = host_species)) +
 ggplot(scores, aes(PC1, PC2, color = country)) +
   geom_point(size = 2) +
   theme_minimal() +
+  scale_color_manual(values = country_palette, na.value = "grey70")+
   labs(
     title = "KEGG PCA colored by country ",
     x = paste0("PC1 (", round(summary(pca)$importance[2,1] * 100, 1), "%)"),
@@ -502,11 +560,34 @@ anova(disp_pa)
 adonis2(
   kegg_dist_pa ~ genome_size +completeness+ source,
   data = meta,
-  permutations = 999
+  permutations = 999, by = "margin"
 )
 
-
 ```
+
+```{r permanova on continent}
+# Identify rows that have NO missing values
+keep_indices <- complete.cases(meta[, c("continent", "genome_size", "completeness", "source")])
+
+# Filter the metadata
+meta_clean <- meta[keep_indices, ]
+
+
+kegg_dist_mat <- as.matrix(kegg_dist_pa)
+kegg_dist_clean <- as.dist(kegg_dist_mat[keep_indices, keep_indices])
+
+
+adonis2(
+  kegg_dist_clean ~ country + genome_size + completeness,
+  data = meta_clean,
+  permutations = 999, 
+  by = "margin"
+)
+```
+
+
+
+
 ```{r pcoa on presence absence kegg}
 pcoa_pa <- cmdscale(kegg_dist_pa, eig = TRUE, k = 2)
 
@@ -598,6 +679,71 @@ ggplot(pcoa_df, aes(PC1, PC2, color = host_species)) +
      y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
    )
 ```
+
+```{r pcoa with completenedds}
+library(patchwork)
+p_main <- ggplot(pcoa_df, aes(PC1, PC2, color = source)) +
+  scale_color_manual(values = source_colors) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of KEGG annotations across MAGs",
+    x = paste0("PC1 (", round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
+  ) +
+  theme(
+    legend.position = "right",
+    axis.title.x = element_blank(),  
+    axis.text.x = element_blank(),   
+    axis.ticks.x = element_blank(),  
+    plot.margin = margin(5, 5, 0, 5)
+  )
+
+cor_value <- cor(pcoa_df$PC1, pcoa_df$completeness, method = "spearman")
+cor_pvalue <- cor.test(pcoa_df$PC1, pcoa_df$completeness, 
+                       method = "spearman")$p.value
+
+cor_text <- paste0("Spearman ρ = ", round(cor_value, 3), 
+                  "\np < ", format.pval(cor_pvalue, digits = 2))
+
+p_completeness_annotated <- ggplot(pcoa_df, aes(x = PC1, y = completeness, 
+                                                 color = source)) +
+  scale_color_manual(values = source_colors) +
+  geom_point(alpha = 0.6, size = 2) +
+  geom_smooth(method = "lm", se = TRUE, color = "black", linewidth = 1) +
+  annotate("text", 
+           x = min(pcoa_df$PC1) + 0.1 * diff(range(pcoa_df$PC1)), 
+           y = max(pcoa_df$completeness) - 5,
+           label = cor_text, 
+           hjust = 0, 
+           size = 3,  # Changed from 4 to 3 (smaller)
+           fontface = "plain") +  # Changed from "bold" to "plain"
+  theme_minimal() +
+  labs(
+    y = "Completeness (%)",
+    x = paste0("PC1 (", round(variance_explained[1] * 100, 1), "%)")
+  ) +
+  theme(
+    legend.position = "none",
+    plot.margin = margin(0, 5, 5, 5),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5)  # Add border
+  )
+
+
+p_main <- p_main + 
+  theme(panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5))
+
+combined_annotated <- p_main / p_completeness_annotated + 
+  plot_layout(heights = c(3, 1), guides = "collect")
+
+print(combined_annotated)
+
+
+```
+
+
+
+
 
 ### Differential abundance
 
@@ -1209,7 +1355,7 @@ coords <- gift_pcoa_vectors %>%
   as_tibble()
 
 set.seed(123)
-km <- kmeans(coords[, c("Axis.1", "Axis.2")], centers = 4)
+km <- kmeans(coords[, c("Axis.1", "Axis.2")], centers = 4, nstart = 25, iter.max = 100)
 
 coords <- coords %>% mutate(cluster = factor(km$cluster))
 
@@ -1457,6 +1603,37 @@ GIFTs_elements %>%
     labs(x = "Trait", fill = "GIFT")
 ```
 
+```{r horizontal gift plot with antibiotic resistance genes}
+GIFTs_elements %>%
+  melt() %>%
+  dplyr::rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
+  inner_join(GIFT_db, by = "Code_element") %>%
+  filter(str_starts(Code_element, "D09")) %>%
+  left_join(metadata_with_cluster, by = join_by(Genome == ID)) %>%
+  mutate(cluster = factor(cluster)) %>%
+  droplevels() %>%
+  arrange(cluster, Genome) %>%
+  mutate(trait = Element) %>%
+  # Ensure trait is a factor to maintain order
+  mutate(trait = factor(trait, levels = rev(unique(GIFT_db$Element)))) %>%
+  ggplot( aes(x = Genome, y = trait)) +
+  # Heatmap
+  geom_tile(aes(fill = GIFT), color = "white") +
+  scale_fill_gradientn(colours = brewer.pal(7, "YlGnBu"), name = "GIFT Score") +
+  
+  # Start a new fill scale for the Source bar
+  new_scale_fill() +
+  
+  # Add the source bar at the very top or bottom
+  geom_tile(aes(y = -0.5, fill = source), height = 0.5) +
+  scale_fill_manual(values = source_colors) +
+  
+  facet_grid(~ cluster, scales = "free_x", space = "free_x") +
+  theme_minimal(base_size = 8) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
 
 ### Checking difference in GIFTs
 
@@ -1513,11 +1690,13 @@ pairwise_sig_table <- lapply(names(pairwise_results), function(g) {
   pmat_long <- as.data.frame(as.table(pmat)) %>%
     filter(!is.na(Freq)) %>%       # remove NA (diagonal / upper triangle)
     dplyr::rename(group1 = Var1, group2 = Var2, p_adj = Freq) %>%
-    filter(p_adj < 0.05) %>%      # keep only significant comparisons
+    filter(p_adj < 0.05) %>%      
     mutate(GIFT = g)
   
   return(pmat_long)
 })
+
+
 
 # Combine all GIFTs into one table
 pairwise_sig_table <- bind_rows(pairwise_sig_table) %>%
@@ -1526,6 +1705,79 @@ pairwise_sig_table <- bind_rows(pairwise_sig_table) %>%
 pairwise_sig_table 
 
 ```
+
+
+```{r gifts different between cluster_1}
+GIFTs_elements %>%
+  melt() %>%
+  dplyr::rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
+  inner_join(GIFT_db, by = "Code_element") %>%
+  filter(Code_element %in% pairwise_sig_table$GIFT) %>%
+  left_join(metadata_with_cluster, by = join_by(Genome == ID)) %>%
+  distinct(Genome, Code_element, .keep_all = TRUE) %>%
+  mutate(cluster = factor(cluster)) %>%
+  droplevels() %>%
+  arrange(cluster, Genome) %>%
+  mutate(trait = Element) %>%
+  ggplot(aes(x = Genome, y = trait, fill = GIFT)) +
+    geom_tile(colour = "white", linewidth = 0.2) +
+    scale_y_discrete(guide = guide_axis(check.overlap = TRUE)) +
+    scale_x_discrete(guide = guide_axis(check.overlap = TRUE)) +
+    scale_fill_gradientn(limits = c(0,1), colours = RColorBrewer::brewer.pal(7, "YlGnBu")) +
+  new_scale_fill() +
+  
+  # Add the source bar at the very top or bottom
+  geom_tile(aes(y = -0.5, fill = source), height = 0.3) +
+  scale_fill_manual(values = source_colors) +
+    facet_grid(~ cluster, scales = "free_x", space = "free_x") + 
+    theme(
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 4),
+      strip.text.x = element_text(face = "bold")
+    ) +
+    labs(y = "Trait", x = "Genome", fill = "GIFT")
+```
+
+```{r checking code elements}
+GIFT_db%>%
+  filter(Code_element %in%  pairwise_sig_table$GIFT)
+```
+
+
+```{r pairwise wilcox cluster with effect size}
+library(rstatix)
+library(dplyr)
+library(purrr)
+
+pairwise_sig_table <- map_df(gift_cols, function(g) {
+  
+  # Check if there is variation in the GIFT values
+  # If all values are the same, skip this GIFT
+  if(length(unique(gift_df_meta[[g]])) < 2) return(NULL)
+  
+  # Run the test safely
+  tryCatch({
+    results <- gift_df_meta %>%
+      wilcox_test(as.formula(paste0("`", g, "` ~ cluster")), p.adjust.method = "BH")
+    
+    eff <- gift_df_meta %>%
+      wilcox_effsize(as.formula(paste0("`", g, "` ~ cluster")))
+    
+    results %>%
+      left_join(eff, by = c("group1", "group2", ".y." = ".y.", "n1", "n2")) %>%
+      filter(p.adj < 0.05) %>%
+      mutate(GIFT = g)
+  }, error = function(e) return(NULL)) # If it still fails, just skip it
+})
+
+top_gifts <- pairwise_sig_table %>%
+  arrange(desc(effsize))
+
+
+top_gifts
+```
+
+
+
 
 ```{r sig_cluster_gift_plot, message = FALSE, warning = FALSE, fig.height=10, fig.width=8, fig.fullwidth=TRUE}
 library(reshape2)
@@ -1558,6 +1810,31 @@ GIFTs_elements %>%
 
 ```
 
+```{r gifts different between cluster}
+GIFTs_elements %>%
+  melt() %>%
+  dplyr::rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
+  inner_join(GIFT_db, by = "Code_element") %>%
+  filter(Code_element %in% pairwise_sig_table$GIFT) %>%
+  left_join(metadata_with_cluster, by = join_by(Genome == ID)) %>%
+  distinct(Genome, Code_element, .keep_all = TRUE) %>%
+  mutate(cluster = factor(cluster)) %>%
+  droplevels() %>%
+  arrange(cluster, Genome) %>%
+  mutate(trait = Element) %>%
+  ggplot(aes(x = Genome, y = trait, fill = GIFT)) +
+    geom_tile(colour = "white", linewidth = 0.2) +
+    scale_y_discrete(guide = guide_axis(check.overlap = TRUE)) +
+    scale_x_discrete(guide = guide_axis(check.overlap = TRUE)) +
+    scale_fill_gradientn(limits = c(0,1), colours = RColorBrewer::brewer.pal(7, "YlGnBu")) +
+    facet_grid(~ cluster, scales = "free_x", space = "free_x") + 
+    theme_grey(base_size = 8) +
+    theme(
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+      strip.text.x = element_text(face = "bold")
+    ) +
+    labs(y = "Trait", x = "Genome", fill = "GIFT")
+```
 
 
 
@@ -1589,11 +1866,76 @@ wilcox_res_source <- data.frame(
 )
 
 
-wilcox_res_source %>% filter(p_adj<0.05)
+wilcox_res_source %>% dplyr::select(GIFT, p_adj, effect) %>% filter(p_adj<0.05)
 
 ```
 ```{r checking code element B0215}
 GIFT_db%>%
-  filter(Code_element == "B0215")
+  filter(Code_element %in% c("B0215", "B0307", "D0601") )
 ```
+```{r adding effect size wilcox source}
+
+wilcox_res_source <- map_df(gift_cols, function(g) {
+  
+ 
+  if(length(unique(gift_df_meta[[g]])) < 2) return(NULL)
+  
+  tryCatch({
+    # Calculate p-value
+    res <- gift_df_meta %>%
+      wilcox_test(as.formula(paste0("`", g, "` ~ source")))
+    
+    # Calculate effect size (Rank-Biserial Correlation)
+    eff <- gift_df_meta %>%
+      wilcox_effsize(as.formula(paste0("`", g, "` ~ source")))
+    
+    # Combine results
+    res %>%
+      left_join(eff, by = c("group1", "group2", ".y." = ".y.", "n1", "n2")) %>%
+      mutate(GIFT = g)
+  }, error = function(e) return(NULL))
+})
+
+#  Adjust P-values and filter
+wilcox_res_source <- wilcox_res_source %>%
+  mutate(p_adj = p.adjust(p, method = "BH")) %>%
+  dplyr::select(GIFT, group1, group2, p_adj, effsize, magnitude) %>%
+  filter(p_adj < 0.05) %>%
+  arrange(desc(abs(effsize))) # Sort by strongest effect
+
+# View the top results
+print(wilcox_res_source)
+```
+
+```{r gifts different between source plot}
+GIFTs_elements %>%
+  melt() %>%
+  dplyr::rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
+  inner_join(GIFT_db, by = "Code_element") %>%
+  filter(Code_element %in% wilcox_res_source$GIFT) %>%
+  left_join(metadata_with_cluster, by = join_by(Genome == ID)) %>%
+  distinct(Genome, Code_element, .keep_all = TRUE) %>%
+  mutate(cluster = factor(cluster)) %>%
+  droplevels() %>%
+  arrange(cluster, Genome) %>%
+  mutate(trait = Element) %>%
+  ggplot(aes(x = Genome, y = trait, fill = GIFT)) +
+    geom_tile(colour = "white", linewidth = 0.2) +
+    scale_y_discrete(guide = guide_axis(check.overlap = TRUE)) +
+    scale_x_discrete(guide = guide_axis(check.overlap = TRUE)) +
+    scale_fill_gradientn(limits = c(0,1), colours = RColorBrewer::brewer.pal(7, "YlGnBu")) +
+  new_scale_fill() +
+  
+  # Add the source bar at the very top or bottom
+  geom_tile(aes(y = -0.5, fill = source), height = 0.5) +
+  scale_fill_manual(values = source_colors) +
+    facet_grid(~ source, scales = "free_x", space = "free_x") + 
+    theme(
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+      strip.text.x = element_text(face = "bold")
+    ) +
+    labs(y = "Trait", x = "Genome", fill = "GIFT")
+```
+
+
 

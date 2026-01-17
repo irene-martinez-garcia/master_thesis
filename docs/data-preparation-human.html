@@ -2086,7 +2086,7 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 <li class="chapter" data-level="12" data-path="virulence-factors-analysis.html"><a href="virulence-factors-analysis.html"><i class="fa fa-check"></i><b>12</b> Virulence factors analysis</a>
 <ul>
 <li class="chapter" data-level="12.0.1" data-path="virulence-factors-analysis.html"><a href="virulence-factors-analysis.html#nº-of-mags-with-vfs"><i class="fa fa-check"></i><b>12.0.1</b> Nº of MAGs with VFs</a></li>
-<li class="chapter" data-level="12.1" data-path="virulence-factors-analysis.html"><a href="virulence-factors-analysis.html#building-an-virulence-factor-abundance-table"><i class="fa fa-check"></i><b>12.1</b> Building an virulence factor abundance table</a></li>
+<li class="chapter" data-level="12.1" data-path="virulence-factors-analysis.html"><a href="virulence-factors-analysis.html#building-a-virulence-factor-abundance-table"><i class="fa fa-check"></i><b>12.1</b> Building a virulence factor abundance table</a></li>
 </ul></li>
 <li class="chapter" data-level="13" data-path="antibiotic-resistance-analysis-human.html"><a href="antibiotic-resistance-analysis-human.html"><i class="fa fa-check"></i><b>13</b> Antibiotic resistance analysis (HUMAN)</a>
 <ul>
@@ -2132,75 +2132,75 @@ Download the EHI_MAG index for each species (in /data/mags_metadata folder) and 
 </ol>
 <p>2.5) Extract genome metadata<br />
 - Use the GTDB search tsv to run this script to obtain more metadata. (modify script a bit to make it scalable).</p>
-<div class="sourceCode" id="cb96"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb96-1"><a href="data-preparation-human.html#cb96-1" tabindex="-1"></a> <span class="ex">python</span> scripts/extract_gtdb_metadata.py</span></code></pre></div>
+<div class="sourceCode" id="cb97"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb97-1"><a href="data-preparation-human.html#cb97-1" tabindex="-1"></a> <span class="ex">python</span> scripts/extract_gtdb_metadata.py</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Create the master index<br />
 Run the create_index.R script to create an index of all the MAGs and the download paths (needs a list of species as input and right now it is hardcoded in the script)</li>
 </ol>
-<div class="sourceCode" id="cb97"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb97-1"><a href="data-preparation-human.html#cb97-1" tabindex="-1"></a><span class="ex">conda</span> activate mags_r_env</span>
-<span id="cb97-2"><a href="data-preparation-human.html#cb97-2" tabindex="-1"></a><span class="ex">Rscript</span> scripts/create_index.R </span></code></pre></div>
+<div class="sourceCode" id="cb98"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb98-1"><a href="data-preparation-human.html#cb98-1" tabindex="-1"></a><span class="ex">conda</span> activate mags_r_env</span>
+<span id="cb98-2"><a href="data-preparation-human.html#cb98-2" tabindex="-1"></a><span class="ex">Rscript</span> scripts/create_index.R </span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li>Run the downloading_mags.smk to download all the genomes</li>
 </ol>
-<div class="sourceCode" id="cb98"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb98-1"><a href="data-preparation-human.html#cb98-1" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-s</span> snakefiles/downloading_mags.smk <span class="dt">\</span></span>
-<span id="cb98-2"><a href="data-preparation-human.html#cb98-2" tabindex="-1"></a>    <span class="at">--executor</span> slurm <span class="dt">\</span></span>
-<span id="cb98-3"><a href="data-preparation-human.html#cb98-3" tabindex="-1"></a>    <span class="at">--jobs</span> 50 <span class="dt">\</span></span>
-<span id="cb98-4"><a href="data-preparation-human.html#cb98-4" tabindex="-1"></a>    <span class="at">--rerun-incomplete</span> <span class="dt">\</span></span>
-<span id="cb98-5"><a href="data-preparation-human.html#cb98-5" tabindex="-1"></a>    <span class="at">--keep-going</span></span>
-<span id="cb98-6"><a href="data-preparation-human.html#cb98-6" tabindex="-1"></a>    </span>
-<span id="cb98-7"><a href="data-preparation-human.html#cb98-7" tabindex="-1"></a>    </span>
-<span id="cb98-8"><a href="data-preparation-human.html#cb98-8" tabindex="-1"></a><span class="co">#testing with the HUMAN_EHI</span></span>
-<span id="cb98-9"><a href="data-preparation-human.html#cb98-9" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-s</span> snakefiles/downloading_and_unzipping.smk <span class="dt">\</span></span>
-<span id="cb98-10"><a href="data-preparation-human.html#cb98-10" tabindex="-1"></a>    <span class="at">--executor</span> slurm <span class="dt">\</span></span>
-<span id="cb98-11"><a href="data-preparation-human.html#cb98-11" tabindex="-1"></a>    <span class="at">--jobs</span> 50 <span class="dt">\</span></span>
-<span id="cb98-12"><a href="data-preparation-human.html#cb98-12" tabindex="-1"></a>    <span class="at">--rerun-incomplete</span> <span class="dt">\</span></span>
-<span id="cb98-13"><a href="data-preparation-human.html#cb98-13" tabindex="-1"></a>    <span class="at">--keep-going</span></span></code></pre></div>
+<div class="sourceCode" id="cb99"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb99-1"><a href="data-preparation-human.html#cb99-1" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-s</span> snakefiles/downloading_mags.smk <span class="dt">\</span></span>
+<span id="cb99-2"><a href="data-preparation-human.html#cb99-2" tabindex="-1"></a>    <span class="at">--executor</span> slurm <span class="dt">\</span></span>
+<span id="cb99-3"><a href="data-preparation-human.html#cb99-3" tabindex="-1"></a>    <span class="at">--jobs</span> 50 <span class="dt">\</span></span>
+<span id="cb99-4"><a href="data-preparation-human.html#cb99-4" tabindex="-1"></a>    <span class="at">--rerun-incomplete</span> <span class="dt">\</span></span>
+<span id="cb99-5"><a href="data-preparation-human.html#cb99-5" tabindex="-1"></a>    <span class="at">--keep-going</span></span>
+<span id="cb99-6"><a href="data-preparation-human.html#cb99-6" tabindex="-1"></a>    </span>
+<span id="cb99-7"><a href="data-preparation-human.html#cb99-7" tabindex="-1"></a>    </span>
+<span id="cb99-8"><a href="data-preparation-human.html#cb99-8" tabindex="-1"></a><span class="co">#testing with the HUMAN_EHI</span></span>
+<span id="cb99-9"><a href="data-preparation-human.html#cb99-9" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-s</span> snakefiles/downloading_and_unzipping.smk <span class="dt">\</span></span>
+<span id="cb99-10"><a href="data-preparation-human.html#cb99-10" tabindex="-1"></a>    <span class="at">--executor</span> slurm <span class="dt">\</span></span>
+<span id="cb99-11"><a href="data-preparation-human.html#cb99-11" tabindex="-1"></a>    <span class="at">--jobs</span> 50 <span class="dt">\</span></span>
+<span id="cb99-12"><a href="data-preparation-human.html#cb99-12" tabindex="-1"></a>    <span class="at">--rerun-incomplete</span> <span class="dt">\</span></span>
+<span id="cb99-13"><a href="data-preparation-human.html#cb99-13" tabindex="-1"></a>    <span class="at">--keep-going</span></span></code></pre></div>
 <ol start="5" style="list-style-type: decimal">
 <li>Unzip all the MAGs and make sure they are in the same folder: run<br />
 (maybe add this to the downloading_mags.smk)</li>
 </ol>
-<div class="sourceCode" id="cb99"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb99-1"><a href="data-preparation-human.html#cb99-1" tabindex="-1"></a><span class="fu">bash</span> scripts/unzip_mags.sh parabacteroides_distasonis  </span>
-<span id="cb99-2"><a href="data-preparation-human.html#cb99-2" tabindex="-1"></a><span class="fu">bash</span> scripts/unzip_mags.sh phocaeicola_vulgatus</span></code></pre></div>
+<div class="sourceCode" id="cb100"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb100-1"><a href="data-preparation-human.html#cb100-1" tabindex="-1"></a><span class="fu">bash</span> scripts/unzip_mags.sh parabacteroides_distasonis  </span>
+<span id="cb100-2"><a href="data-preparation-human.html#cb100-2" tabindex="-1"></a><span class="fu">bash</span> scripts/unzip_mags.sh phocaeicola_vulgatus</span></code></pre></div>
 <ol start="6" style="list-style-type: decimal">
 <li>Make a screen session for each species.</li>
 </ol>
-<div class="sourceCode" id="cb100"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb100-1"><a href="data-preparation-human.html#cb100-1" tabindex="-1"></a><span class="ex">screen</span> <span class="at">-S</span> parabacteroides_distasonis</span></code></pre></div>
+<div class="sourceCode" id="cb101"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb101-1"><a href="data-preparation-human.html#cb101-1" tabindex="-1"></a><span class="ex">screen</span> <span class="at">-S</span> parabacteroides_distasonis</span></code></pre></div>
 <ol start="7" style="list-style-type: decimal">
 <li>Run drakkar annotating_function.smk to re-annotate all the MAGs:</li>
 </ol>
-<div class="sourceCode" id="cb101"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb101-1"><a href="data-preparation-human.html#cb101-1" tabindex="-1"></a><span class="ex">drakkar</span> annotating <span class="at">-b</span> /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/data/parabacteroides_distasonis/mags/unzipped <span class="at">-o</span> /maps/projects/alberdilab/people/pjq449/comparative_metagenomics <span class="at">--env_path</span> /projects/alberdilab/data/environments/drakkar <span class="at">--annotation-type</span> function </span></code></pre></div>
+<div class="sourceCode" id="cb102"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb102-1"><a href="data-preparation-human.html#cb102-1" tabindex="-1"></a><span class="ex">drakkar</span> annotating <span class="at">-b</span> /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/data/parabacteroides_distasonis/mags/unzipped <span class="at">-o</span> /maps/projects/alberdilab/people/pjq449/comparative_metagenomics <span class="at">--env_path</span> /projects/alberdilab/data/environments/drakkar <span class="at">--annotation-type</span> function </span></code></pre></div>
 <ol start="8" style="list-style-type: decimal">
 <li>Annotate with prokka and make phylogenetic tree with getphylo</li>
 </ol>
-<div class="sourceCode" id="cb102"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb102-1"><a href="data-preparation-human.html#cb102-1" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-s</span> snakefiles/prokka_and_pangenome.smk <span class="at">--profile</span> snakefiles/slurm_profile</span></code></pre></div>
+<div class="sourceCode" id="cb103"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb103-1"><a href="data-preparation-human.html#cb103-1" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-s</span> snakefiles/prokka_and_pangenome.smk <span class="at">--profile</span> snakefiles/slurm_profile</span></code></pre></div>
 <ol start="9" style="list-style-type: decimal">
 <li>Run genome_mapping.sh to map the mag ids to the corresponding names</li>
 </ol>
-<div class="sourceCode" id="cb103"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb103-1"><a href="data-preparation-human.html#cb103-1" tabindex="-1"></a><span class="fu">bash</span> scripts/genome_mapping.sh   <span class="co">#dont think we need this now</span></span></code></pre></div>
+<div class="sourceCode" id="cb104"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb104-1"><a href="data-preparation-human.html#cb104-1" tabindex="-1"></a><span class="fu">bash</span> scripts/genome_mapping.sh   <span class="co">#dont think we need this now</span></span></code></pre></div>
 <ol start="10" style="list-style-type: decimal">
 <li>Run drep</li>
 </ol>
-<div class="sourceCode" id="cb104"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb104-1"><a href="data-preparation-human.html#cb104-1" tabindex="-1"></a> <span class="ex">sbatch</span> scripts/drep_compare.slurm</span></code></pre></div>
+<div class="sourceCode" id="cb105"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb105-1"><a href="data-preparation-human.html#cb105-1" tabindex="-1"></a> <span class="ex">sbatch</span> scripts/drep_compare.slurm</span></code></pre></div>
 <ol start="11" style="list-style-type: decimal">
 <li>Run create_pangolin_input.R to create the input file ppanggolin needs</li>
 </ol>
-<div class="sourceCode" id="cb105"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb105-1"><a href="data-preparation-human.html#cb105-1" tabindex="-1"></a><span class="ex">conda</span> activate mags_r_env</span>
-<span id="cb105-2"><a href="data-preparation-human.html#cb105-2" tabindex="-1"></a><span class="ex">Rscript</span> scripts/create_pangolin_input.R</span>
-<span id="cb105-3"><a href="data-preparation-human.html#cb105-3" tabindex="-1"></a></span>
-<span id="cb105-4"><a href="data-preparation-human.html#cb105-4" tabindex="-1"></a><span class="co">#or if we want to use the annotation files by prokka:</span></span>
-<span id="cb105-5"><a href="data-preparation-human.html#cb105-5" tabindex="-1"></a><span class="ex">Rscript</span> scripts/create_pangolin_input_gff.R</span></code></pre></div>
+<div class="sourceCode" id="cb106"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb106-1"><a href="data-preparation-human.html#cb106-1" tabindex="-1"></a><span class="ex">conda</span> activate mags_r_env</span>
+<span id="cb106-2"><a href="data-preparation-human.html#cb106-2" tabindex="-1"></a><span class="ex">Rscript</span> scripts/create_pangolin_input.R</span>
+<span id="cb106-3"><a href="data-preparation-human.html#cb106-3" tabindex="-1"></a></span>
+<span id="cb106-4"><a href="data-preparation-human.html#cb106-4" tabindex="-1"></a><span class="co">#or if we want to use the annotation files by prokka:</span></span>
+<span id="cb106-5"><a href="data-preparation-human.html#cb106-5" tabindex="-1"></a><span class="ex">Rscript</span> scripts/create_pangolin_input_gff.R</span></code></pre></div>
 <ol start="12" style="list-style-type: decimal">
 <li>Pangenome analysis with ppanggolin</li>
 </ol>
-<div class="sourceCode" id="cb106"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb106-1"><a href="data-preparation-human.html#cb106-1" tabindex="-1"></a><span class="ex">conda</span> activate ppanggolin</span>
-<span id="cb106-2"><a href="data-preparation-human.html#cb106-2" tabindex="-1"></a></span>
-<span id="cb106-3"><a href="data-preparation-human.html#cb106-3" tabindex="-1"></a><span class="ex">ppanggolin</span> all <span class="at">--fasta</span> /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/data/parabacteroides_distasonis_HUMAN_EHI/ppanggolin_input.tsv</span></code></pre></div>
+<div class="sourceCode" id="cb107"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb107-1"><a href="data-preparation-human.html#cb107-1" tabindex="-1"></a><span class="ex">conda</span> activate ppanggolin</span>
+<span id="cb107-2"><a href="data-preparation-human.html#cb107-2" tabindex="-1"></a></span>
+<span id="cb107-3"><a href="data-preparation-human.html#cb107-3" tabindex="-1"></a><span class="ex">ppanggolin</span> all <span class="at">--fasta</span> /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/data/parabacteroides_distasonis_HUMAN_EHI/ppanggolin_input.tsv</span></code></pre></div>
 </div>
 <div id="r-studio--data-analysis-1" class="section level2 hasAnchor" number="3.3">
 <h2><span class="header-section-number">3.3</span> R Studio- Data Analysis<a href="data-preparation-human.html#r-studio--data-analysis-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <div id="ehi-mags-1" class="section level3 hasAnchor" number="3.3.1">
 <h3><span class="header-section-number">3.3.1</span> EHI MAGs<a href="data-preparation-human.html#ehi-mags-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb107"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb107-1"><a href="data-preparation-human.html#cb107-1" tabindex="-1"></a>ehi_mags <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;data/ehi_mags.csv&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb108"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb108-1"><a href="data-preparation-human.html#cb108-1" tabindex="-1"></a>ehi_mags <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;data/ehi_mags.csv&quot;</span>)</span></code></pre></div>
 <pre><code>Rows: 8846 Columns: 52
 ── Column specification ─────────────────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;,&quot;
@@ -2214,22 +2214,22 @@ lgl  (1): annotated
 <div id="prepare-color-scheme-1" class="section level3 hasAnchor" number="3.3.2">
 <h3><span class="header-section-number">3.3.2</span> Prepare color scheme<a href="data-preparation-human.html#prepare-color-scheme-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p><a href="www.alberdilab.dk">AlberdiLab</a> projects use unified color schemes developed for the <a href="www.earthhologenome.org">Earth Hologenome Initiative</a>, to facilitate figure interpretation.</p>
-<div class="sourceCode" id="cb109"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb109-1"><a href="data-preparation-human.html#cb109-1" tabindex="-1"></a>ehi_mags_p <span class="ot">&lt;-</span> ehi_mags <span class="sc">%&gt;%</span></span>
-<span id="cb109-2"><a href="data-preparation-human.html#cb109-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">phylum=</span><span class="fu">str_remove_all</span>(phylum, <span class="st">&quot;p__&quot;</span>)) </span>
-<span id="cb109-3"><a href="data-preparation-human.html#cb109-3" tabindex="-1"></a></span>
-<span id="cb109-4"><a href="data-preparation-human.html#cb109-4" tabindex="-1"></a>phylum_colors <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;https://raw.githubusercontent.com/earthhologenome/EHI_taxonomy_colour/main/ehi_phylum_colors.tsv&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb109-5"><a href="data-preparation-human.html#cb109-5" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">phylum=</span><span class="fu">str_remove_all</span>(phylum, <span class="st">&quot;p__&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb109-6"><a href="data-preparation-human.html#cb109-6" tabindex="-1"></a>    <span class="fu">right_join</span>(ehi_mags_p, <span class="at">by=</span><span class="fu">join_by</span>(phylum <span class="sc">==</span> phylum)) <span class="sc">%&gt;%</span></span>
-<span id="cb109-7"><a href="data-preparation-human.html#cb109-7" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(phylum, colors) <span class="sc">%&gt;%</span> </span>
-<span id="cb109-8"><a href="data-preparation-human.html#cb109-8" tabindex="-1"></a>    <span class="fu">unique</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb109-9"><a href="data-preparation-human.html#cb109-9" tabindex="-1"></a>    <span class="fu">arrange</span>(phylum) <span class="sc">%&gt;%</span></span>
-<span id="cb109-10"><a href="data-preparation-human.html#cb109-10" tabindex="-1"></a>    <span class="fu">pull</span>(colors, <span class="at">name=</span>phylum)</span></code></pre></div>
-<div class="sourceCode" id="cb110"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb110-1"><a href="data-preparation-human.html#cb110-1" tabindex="-1"></a><span class="co">#source_colors &lt;- c(EHI = &quot;#8BC63F&quot;, GTDB = &quot;#2D522D&quot;)</span></span>
-<span id="cb110-2"><a href="data-preparation-human.html#cb110-2" tabindex="-1"></a>source_colors_human <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">EHI =</span> <span class="st">&quot;#8BC63F&quot;</span>, <span class="at">GTDB =</span> <span class="st">&quot;#A90D00&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb110"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb110-1"><a href="data-preparation-human.html#cb110-1" tabindex="-1"></a>ehi_mags_p <span class="ot">&lt;-</span> ehi_mags <span class="sc">%&gt;%</span></span>
+<span id="cb110-2"><a href="data-preparation-human.html#cb110-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">phylum=</span><span class="fu">str_remove_all</span>(phylum, <span class="st">&quot;p__&quot;</span>)) </span>
+<span id="cb110-3"><a href="data-preparation-human.html#cb110-3" tabindex="-1"></a></span>
+<span id="cb110-4"><a href="data-preparation-human.html#cb110-4" tabindex="-1"></a>phylum_colors <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;https://raw.githubusercontent.com/earthhologenome/EHI_taxonomy_colour/main/ehi_phylum_colors.tsv&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb110-5"><a href="data-preparation-human.html#cb110-5" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">phylum=</span><span class="fu">str_remove_all</span>(phylum, <span class="st">&quot;p__&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb110-6"><a href="data-preparation-human.html#cb110-6" tabindex="-1"></a>    <span class="fu">right_join</span>(ehi_mags_p, <span class="at">by=</span><span class="fu">join_by</span>(phylum <span class="sc">==</span> phylum)) <span class="sc">%&gt;%</span></span>
+<span id="cb110-7"><a href="data-preparation-human.html#cb110-7" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(phylum, colors) <span class="sc">%&gt;%</span> </span>
+<span id="cb110-8"><a href="data-preparation-human.html#cb110-8" tabindex="-1"></a>    <span class="fu">unique</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb110-9"><a href="data-preparation-human.html#cb110-9" tabindex="-1"></a>    <span class="fu">arrange</span>(phylum) <span class="sc">%&gt;%</span></span>
+<span id="cb110-10"><a href="data-preparation-human.html#cb110-10" tabindex="-1"></a>    <span class="fu">pull</span>(colors, <span class="at">name=</span>phylum)</span></code></pre></div>
+<div class="sourceCode" id="cb111"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb111-1"><a href="data-preparation-human.html#cb111-1" tabindex="-1"></a><span class="co">#source_colors &lt;- c(EHI = &quot;#8BC63F&quot;, GTDB = &quot;#2D522D&quot;)</span></span>
+<span id="cb111-2"><a href="data-preparation-human.html#cb111-2" tabindex="-1"></a>source_colors_human <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">EHI =</span> <span class="st">&quot;#8BC63F&quot;</span>, <span class="at">GTDB =</span> <span class="st">&quot;#A90D00&quot;</span>)</span></code></pre></div>
 </div>
 <div id="sample-metadata-1" class="section level3 hasAnchor" number="3.3.3">
 <h3><span class="header-section-number">3.3.3</span> Sample metadata<a href="data-preparation-human.html#sample-metadata-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb111"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb111-1"><a href="data-preparation-human.html#cb111-1" tabindex="-1"></a>gtdb_search_metadata <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/gtdb_search_results.tsv&quot;</span>) </span></code></pre></div>
+<div class="sourceCode" id="cb112"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb112-1"><a href="data-preparation-human.html#cb112-1" tabindex="-1"></a>gtdb_search_metadata <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/gtdb_search_results.tsv&quot;</span>) </span></code></pre></div>
 <pre><code>Warning: One or more parsing issues, call `problems()` on your data frame for details, e.g.:
   dat &lt;- vroom(...)
   problems(dat)</code></pre>
@@ -2242,12 +2242,12 @@ lgl (1): GTDB Representative of Species
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<div class="sourceCode" id="cb114"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb114-1"><a href="data-preparation-human.html#cb114-1" tabindex="-1"></a><span class="fu">colnames</span>(gtdb_search_metadata)</span></code></pre></div>
+<div class="sourceCode" id="cb115"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb115-1"><a href="data-preparation-human.html#cb115-1" tabindex="-1"></a><span class="fu">colnames</span>(gtdb_search_metadata)</span></code></pre></div>
 <pre class="script-output"><code> [1] &quot;Accession&quot;                      &quot;Organism Name&quot;                  &quot;NCBI Taxonomy&quot;                 
  [4] &quot;GTDB Taxonomy&quot;                  &quot;GTDB Representative of Species&quot; &quot;GTDB Type Material&quot;            
  [7] &quot;CheckM2 Completeness&quot;           &quot;CheckM Contamination&quot;           &quot;Isolation Source&quot;              
 [10] &quot;Isolation Source_2&quot;            </code></pre>
-<div class="sourceCode" id="cb116"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb116-1"><a href="data-preparation-human.html#cb116-1" tabindex="-1"></a>gtdb_accession_metadata<span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/parabacteroides_distasonis_human_GTDB_accession_metadata.tsv&quot;</span>) </span></code></pre></div>
+<div class="sourceCode" id="cb117"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb117-1"><a href="data-preparation-human.html#cb117-1" tabindex="-1"></a>gtdb_accession_metadata<span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/parabacteroides_distasonis_human_GTDB_accession_metadata.tsv&quot;</span>) </span></code></pre></div>
 <pre><code>Rows: 47 Columns: 115
 ── Column specification ─────────────────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;\t&quot;
@@ -2258,8 +2258,8 @@ date  (2): ncbi_date, ncbi_seq_rel_date
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<div class="sourceCode" id="cb118"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb118-1"><a href="data-preparation-human.html#cb118-1" tabindex="-1"></a>ehi_metadata <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/mags_metadata/parabacteroides_distasonis_metadata.tsv&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb118-2"><a href="data-preparation-human.html#cb118-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">GC =</span> <span class="fu">as.numeric</span>(<span class="fu">str_remove</span>(GC, <span class="st">&quot;%&quot;</span>)))</span></code></pre></div>
+<div class="sourceCode" id="cb119"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb119-1"><a href="data-preparation-human.html#cb119-1" tabindex="-1"></a>ehi_metadata <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/mags_metadata/parabacteroides_distasonis_metadata.tsv&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb119-2"><a href="data-preparation-human.html#cb119-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">GC =</span> <span class="fu">as.numeric</span>(<span class="fu">str_remove</span>(GC, <span class="st">&quot;%&quot;</span>)))</span></code></pre></div>
 <pre><code>Rows: 25 Columns: 52
 ── Column specification ─────────────────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;\t&quot;
@@ -2272,68 +2272,68 @@ lgl  (1): annotated
 </div>
 <div id="load-genome-mapping-1" class="section level3 hasAnchor" number="3.3.4">
 <h3><span class="header-section-number">3.3.4</span> Load genome mapping<a href="data-preparation-human.html#load-genome-mapping-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb120"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb120-1"><a href="data-preparation-human.html#cb120-1" tabindex="-1"></a><span class="co"># Prepare EHI metadata with standardized column names</span></span>
-<span id="cb120-2"><a href="data-preparation-human.html#cb120-2" tabindex="-1"></a>ehi_clean <span class="ot">&lt;-</span> ehi_metadata <span class="sc">%&gt;%</span></span>
-<span id="cb120-3"><a href="data-preparation-human.html#cb120-3" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
-<span id="cb120-4"><a href="data-preparation-human.html#cb120-4" tabindex="-1"></a>    ID,</span>
-<span id="cb120-5"><a href="data-preparation-human.html#cb120-5" tabindex="-1"></a>    species,  </span>
-<span id="cb120-6"><a href="data-preparation-human.html#cb120-6" tabindex="-1"></a>    completeness,</span>
-<span id="cb120-7"><a href="data-preparation-human.html#cb120-7" tabindex="-1"></a>    contamination,</span>
-<span id="cb120-8"><a href="data-preparation-human.html#cb120-8" tabindex="-1"></a>    <span class="at">genome_size =</span> size,</span>
-<span id="cb120-9"><a href="data-preparation-human.html#cb120-9" tabindex="-1"></a>    GC,</span>
-<span id="cb120-10"><a href="data-preparation-human.html#cb120-10" tabindex="-1"></a>    N50,</span>
-<span id="cb120-11"><a href="data-preparation-human.html#cb120-11" tabindex="-1"></a>    contigs,</span>
-<span id="cb120-12"><a href="data-preparation-human.html#cb120-12" tabindex="-1"></a>    host_species,</span>
-<span id="cb120-13"><a href="data-preparation-human.html#cb120-13" tabindex="-1"></a>    host_order,</span>
-<span id="cb120-14"><a href="data-preparation-human.html#cb120-14" tabindex="-1"></a>    host_class,</span>
-<span id="cb120-15"><a href="data-preparation-human.html#cb120-15" tabindex="-1"></a>    assembly_type,</span>
-<span id="cb120-16"><a href="data-preparation-human.html#cb120-16" tabindex="-1"></a>    <span class="at">isolation_source=</span> sample_type,</span>
-<span id="cb120-17"><a href="data-preparation-human.html#cb120-17" tabindex="-1"></a>    mag_name, </span>
-<span id="cb120-18"><a href="data-preparation-human.html#cb120-18" tabindex="-1"></a>    eha_number</span>
-<span id="cb120-19"><a href="data-preparation-human.html#cb120-19" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb120-20"><a href="data-preparation-human.html#cb120-20" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">source =</span> <span class="st">&quot;EHI&quot;</span>)</span>
-<span id="cb120-21"><a href="data-preparation-human.html#cb120-21" tabindex="-1"></a></span>
-<span id="cb120-22"><a href="data-preparation-human.html#cb120-22" tabindex="-1"></a><span class="co"># Prepare GTDB metadata</span></span>
-<span id="cb120-23"><a href="data-preparation-human.html#cb120-23" tabindex="-1"></a><span class="co"># Join search and accession metadata</span></span>
-<span id="cb120-24"><a href="data-preparation-human.html#cb120-24" tabindex="-1"></a>gtdb_metadata <span class="ot">&lt;-</span> <span class="fu">full_join</span>(gtdb_accession_metadata, gtdb_search_metadata,  <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;search_accession&quot;</span> <span class="ot">=</span> <span class="st">&quot;Accession&quot;</span>)</span>
-<span id="cb120-25"><a href="data-preparation-human.html#cb120-25" tabindex="-1"></a>  )</span>
-<span id="cb120-26"><a href="data-preparation-human.html#cb120-26" tabindex="-1"></a></span>
-<span id="cb120-27"><a href="data-preparation-human.html#cb120-27" tabindex="-1"></a></span>
-<span id="cb120-28"><a href="data-preparation-human.html#cb120-28" tabindex="-1"></a></span>
-<span id="cb120-29"><a href="data-preparation-human.html#cb120-29" tabindex="-1"></a><span class="co"># Prepare GTDB metadata</span></span>
-<span id="cb120-30"><a href="data-preparation-human.html#cb120-30" tabindex="-1"></a>gtdb_clean <span class="ot">&lt;-</span> gtdb_metadata <span class="sc">%&gt;%</span></span>
-<span id="cb120-31"><a href="data-preparation-human.html#cb120-31" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
-<span id="cb120-32"><a href="data-preparation-human.html#cb120-32" tabindex="-1"></a>    <span class="at">ID =</span> search_accession,</span>
-<span id="cb120-33"><a href="data-preparation-human.html#cb120-33" tabindex="-1"></a>    <span class="at">completeness =</span> <span class="st">&quot;checkm2_completeness&quot;</span>,</span>
-<span id="cb120-34"><a href="data-preparation-human.html#cb120-34" tabindex="-1"></a>    <span class="at">contamination =</span> <span class="st">&quot;checkm2_contamination&quot;</span>,</span>
-<span id="cb120-35"><a href="data-preparation-human.html#cb120-35" tabindex="-1"></a>    <span class="at">gtdb_taxonomy =</span> <span class="st">&quot;GTDB Taxonomy&quot;</span>,</span>
-<span id="cb120-36"><a href="data-preparation-human.html#cb120-36" tabindex="-1"></a>    <span class="at">isolation_source =</span> <span class="st">&quot;Isolation Source&quot;</span>,</span>
-<span id="cb120-37"><a href="data-preparation-human.html#cb120-37" tabindex="-1"></a>    genome_size,</span>
-<span id="cb120-38"><a href="data-preparation-human.html#cb120-38" tabindex="-1"></a>    <span class="at">GC =</span> gc_percentage,</span>
-<span id="cb120-39"><a href="data-preparation-human.html#cb120-39" tabindex="-1"></a>    <span class="at">N50 =</span> n50_contigs,</span>
-<span id="cb120-40"><a href="data-preparation-human.html#cb120-40" tabindex="-1"></a>    <span class="at">contigs =</span> contig_count,</span>
-<span id="cb120-41"><a href="data-preparation-human.html#cb120-41" tabindex="-1"></a>    ncbi_country,</span>
-<span id="cb120-42"><a href="data-preparation-human.html#cb120-42" tabindex="-1"></a>    mimag_high_quality,</span>
-<span id="cb120-43"><a href="data-preparation-human.html#cb120-43" tabindex="-1"></a>    mimag_medium_quality,</span>
-<span id="cb120-44"><a href="data-preparation-human.html#cb120-44" tabindex="-1"></a>    gtdb_representative,</span>
-<span id="cb120-45"><a href="data-preparation-human.html#cb120-45" tabindex="-1"></a>    <span class="at">mag_name =</span> search_accession</span>
-<span id="cb120-46"><a href="data-preparation-human.html#cb120-46" tabindex="-1"></a>  )<span class="sc">%&gt;%</span></span>
-<span id="cb120-47"><a href="data-preparation-human.html#cb120-47" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">source =</span> <span class="st">&quot;GTDB&quot;</span>)</span>
-<span id="cb120-48"><a href="data-preparation-human.html#cb120-48" tabindex="-1"></a></span>
-<span id="cb120-49"><a href="data-preparation-human.html#cb120-49" tabindex="-1"></a><span class="co">#Join</span></span>
-<span id="cb120-50"><a href="data-preparation-human.html#cb120-50" tabindex="-1"></a>genome_metadata <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(ehi_clean, gtdb_clean)</span></code></pre></div>
-<div class="sourceCode" id="cb121"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb121-1"><a href="data-preparation-human.html#cb121-1" tabindex="-1"></a><span class="co"># Read master index</span></span>
-<span id="cb121-2"><a href="data-preparation-human.html#cb121-2" tabindex="-1"></a>master_index <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/master_mag_index_2.tsv&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb121-3"><a href="data-preparation-human.html#cb121-3" tabindex="-1"></a>  <span class="fu">filter</span>(species <span class="sc">==</span> <span class="st">&quot;parabacteroides_distasonis&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb121-4"><a href="data-preparation-human.html#cb121-4" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb121-5"><a href="data-preparation-human.html#cb121-5" tabindex="-1"></a>    <span class="co"># Extract the actual genome identifier from out_path</span></span>
-<span id="cb121-6"><a href="data-preparation-human.html#cb121-6" tabindex="-1"></a>    <span class="at">genome_identifier =</span> <span class="fu">case_when</span>(</span>
-<span id="cb121-7"><a href="data-preparation-human.html#cb121-7" tabindex="-1"></a>      <span class="co"># For EHI: extract EHA00531_bin.1 from the filename</span></span>
-<span id="cb121-8"><a href="data-preparation-human.html#cb121-8" tabindex="-1"></a>      <span class="fu">str_detect</span>(out_path, <span class="st">&quot;EHA&quot;</span>) <span class="sc">~</span> <span class="fu">str_extract</span>(out_path, <span class="st">&quot;EHA[0-9]+_bin</span><span class="sc">\\</span><span class="st">.[0-9]+&quot;</span>),</span>
-<span id="cb121-9"><a href="data-preparation-human.html#cb121-9" tabindex="-1"></a>      <span class="co"># For NCBI: use the ID as is (GCA/GCF number)</span></span>
-<span id="cb121-10"><a href="data-preparation-human.html#cb121-10" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> ID</span>
-<span id="cb121-11"><a href="data-preparation-human.html#cb121-11" tabindex="-1"></a>    )</span>
-<span id="cb121-12"><a href="data-preparation-human.html#cb121-12" tabindex="-1"></a>  )</span></code></pre></div>
+<div class="sourceCode" id="cb121"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb121-1"><a href="data-preparation-human.html#cb121-1" tabindex="-1"></a><span class="co"># Prepare EHI metadata with standardized column names</span></span>
+<span id="cb121-2"><a href="data-preparation-human.html#cb121-2" tabindex="-1"></a>ehi_clean <span class="ot">&lt;-</span> ehi_metadata <span class="sc">%&gt;%</span></span>
+<span id="cb121-3"><a href="data-preparation-human.html#cb121-3" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
+<span id="cb121-4"><a href="data-preparation-human.html#cb121-4" tabindex="-1"></a>    ID,</span>
+<span id="cb121-5"><a href="data-preparation-human.html#cb121-5" tabindex="-1"></a>    species,  </span>
+<span id="cb121-6"><a href="data-preparation-human.html#cb121-6" tabindex="-1"></a>    completeness,</span>
+<span id="cb121-7"><a href="data-preparation-human.html#cb121-7" tabindex="-1"></a>    contamination,</span>
+<span id="cb121-8"><a href="data-preparation-human.html#cb121-8" tabindex="-1"></a>    <span class="at">genome_size =</span> size,</span>
+<span id="cb121-9"><a href="data-preparation-human.html#cb121-9" tabindex="-1"></a>    GC,</span>
+<span id="cb121-10"><a href="data-preparation-human.html#cb121-10" tabindex="-1"></a>    N50,</span>
+<span id="cb121-11"><a href="data-preparation-human.html#cb121-11" tabindex="-1"></a>    contigs,</span>
+<span id="cb121-12"><a href="data-preparation-human.html#cb121-12" tabindex="-1"></a>    host_species,</span>
+<span id="cb121-13"><a href="data-preparation-human.html#cb121-13" tabindex="-1"></a>    host_order,</span>
+<span id="cb121-14"><a href="data-preparation-human.html#cb121-14" tabindex="-1"></a>    host_class,</span>
+<span id="cb121-15"><a href="data-preparation-human.html#cb121-15" tabindex="-1"></a>    assembly_type,</span>
+<span id="cb121-16"><a href="data-preparation-human.html#cb121-16" tabindex="-1"></a>    <span class="at">isolation_source=</span> sample_type,</span>
+<span id="cb121-17"><a href="data-preparation-human.html#cb121-17" tabindex="-1"></a>    mag_name, </span>
+<span id="cb121-18"><a href="data-preparation-human.html#cb121-18" tabindex="-1"></a>    eha_number</span>
+<span id="cb121-19"><a href="data-preparation-human.html#cb121-19" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb121-20"><a href="data-preparation-human.html#cb121-20" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">source =</span> <span class="st">&quot;EHI&quot;</span>)</span>
+<span id="cb121-21"><a href="data-preparation-human.html#cb121-21" tabindex="-1"></a></span>
+<span id="cb121-22"><a href="data-preparation-human.html#cb121-22" tabindex="-1"></a><span class="co"># Prepare GTDB metadata</span></span>
+<span id="cb121-23"><a href="data-preparation-human.html#cb121-23" tabindex="-1"></a><span class="co"># Join search and accession metadata</span></span>
+<span id="cb121-24"><a href="data-preparation-human.html#cb121-24" tabindex="-1"></a>gtdb_metadata <span class="ot">&lt;-</span> <span class="fu">full_join</span>(gtdb_accession_metadata, gtdb_search_metadata,  <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;search_accession&quot;</span> <span class="ot">=</span> <span class="st">&quot;Accession&quot;</span>)</span>
+<span id="cb121-25"><a href="data-preparation-human.html#cb121-25" tabindex="-1"></a>  )</span>
+<span id="cb121-26"><a href="data-preparation-human.html#cb121-26" tabindex="-1"></a></span>
+<span id="cb121-27"><a href="data-preparation-human.html#cb121-27" tabindex="-1"></a></span>
+<span id="cb121-28"><a href="data-preparation-human.html#cb121-28" tabindex="-1"></a></span>
+<span id="cb121-29"><a href="data-preparation-human.html#cb121-29" tabindex="-1"></a><span class="co"># Prepare GTDB metadata</span></span>
+<span id="cb121-30"><a href="data-preparation-human.html#cb121-30" tabindex="-1"></a>gtdb_clean <span class="ot">&lt;-</span> gtdb_metadata <span class="sc">%&gt;%</span></span>
+<span id="cb121-31"><a href="data-preparation-human.html#cb121-31" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
+<span id="cb121-32"><a href="data-preparation-human.html#cb121-32" tabindex="-1"></a>    <span class="at">ID =</span> search_accession,</span>
+<span id="cb121-33"><a href="data-preparation-human.html#cb121-33" tabindex="-1"></a>    <span class="at">completeness =</span> <span class="st">&quot;checkm2_completeness&quot;</span>,</span>
+<span id="cb121-34"><a href="data-preparation-human.html#cb121-34" tabindex="-1"></a>    <span class="at">contamination =</span> <span class="st">&quot;checkm2_contamination&quot;</span>,</span>
+<span id="cb121-35"><a href="data-preparation-human.html#cb121-35" tabindex="-1"></a>    <span class="at">gtdb_taxonomy =</span> <span class="st">&quot;GTDB Taxonomy&quot;</span>,</span>
+<span id="cb121-36"><a href="data-preparation-human.html#cb121-36" tabindex="-1"></a>    <span class="at">isolation_source =</span> <span class="st">&quot;Isolation Source&quot;</span>,</span>
+<span id="cb121-37"><a href="data-preparation-human.html#cb121-37" tabindex="-1"></a>    genome_size,</span>
+<span id="cb121-38"><a href="data-preparation-human.html#cb121-38" tabindex="-1"></a>    <span class="at">GC =</span> gc_percentage,</span>
+<span id="cb121-39"><a href="data-preparation-human.html#cb121-39" tabindex="-1"></a>    <span class="at">N50 =</span> n50_contigs,</span>
+<span id="cb121-40"><a href="data-preparation-human.html#cb121-40" tabindex="-1"></a>    <span class="at">contigs =</span> contig_count,</span>
+<span id="cb121-41"><a href="data-preparation-human.html#cb121-41" tabindex="-1"></a>    ncbi_country,</span>
+<span id="cb121-42"><a href="data-preparation-human.html#cb121-42" tabindex="-1"></a>    mimag_high_quality,</span>
+<span id="cb121-43"><a href="data-preparation-human.html#cb121-43" tabindex="-1"></a>    mimag_medium_quality,</span>
+<span id="cb121-44"><a href="data-preparation-human.html#cb121-44" tabindex="-1"></a>    gtdb_representative,</span>
+<span id="cb121-45"><a href="data-preparation-human.html#cb121-45" tabindex="-1"></a>    <span class="at">mag_name =</span> search_accession</span>
+<span id="cb121-46"><a href="data-preparation-human.html#cb121-46" tabindex="-1"></a>  )<span class="sc">%&gt;%</span></span>
+<span id="cb121-47"><a href="data-preparation-human.html#cb121-47" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">source =</span> <span class="st">&quot;GTDB&quot;</span>)</span>
+<span id="cb121-48"><a href="data-preparation-human.html#cb121-48" tabindex="-1"></a></span>
+<span id="cb121-49"><a href="data-preparation-human.html#cb121-49" tabindex="-1"></a><span class="co">#Join</span></span>
+<span id="cb121-50"><a href="data-preparation-human.html#cb121-50" tabindex="-1"></a>genome_metadata <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(ehi_clean, gtdb_clean)</span></code></pre></div>
+<div class="sourceCode" id="cb122"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb122-1"><a href="data-preparation-human.html#cb122-1" tabindex="-1"></a><span class="co"># Read master index</span></span>
+<span id="cb122-2"><a href="data-preparation-human.html#cb122-2" tabindex="-1"></a>master_index <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/master_mag_index_2.tsv&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb122-3"><a href="data-preparation-human.html#cb122-3" tabindex="-1"></a>  <span class="fu">filter</span>(species <span class="sc">==</span> <span class="st">&quot;parabacteroides_distasonis&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb122-4"><a href="data-preparation-human.html#cb122-4" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb122-5"><a href="data-preparation-human.html#cb122-5" tabindex="-1"></a>    <span class="co"># Extract the actual genome identifier from out_path</span></span>
+<span id="cb122-6"><a href="data-preparation-human.html#cb122-6" tabindex="-1"></a>    <span class="at">genome_identifier =</span> <span class="fu">case_when</span>(</span>
+<span id="cb122-7"><a href="data-preparation-human.html#cb122-7" tabindex="-1"></a>      <span class="co"># For EHI: extract EHA00531_bin.1 from the filename</span></span>
+<span id="cb122-8"><a href="data-preparation-human.html#cb122-8" tabindex="-1"></a>      <span class="fu">str_detect</span>(out_path, <span class="st">&quot;EHA&quot;</span>) <span class="sc">~</span> <span class="fu">str_extract</span>(out_path, <span class="st">&quot;EHA[0-9]+_bin</span><span class="sc">\\</span><span class="st">.[0-9]+&quot;</span>),</span>
+<span id="cb122-9"><a href="data-preparation-human.html#cb122-9" tabindex="-1"></a>      <span class="co"># For NCBI: use the ID as is (GCA/GCF number)</span></span>
+<span id="cb122-10"><a href="data-preparation-human.html#cb122-10" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> ID</span>
+<span id="cb122-11"><a href="data-preparation-human.html#cb122-11" tabindex="-1"></a>    )</span>
+<span id="cb122-12"><a href="data-preparation-human.html#cb122-12" tabindex="-1"></a>  )</span></code></pre></div>
 <pre><code>Rows: 72 Columns: 4
 ── Column specification ─────────────────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;\t&quot;
@@ -2341,18 +2341,18 @@ chr (4): species, ID, MAG_url, out_path
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<div class="sourceCode" id="cb123"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb123-1"><a href="data-preparation-human.html#cb123-1" tabindex="-1"></a><span class="co"># Check the mapping</span></span>
-<span id="cb123-2"><a href="data-preparation-human.html#cb123-2" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;Master index mapping:&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb124"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb124-1"><a href="data-preparation-human.html#cb124-1" tabindex="-1"></a><span class="co"># Check the mapping</span></span>
+<span id="cb124-2"><a href="data-preparation-human.html#cb124-2" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;Master index mapping:&quot;</span>)</span></code></pre></div>
 <pre class="script-output"><code>[1] &quot;Master index mapping:&quot;</code></pre>
-<div class="sourceCode" id="cb125"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb125-1"><a href="data-preparation-human.html#cb125-1" tabindex="-1"></a>master_index <span class="sc">%&gt;%</span> </span>
-<span id="cb125-2"><a href="data-preparation-human.html#cb125-2" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(ID, genome_identifier, out_path) <span class="sc">%&gt;%</span></span>
-<span id="cb125-3"><a href="data-preparation-human.html#cb125-3" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb125-4"><a href="data-preparation-human.html#cb125-4" tabindex="-1"></a>  <span class="fu">print</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb126"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb126-1"><a href="data-preparation-human.html#cb126-1" tabindex="-1"></a>master_index <span class="sc">%&gt;%</span> </span>
+<span id="cb126-2"><a href="data-preparation-human.html#cb126-2" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(ID, genome_identifier, out_path) <span class="sc">%&gt;%</span></span>
+<span id="cb126-3"><a href="data-preparation-human.html#cb126-3" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb126-4"><a href="data-preparation-human.html#cb126-4" tabindex="-1"></a>  <span class="fu">print</span>()</span></code></pre></div>
 <pre class="script-output"><code># A tibble: 0 × 3
 # ℹ 3 variables: ID &lt;chr&gt;, genome_identifier &lt;chr&gt;, out_path &lt;chr&gt;</code></pre>
-<div class="sourceCode" id="cb127"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb127-1"><a href="data-preparation-human.html#cb127-1" tabindex="-1"></a><span class="co"># Read contig-to-genome mapping</span></span>
-<span id="cb127-2"><a href="data-preparation-human.html#cb127-2" tabindex="-1"></a>contig_to_genome <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/contig_to_mag.tsv&quot;</span>,</span>
-<span id="cb127-3"><a href="data-preparation-human.html#cb127-3" tabindex="-1"></a>                              <span class="at">col_names =</span> <span class="fu">c</span>(<span class="st">&quot;contig&quot;</span>, <span class="st">&quot;genome_filename&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb128"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb128-1"><a href="data-preparation-human.html#cb128-1" tabindex="-1"></a><span class="co"># Read contig-to-genome mapping</span></span>
+<span id="cb128-2"><a href="data-preparation-human.html#cb128-2" tabindex="-1"></a>contig_to_genome <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/contig_to_mag.tsv&quot;</span>,</span>
+<span id="cb128-3"><a href="data-preparation-human.html#cb128-3" tabindex="-1"></a>                              <span class="at">col_names =</span> <span class="fu">c</span>(<span class="st">&quot;contig&quot;</span>, <span class="st">&quot;genome_filename&quot;</span>))</span></code></pre></div>
 <pre><code>Rows: 10094 Columns: 2
 ── Column specification ─────────────────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;\t&quot;
@@ -2363,7 +2363,7 @@ chr (2): contig, genome_filename
 </div>
 <div id="genome-annotations-1" class="section level3 hasAnchor" number="3.3.5">
 <h3><span class="header-section-number">3.3.5</span> Genome annotations<a href="data-preparation-human.html#genome-annotations-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb129"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb129-1"><a href="data-preparation-human.html#cb129-1" tabindex="-1"></a>genome_annotations <span class="ot">&lt;-</span><span class="fu">read_tsv</span>(<span class="st">&quot;data/human/gene_annotations_human.tsv.xz&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb130"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb130-1"><a href="data-preparation-human.html#cb130-1" tabindex="-1"></a>genome_annotations <span class="ot">&lt;-</span><span class="fu">read_tsv</span>(<span class="st">&quot;data/human/gene_annotations_human.tsv.xz&quot;</span>)</span></code></pre></div>
 <pre><code>Warning: One or more parsing issues, call `problems()` on your data frame for details, e.g.:
   dat &lt;- vroom(...)
   problems(dat)</code></pre>
@@ -2375,12 +2375,12 @@ dbl  (2): start, end
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<div class="sourceCode" id="cb132"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb132-1"><a href="data-preparation-human.html#cb132-1" tabindex="-1"></a><span class="co"># Read annotations and add IDs</span></span>
-<span id="cb132-2"><a href="data-preparation-human.html#cb132-2" tabindex="-1"></a>genome_annotations <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/gene_annotations_human.tsv.xz&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb132-3"><a href="data-preparation-human.html#cb132-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">contig =</span> <span class="fu">sub</span>(<span class="st">&quot;_[^_]*$&quot;</span>, <span class="st">&quot;&quot;</span>, gene)) <span class="sc">%&gt;%</span></span>
-<span id="cb132-4"><a href="data-preparation-human.html#cb132-4" tabindex="-1"></a>  <span class="fu">left_join</span>(contig_to_genome, <span class="at">by =</span> <span class="st">&quot;contig&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb132-5"><a href="data-preparation-human.html#cb132-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">genome=</span> genome_filename)<span class="sc">%&gt;%</span></span>
-<span id="cb132-6"><a href="data-preparation-human.html#cb132-6" tabindex="-1"></a>   <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(genome))</span></code></pre></div>
+<div class="sourceCode" id="cb133"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb133-1"><a href="data-preparation-human.html#cb133-1" tabindex="-1"></a><span class="co"># Read annotations and add IDs</span></span>
+<span id="cb133-2"><a href="data-preparation-human.html#cb133-2" tabindex="-1"></a>genome_annotations <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/gene_annotations_human.tsv.xz&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb133-3"><a href="data-preparation-human.html#cb133-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">contig =</span> <span class="fu">sub</span>(<span class="st">&quot;_[^_]*$&quot;</span>, <span class="st">&quot;&quot;</span>, gene)) <span class="sc">%&gt;%</span></span>
+<span id="cb133-4"><a href="data-preparation-human.html#cb133-4" tabindex="-1"></a>  <span class="fu">left_join</span>(contig_to_genome, <span class="at">by =</span> <span class="st">&quot;contig&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb133-5"><a href="data-preparation-human.html#cb133-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">genome=</span> genome_filename)<span class="sc">%&gt;%</span></span>
+<span id="cb133-6"><a href="data-preparation-human.html#cb133-6" tabindex="-1"></a>   <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(genome))</span></code></pre></div>
 <pre><code>Warning: One or more parsing issues, call `problems()` on your data frame for details, e.g.:
   dat &lt;- vroom(...)
   problems(dat)</code></pre>
@@ -2395,37 +2395,37 @@ dbl  (2): start, end
 </div>
 <div id="distill-annotations-into-gifts-1" class="section level3 hasAnchor" number="3.3.6">
 <h3><span class="header-section-number">3.3.6</span> Distill annotations into GIFTs<a href="data-preparation-human.html#distill-annotations-into-gifts-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb135"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb135-1"><a href="data-preparation-human.html#cb135-1" tabindex="-1"></a>genome_gifts <span class="ot">&lt;-</span> <span class="fu">distill</span>(genome_annotations,GIFT_db,<span class="at">genomecol=</span> <span class="dv">15</span>, <span class="at">annotcol=</span><span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>), <span class="at">verbosity =</span> T)</span></code></pre></div>
+<div class="sourceCode" id="cb136"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb136-1"><a href="data-preparation-human.html#cb136-1" tabindex="-1"></a>genome_gifts <span class="ot">&lt;-</span> <span class="fu">distill</span>(genome_annotations,GIFT_db,<span class="at">genomecol=</span> <span class="dv">15</span>, <span class="at">annotcol=</span><span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>), <span class="at">verbosity =</span> T)</span></code></pre></div>
 </div>
 <div id="load-trees-1" class="section level3 hasAnchor" number="3.3.7">
 <h3><span class="header-section-number">3.3.7</span> Load trees<a href="data-preparation-human.html#load-trees-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb136"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb136-1"><a href="data-preparation-human.html#cb136-1" tabindex="-1"></a>genome_metadata<span class="sc">$</span>mag_name <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">&quot;</span><span class="sc">\\</span><span class="st">.fa$&quot;</span>, <span class="st">&quot;&quot;</span>, genome_metadata<span class="sc">$</span>mag_name)<span class="co">#remove .fa from the mag names so that they match the tree ids</span></span>
-<span id="cb136-2"><a href="data-preparation-human.html#cb136-2" tabindex="-1"></a></span>
-<span id="cb136-3"><a href="data-preparation-human.html#cb136-3" tabindex="-1"></a></span>
-<span id="cb136-4"><a href="data-preparation-human.html#cb136-4" tabindex="-1"></a>getphylo_tree <span class="ot">&lt;-</span> <span class="fu">read_tree</span>(<span class="st">&quot;data/combined_alignment.tree&quot;</span>)</span>
-<span id="cb136-5"><a href="data-preparation-human.html#cb136-5" tabindex="-1"></a>getphylo_tree<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;&#39;&quot;</span>, <span class="st">&quot;&quot;</span>, getphylo_tree<span class="sc">$</span>tip.label)</span>
-<span id="cb136-6"><a href="data-preparation-human.html#cb136-6" tabindex="-1"></a>tip_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">label =</span> getphylo_tree<span class="sc">$</span>tip.label) <span class="sc">%&gt;%</span></span>
-<span id="cb136-7"><a href="data-preparation-human.html#cb136-7" tabindex="-1"></a>  <span class="fu">left_join</span>(genome_metadata, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;label&quot;</span> <span class="ot">=</span> <span class="st">&quot;mag_name&quot;</span>))</span>
-<span id="cb136-8"><a href="data-preparation-human.html#cb136-8" tabindex="-1"></a></span>
-<span id="cb136-9"><a href="data-preparation-human.html#cb136-9" tabindex="-1"></a><span class="co">#replace long mag names with IDs</span></span>
-<span id="cb136-10"><a href="data-preparation-human.html#cb136-10" tabindex="-1"></a>getphylo_tree<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> tip_df<span class="sc">$</span>ID</span></code></pre></div>
+<div class="sourceCode" id="cb137"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb137-1"><a href="data-preparation-human.html#cb137-1" tabindex="-1"></a>genome_metadata<span class="sc">$</span>mag_name <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">&quot;</span><span class="sc">\\</span><span class="st">.fa$&quot;</span>, <span class="st">&quot;&quot;</span>, genome_metadata<span class="sc">$</span>mag_name)<span class="co">#remove .fa from the mag names so that they match the tree ids</span></span>
+<span id="cb137-2"><a href="data-preparation-human.html#cb137-2" tabindex="-1"></a></span>
+<span id="cb137-3"><a href="data-preparation-human.html#cb137-3" tabindex="-1"></a></span>
+<span id="cb137-4"><a href="data-preparation-human.html#cb137-4" tabindex="-1"></a>getphylo_tree <span class="ot">&lt;-</span> <span class="fu">read_tree</span>(<span class="st">&quot;data/combined_alignment.tree&quot;</span>)</span>
+<span id="cb137-5"><a href="data-preparation-human.html#cb137-5" tabindex="-1"></a>getphylo_tree<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;&#39;&quot;</span>, <span class="st">&quot;&quot;</span>, getphylo_tree<span class="sc">$</span>tip.label)</span>
+<span id="cb137-6"><a href="data-preparation-human.html#cb137-6" tabindex="-1"></a>tip_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">label =</span> getphylo_tree<span class="sc">$</span>tip.label) <span class="sc">%&gt;%</span></span>
+<span id="cb137-7"><a href="data-preparation-human.html#cb137-7" tabindex="-1"></a>  <span class="fu">left_join</span>(genome_metadata, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;label&quot;</span> <span class="ot">=</span> <span class="st">&quot;mag_name&quot;</span>))</span>
+<span id="cb137-8"><a href="data-preparation-human.html#cb137-8" tabindex="-1"></a></span>
+<span id="cb137-9"><a href="data-preparation-human.html#cb137-9" tabindex="-1"></a><span class="co">#replace long mag names with IDs</span></span>
+<span id="cb137-10"><a href="data-preparation-human.html#cb137-10" tabindex="-1"></a>getphylo_tree<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> tip_df<span class="sc">$</span>ID</span></code></pre></div>
 </div>
 </div>
 <div id="wrap-working-objects-1" class="section level2 hasAnchor" number="3.4">
 <h2><span class="header-section-number">3.4</span> Wrap working objects<a href="data-preparation-human.html#wrap-working-objects-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>All working objects are wrapped into a single Rdata object to facilitate downstream usage.</p>
-<div class="sourceCode" id="cb137"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb137-1"><a href="data-preparation-human.html#cb137-1" tabindex="-1"></a><span class="fu">save</span>(ehi_mags,</span>
-<span id="cb137-2"><a href="data-preparation-human.html#cb137-2" tabindex="-1"></a>     phylum_colors,</span>
-<span id="cb137-3"><a href="data-preparation-human.html#cb137-3" tabindex="-1"></a>     genome_annotations,</span>
-<span id="cb137-4"><a href="data-preparation-human.html#cb137-4" tabindex="-1"></a>     genome_gifts,</span>
-<span id="cb137-5"><a href="data-preparation-human.html#cb137-5" tabindex="-1"></a>     contig_to_genome,</span>
-<span id="cb137-6"><a href="data-preparation-human.html#cb137-6" tabindex="-1"></a>     gtdb_metadata,</span>
-<span id="cb137-7"><a href="data-preparation-human.html#cb137-7" tabindex="-1"></a>     ehi_metadata,</span>
-<span id="cb137-8"><a href="data-preparation-human.html#cb137-8" tabindex="-1"></a>     master_index,</span>
-<span id="cb137-9"><a href="data-preparation-human.html#cb137-9" tabindex="-1"></a>     genome_metadata,</span>
-<span id="cb137-10"><a href="data-preparation-human.html#cb137-10" tabindex="-1"></a>     source_colors,</span>
-<span id="cb137-11"><a href="data-preparation-human.html#cb137-11" tabindex="-1"></a>     getphylo_tree,</span>
-<span id="cb137-12"><a href="data-preparation-human.html#cb137-12" tabindex="-1"></a>     <span class="at">file =</span> <span class="st">&quot;data/human/data.Rdata&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb138"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb138-1"><a href="data-preparation-human.html#cb138-1" tabindex="-1"></a><span class="fu">save</span>(ehi_mags,</span>
+<span id="cb138-2"><a href="data-preparation-human.html#cb138-2" tabindex="-1"></a>     phylum_colors,</span>
+<span id="cb138-3"><a href="data-preparation-human.html#cb138-3" tabindex="-1"></a>     genome_annotations,</span>
+<span id="cb138-4"><a href="data-preparation-human.html#cb138-4" tabindex="-1"></a>     genome_gifts,</span>
+<span id="cb138-5"><a href="data-preparation-human.html#cb138-5" tabindex="-1"></a>     contig_to_genome,</span>
+<span id="cb138-6"><a href="data-preparation-human.html#cb138-6" tabindex="-1"></a>     gtdb_metadata,</span>
+<span id="cb138-7"><a href="data-preparation-human.html#cb138-7" tabindex="-1"></a>     ehi_metadata,</span>
+<span id="cb138-8"><a href="data-preparation-human.html#cb138-8" tabindex="-1"></a>     master_index,</span>
+<span id="cb138-9"><a href="data-preparation-human.html#cb138-9" tabindex="-1"></a>     genome_metadata,</span>
+<span id="cb138-10"><a href="data-preparation-human.html#cb138-10" tabindex="-1"></a>     source_colors,</span>
+<span id="cb138-11"><a href="data-preparation-human.html#cb138-11" tabindex="-1"></a>     getphylo_tree,</span>
+<span id="cb138-12"><a href="data-preparation-human.html#cb138-12" tabindex="-1"></a>     <span class="at">file =</span> <span class="st">&quot;data/human/data.Rdata&quot;</span>)</span></code></pre></div>
 
 </div>
 </div>
