@@ -287,9 +287,9 @@ pcoa_df <- data.frame(
   left_join(metadata_with_cluster, by = "ID")
 
 
-ggplot(pcoa_df, aes(PC1, PC2, color = source.x)) +
+pcoa_amr_pa <- ggplot(pcoa_df, aes(PC1, PC2, color = source.x)) +
   geom_point(size = 2) +
-  scale_color_manual(values = source_colors) +
+  scale_color_manual(values = source_colors, name = "Source") +
   theme_minimal() +
   labs(
     title = "PCoA of AMR annotations across MAGs",
@@ -871,15 +871,17 @@ pcoa_df <- data.frame(
   left_join(metadata_with_cluster, by = "ID")
 
 
-ggplot(pcoa_df, aes(PC1, PC2, color = source.x)) +
+pcoa_vf_pa <- ggplot(pcoa_df, aes(PC1, PC2, color = source.x)) +
   geom_point(size = 2) +
-  scale_color_manual(values = source_colors) +
+  scale_color_manual(values = source_colors, name = "Source") +
   theme_minimal() +
   labs(
     title = "PCoA of VF annotations across MAGs",
     x = paste0("PCoA1 (", round(variance_explained[1] * 100, 1), "%)"),
     y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
   )
+
+pcoa_vf_pa
 
 ggplot(pcoa_df, aes(PC1, PC2, color = completeness)) +
   geom_point(size = 2) +
@@ -1112,3 +1114,19 @@ breaks <- seq(min_val, max_val, length.out = 101)
 
 
 ```
+
+
+
+```{r pcoas together, fig.height = 6, fig.width = 7}
+library(patchwork)
+
+combined_plot <- (pcoa_kegg_pa + ggtitle("PCoA: KEGG")) +
+                 (pcoa_amr_pa  + ggtitle("PCoA: AMR")) +
+                 (pcoa_vf_pa   + ggtitle("PCoA: VF")) +
+                 plot_layout(ncol = 2, guides = "collect") &
+                 theme(legend.position = "bottom")
+
+combined_plot
+```
+
+

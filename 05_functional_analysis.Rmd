@@ -282,8 +282,87 @@ ggplot(heatmap_data,
     title = "Differential KEGG presence between EHI and GTDB"
   )
 
+
+ggplot(heatmap_data,
+       aes(x = proportion, y = Name, color = source)) +
+  geom_point(size = 3) +
+  scale_color_manual(values= source_colors)+
+  geom_line(aes(group = Name), color = "grey70") +
+  scale_x_continuous(limits = c(0, 1)) +
+  theme_minimal() +
+  labs(
+    x = "Proportion of MAGs with KO",
+    y = "KEGG ortholog",
+    color = "Source",
+    title = "Differential KEGG presence between EHI and GTDB"
+  )
+
+
+
+heatmap_data <- heatmap_data %>%
+  group_by(Name) %>%
+  mutate(diff = proportion[source == "EHI"] -
+                proportion[source == "GTDB"]) %>%
+  ungroup() %>%
+  mutate(Name = forcats::fct_reorder(Name, diff))
+
+
+ggplot(heatmap_data,
+       aes(x = source, y = Name, fill = proportion)) +
+  geom_tile() +
+  geom_text(aes(label = scales::number(proportion, accuracy = 0.01)),
+            size = 3) +
+  scale_fill_viridis_c(
+    name = "Proportion of MAGs",
+    limits = c(0, 1)
+  ) +
+  theme_minimal() +
+  labs(
+    x = "Source",
+    y = "KEGG ortholog",
+    title = "Differential KEGG presence between EHI and GTDB"
+  )
+
 ```
 
+```{r put it in a table}
+table_data <- fish_results_names %>%
+  transmute(
+    `KEGG ortholog` = Name,
+    `Proportion in EHI`  = prop_EHI,
+    `Proportion in GTDB` = prop_GTDB,
+    `Δ (GTDB - EHI)`  =  prop_GTDB - prop_EHI ,
+    `Fisher p-value`  = p_value
+  ) %>%
+  arrange(desc(abs(`Δ (GTDB - EHI)`)))
+
+table_data
+```
+```{r testing table format}
+library(gt)
+
+table_data %>%
+  gt() %>%
+  fmt_number(
+    columns = c(`Proportion in EHI`, `Proportion in GTDB`, `Δ (GTDB - EHI)`),
+    decimals = 2
+  ) %>%
+  fmt_scientific(
+    columns = `Fisher p-value`,
+    decimals = 2
+  ) %>%
+  tab_header(
+    title = "KEGG orthologs differing between EHI and GTDB MAGs"
+  ) %>%
+  cols_align(
+    align = "center",
+    everything()
+  )%>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_column_labels(everything())
+  )
+```
 
 
 ### Functional Ordination
@@ -591,26 +670,58 @@ adonis2(
 ```{r pcoa on presence absence kegg}
 pcoa_pa <- cmdscale(kegg_dist_pa, eig = TRUE, k = 2)
 
+variance_explained <- pcoa_pa$eig / sum(pcoa_pa$eig)
+
 pcoa_df <- data.frame(
   ID = rownames(kegg_pa_nz),
   PC1 = pcoa_pa$points[,1],
   PC2 = pcoa_pa$points[,2],
   source = meta$source
 ) %>%
-  left_join(genome_metadata, by = "ID")
+  left_join(metadata_with_cluster, by = "ID")
 
 
-ggplot(pcoa_df, aes(PC1, PC2, color = source.x)) +
-  geom_point(size = 3, alpha = 0.8) +
-  theme_classic()
+pcoa_kegg_pa <- ggplot(pcoa_df, aes(PC1, PC2, color = source.x)) +
+  geom_point(size = 2) +
+  scale_color_manual(values = source_colors, name = "Source")+
+  theme_minimal() +
+  labs(
+    title = "PCoA of KEGG presence/absence matrix across MAGs (colored by source)",
+    x = paste0("PC1 (",round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
+  )
+
+pcoa_kegg_pa
 
 ggplot(pcoa_df, aes(PC1, PC2, color = completeness)) +
-  geom_point(size = 3, alpha = 0.8) +
-  theme_classic()
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of KEGG presence/absence matrix across MAGs (colored by completeness)",
+    x = paste0("PC1 (",round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
+  )
 
 ggplot(pcoa_df, aes(PC1, PC2, color = continent)) +
-  geom_point(size = 3, alpha = 0.8) +
-  theme_classic()
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of KEGG presence/absence matrix across MAGs (colored by continent)",
+    x = paste0("PC1 (",round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
+  )
+
+
+ggplot(pcoa_df, aes(PC1, PC2, color = cluster)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCoA of KEGG presence/absence matrix across MAGs (colored by GIFT functional cluster)",
+    x = paste0("PC1 (",round(variance_explained[1] * 100, 1), "%)"),
+    y = paste0("PC2 (", round(variance_explained[2] * 100, 1), "%)")
+  )
+
+
 
 ```
 
@@ -1343,8 +1454,114 @@ gift_pcoa_vectors %>%
     y = paste0("PCoA2 (", round(gift_pcoa_rel_eigen[2]*100, 2), " %)")
   )
 
+
+gift_pcoa_vectors %>% 
+  rownames_to_column(var="ID") %>% 
+  left_join(genome_metadata, by="ID") %>%
+  ggplot() +
+      #genome positions
+      geom_point(aes(x=Axis.1,y=Axis.2, color = host_class), 
+                 alpha=0.9, shape=16) +
+      scale_size_continuous(range = c(0.1,5)) +
+      #loading positions
+      geom_segment(data=gift_pcoa_gifts, 
+                   aes(x=0, y=0, xend=Axis.1 * scale, yend=Axis.2 * scale),
+                    arrow = arrow(length = unit(0.3, "cm"), 
+                    type = "open", 
+                    angle = 25),
+                    linewidth = 0.5, 
+                    color = "black") +
+     #Primary and secondary scale adjustments
+     scale_x_continuous(name = paste0("PCoA1 (",round(gift_pcoa_rel_eigen[1]*100, digits = 2), " %)"),
+                      sec.axis = sec_axis(~ . / scale, name = "Loadings on PCoA1")
+            ) +
+     scale_y_continuous(name = paste0("PCoA2 (",round(gift_pcoa_rel_eigen[2]*100, digits = 2), " %)"),
+                      sec.axis = sec_axis(~ . / scale, name = "Loadings on PCoA2")
+            ) +
+    geom_label_repel(data = gift_pcoa_gifts,
+                     aes(label = label, x = Axis.1 * scale, y = Axis.2 * scale),
+                     segment.color = 'transparent') +
+    xlim(-0.8,1) + 
+    ylim(-1,1.5) +
+    theme_minimal() + 
+  
+  labs(
+    x = paste0("PCoA1 (", round(gift_pcoa_rel_eigen[1]*100, 2), " %)"),
+    y = paste0("PCoA2 (", round(gift_pcoa_rel_eigen[2]*100, 2), " %)")
+  )
+
+gift_pcoa_vectors %>% 
+  rownames_to_column(var="ID") %>% 
+  left_join(genome_metadata, by="ID") %>%
+  ggplot() +
+      #genome positions
+      geom_point(aes(x=Axis.1,y=Axis.2, color = host_order), 
+                 alpha=0.9, shape=16) +
+      scale_size_continuous(range = c(0.1,5)) +
+      #loading positions
+      geom_segment(data=gift_pcoa_gifts, 
+                   aes(x=0, y=0, xend=Axis.1 * scale, yend=Axis.2 * scale),
+                    arrow = arrow(length = unit(0.3, "cm"), 
+                    type = "open", 
+                    angle = 25),
+                    linewidth = 0.5, 
+                    color = "black") +
+     #Primary and secondary scale adjustments
+     scale_x_continuous(name = paste0("PCoA1 (",round(gift_pcoa_rel_eigen[1]*100, digits = 2), " %)"),
+                      sec.axis = sec_axis(~ . / scale, name = "Loadings on PCoA1")
+            ) +
+     scale_y_continuous(name = paste0("PCoA2 (",round(gift_pcoa_rel_eigen[2]*100, digits = 2), " %)"),
+                      sec.axis = sec_axis(~ . / scale, name = "Loadings on PCoA2")
+            ) +
+    geom_label_repel(data = gift_pcoa_gifts,
+                     aes(label = label, x = Axis.1 * scale, y = Axis.2 * scale),
+                     segment.color = 'transparent') +
+    xlim(-0.8,1) + 
+    ylim(-1,1.5) +
+    theme_minimal() + 
+  
+  labs(
+    x = paste0("PCoA1 (", round(gift_pcoa_rel_eigen[1]*100, 2), " %)"),
+    y = paste0("PCoA2 (", round(gift_pcoa_rel_eigen[2]*100, 2), " %)")
+  )
+
 ```
 
+```{r pcoa for report}
+centroids <- gift_pcoa_vectors %>%
+  rownames_to_column(var = "ID") %>%
+  left_join(genome_metadata, by = "ID") %>%
+  group_by(source) %>%
+  summarise(
+    Axis.1 = mean(Axis.1, na.rm = TRUE),
+    Axis.2 = mean(Axis.2, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+gift_pcoa_vectors %>% 
+  rownames_to_column(var = "ID") %>% 
+  left_join(genome_metadata, by = "ID") %>%
+  ggplot(aes(x = Axis.1, y = Axis.2, color = source)) +
+  geom_point(size = 3, alpha = 0.9) +
+  scale_color_manual(values = source_colors) +
+
+  labs(
+    x = paste0("PCoA1 (", round(gift_pcoa_rel_eigen[1] * 100, 2), " %)"),
+    y = paste0("PCoA2 (", round(gift_pcoa_rel_eigen[2] * 100, 2), " %)")
+  ) +
+
+  coord_cartesian(xlim = c(-0.6, 1), ylim = c(-1, 1)) +
+
+  theme_minimal(base_size = 16) +
+  theme(
+    axis.title = element_text(size = 14, face = "bold"),
+    axis.text  = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text  = element_text(size = 14),
+    panel.grid.minor = element_blank()
+  )
+
+```
 
 
 
@@ -1447,6 +1664,7 @@ pairwise.wilcox.test(
 
 
 
+
 Plots
 ```{r summary plots}
 ggplot(metadata_with_cluster, aes(x = genome_size, y = GC, col = cluster))+
@@ -1461,6 +1679,33 @@ ggplot(metadata_with_cluster, aes(x = cluster, y = genome_size, col = cluster))+
   geom_point()+
   theme_bw()
 ```
+
+
+```{r clustering proportion fisher}
+count_table <- metadata_with_cluster %>%
+  dplyr::count(cluster, source) %>%
+  pivot_wider(
+    names_from = source,
+    values_from = n,
+    values_fill = 0
+  )
+
+count_table
+
+mat <- metadata_with_cluster %>%
+  dplyr::count(cluster, source) %>%
+  pivot_wider(names_from = source, values_from = n, values_fill = 0) %>%
+  column_to_rownames("cluster") %>%
+  as.matrix()
+
+chisq.test(mat)$expected
+
+
+fisher.test(mat)
+
+```
+
+
 ```{r GIFT aggregations}
 #Aggregate bundle-level GIFTs into the compound level
 GIFTs_elements <- to.elements(genome_gifts,GIFT_db)
@@ -1507,7 +1752,7 @@ GIFTs_elements %>%
 
 
 ```{r comumnity_elem_plot_source, comment="", message=FALSE, warning=FALSE, fig.height=16, fig.width=14, fig.fullwidth=TRUE}
-GIFTs_elements %>%
+p <- GIFTs_elements %>%
     as.data.frame() %>%
     rownames_to_column(var="MAG")%>%
     pivot_longer(!MAG,names_to="trait",values_to="gift") %>%
@@ -1532,8 +1777,21 @@ GIFTs_elements %>%
               strip.text.y = element_text(angle = 0)
               ) +
         labs(y="Traits",x="Samples",fill="GIFT")
+
+p
 ```
 
+```{r save plot}
+ggplot2::ggsave(
+  filename = "plots/GIFT_heatmap_final.png",
+  plot = p,
+  width = 14,
+  height = 16,
+  units = "in",
+  dpi = 600,
+  bg = "white"
+)
+```
 
 
 
@@ -1908,6 +2166,12 @@ print(wilcox_res_source)
 ```
 
 ```{r gifts different between source plot}
+host_class_colors <- c(
+  "Mammalia"  = "#8B1E3F",  
+  "Reptilia"  = "#3A7D44", 
+  "Aves"      = "#E1B12C"   
+)
+
 GIFTs_elements %>%
   melt() %>%
   dplyr::rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
@@ -1927,12 +2191,11 @@ GIFTs_elements %>%
   new_scale_fill() +
   
   # Add the source bar at the very top or bottom
-  geom_tile(aes(y = -0.5, fill = source), height = 0.5) +
-  scale_fill_manual(values = source_colors) +
+  geom_tile(aes(y = -0.5, fill = host_class), height = 0.5) +
     facet_grid(~ source, scales = "free_x", space = "free_x") + 
+  scale_fill_manual(values = host_class_colors, name = "Host class")
     theme(
-      axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-      strip.text.x = element_text(face = "bold")
+      axis.text.x = element_blank()
     ) +
     labs(y = "Trait", x = "Genome", fill = "GIFT")
 ```

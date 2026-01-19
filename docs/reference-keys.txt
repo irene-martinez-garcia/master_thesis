@@ -35,6 +35,7 @@ host-classes--after-filtering
 count-host-classes-per-species
 data-statistics
 mean-completeness-and-contamination
+country
 data-statistics-human
 load-data
 phylogenetic-analysis

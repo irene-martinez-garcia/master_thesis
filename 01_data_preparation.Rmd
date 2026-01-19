@@ -737,9 +737,12 @@ cat("\nFinal verification - Perfect match?",
 
 
 
-```{r final_pangenome_fig_heatmap_tree, fig.height=8, fig.width=16, fig.fullwidth=TRUE, eval = FALSE}
+```{r final_pangenome_fig_heatmap_tree, fig.height=8, fig.width=16, fig.fullwidth=TRUE, eval = TRUE}
 hc <- as.hclust(tree)
 
+ann_colors <- list(
+  source = source_colors  
+)
 
 pheatmap(
   gene_matrix_t,
@@ -753,7 +756,7 @@ pheatmap(
 
 ```
 
-```{r dendogram matrix figure, fig.height=10, fig.width=16, fig.fullwidth=TRUE, eval = FALSE}
+```{r dendogram matrix figure, fig.height=10, fig.width=16, fig.fullwidth=TRUE, eval = TRUE}
 annotation_row <- data.frame(
   source = genome_metadata$source
 )
@@ -784,9 +787,15 @@ pheatmap(
 ```
 
 
-```{r testing with complexheatmap to include ani values of dendogram, fig.height=10, fig.width=16, fig.fullwidth=TRUE, eval = FALSE}
+```{r testing with complexheatmap to include ani values of dendogram, fig.height=10, fig.width=16, fig.fullwidth=TRUE}
 library(ComplexHeatmap)
 library(circlize)
+
+annotation_row <- data.frame(
+  source = genome_metadata$source
+)
+rownames(annotation_row) <- genome_metadata$ID
+annotation_row <- annotation_row[rownames(gene_matrix_t), , drop = FALSE]
 
 # Heatmap colors
 col_fun <- colorRamp2(c(0, 1), c("white", "blue"))
@@ -829,6 +838,7 @@ summarize_spots <- read_tsv("data/pangolin/summarize_spots.tsv")
 genomes_statistics <- read_tsv("data/pangolin/genomes_statistics.tsv", comment= "#")
 regions_of_genomic_plasticity <- read_tsv("data/pangolin/regions_of_genomic_plasticity.tsv")
 ```
+
 ```{r add genome sizes missing}
 genome_metadata <- genome_metadata %>%
   mutate(
@@ -837,6 +847,14 @@ genome_metadata <- genome_metadata %>%
       ID == "GCF_002206325.1" & is.na(genome_size) ~ 4963958,
       TRUE ~ genome_size
     )
+  )
+
+
+genome_metadata <- genome_metadata %>%
+  mutate(
+    host_class   = if_else(source == "GTDB", "Mammalia", host_class),
+    host_order   = if_else(source == "GTDB", "Primates", host_order),
+    host_species = if_else(source == "GTDB", "Homo sapiens", host_species)
   )
 ```
 
