@@ -1,4 +1,4 @@
-# Comparative metagenomics
+# Master Thesis Project
 
 Metagenomic comparison of different gut microbiome bacterial species for MSc project.
 
@@ -6,7 +6,7 @@ Metagenomic comparison of different gut microbiome bacterial species for MSc pro
 
 The raw code used for data analysis is in the **Rmd** files stored in the root directory of this repository, while the bookdown-rendered webbook is available at:
 
-https://irene-martinez-garcia.github.io/comparative_metagenomics/
+https://irene-martinez-garcia.github.io/master_thesis/
 
 While the webbook provides a user-friendly overview of the procedures, analyses can be directly reproduced using the Rmd documents. Note that the code chunks that require heavy computation have been tuned off using 'eval=FALSE'. To re-render the webbook, you can use the following code:
 
