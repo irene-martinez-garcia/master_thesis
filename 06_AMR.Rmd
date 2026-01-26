@@ -189,7 +189,7 @@ pheatmap(
 )
 ```
 
-## PERMANOVA
+## PERMANOVA relative abundance
 
 ```{r permanova_amr}
 amr_counts <- genome_annotations %>%
@@ -236,7 +236,7 @@ adonis2(
 ```
 
 
-
+## PERMANOVA presence/absence
 ```{r amr presence_absence permanova}
 # remove zero-variance KOs
 amr_pa_nz <- amr_presence[, colSums(amr_presence) > 0 & colSums(amr_presence) < nrow(amr_presence)]
@@ -269,8 +269,7 @@ adonis2(
 
 
 
-## PCoA
-
+## PCoA presence/absence
 
 ```{r pcoa on presence absence amr}
 pcoa_pa <- cmdscale(amr_dist_pa, eig = TRUE, k = 2)
@@ -296,6 +295,8 @@ pcoa_amr_pa <- ggplot(pcoa_df, aes(PC1, PC2, color = source.x)) +
     x = paste0("PCoA1 (", round(variance_explained[1] * 100, 1), "%)"),
     y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
   )
+
+pcoa_amr_pa
 
 ggplot(pcoa_df, aes(PC1, PC2, color = completeness)) +
   geom_point(size = 2) +
@@ -350,6 +351,7 @@ ggplot(pcoa_df, aes(PC1, PC2, color = cluster)) +
 ```
 
 
+## PCoA relative abundance
 ```{r pcoa amr}
 pcoa_res <- cmdscale(amr_dist, k = 2, eig = TRUE)
 
@@ -418,6 +420,8 @@ cat("MAGs with AMR genes:", nrow(amr_rel_nz), "\n")
 cat("Total AMR genes detected:", ncol(amr_rel_nz), "\n")
 ```
 
+
+
 ## DESEq2
 ```{r deseq_amr}
 library(DESeq2)
@@ -456,6 +460,7 @@ res <- results(dds, contrast=c("source", "EHI", "GTDB"), alpha=0.05)
 summary(res)
 
 ```
+
 ```{r save res amr}
 res_df <-res %>% as.data.frame %>% rownames_to_column("AMR_Target") %>% as_tibble
 
@@ -463,70 +468,7 @@ res_df <- filter(res_df, padj<0.05)
 ```
 
 
-## Wilcoxon
-```{r wilcoxon_amr}
-wilcox_amr <- amr_rel_nz_meta %>%
-  pivot_longer(
-    cols = where(is.numeric),
-    names_to = "AMR_Target", 
-    values_to = "rel_abundance"
-  ) %>%
-  group_by(AMR_Target) %>%
-  do(broom::tidy(wilcox.test(rel_abundance ~ source, data = .))) %>%
-  ungroup()
-
-# Adjust p-values
-wilcox_amr_results <- wilcox_amr %>%
-  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>%
-  filter(p.adj < 0.05) %>%
-  arrange(p.adj)
-
-wilcox_amr_results
-```
-
-```{r checking frequency, eval = FALSE}
-#amr frequency
-amr_frequency <- amr_rel_nz_meta %>%
-  dplyr::select(source, all_of(wilcox_amr_results$AMR_Target)) %>%
-  pivot_longer(-source, names_to = "AMR_Target", values_to = "val") %>%
-  group_by(AMR_Target, source) %>%
-  summarise(percent_presence = mean(val > 0) * 100, .groups = 'drop')
-
-
-ggplot(amr_frequency, aes(x = AMR_Target, y = percent_presence, fill = source)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  coord_flip() 
-  scale_fill_manual(values = source_colors) +
-  theme_minimal() +
-  labs(title = "Prevalence of AMR Genes: Human vs Wildlife",
-       y = "% of MAGs carrying the gene", x = "")
-```
-
-```{r plot all_amr}
-# Filter data to only include the common KOs
-common_AMR_Target <- (wilcox_amr_results$AMR_Target)
-
-plot_data <- amr_rel_nz_meta %>%
-  dplyr::select(ID, source, all_of(common_AMR_Target)) %>%
-  pivot_longer(cols = all_of(common_AMR_Target), 
-               names_to = "AMR_Target", 
-               values_to = "Relative_Abundance")
-
-
-ggplot(plot_data, aes(x = source, y = Relative_Abundance, fill = source)) +
-  geom_boxplot(outlier.shape = NA) +
-  geom_jitter(width = 0.2, alpha = 0.4, size = 1) +
-  facet_wrap(~AMR_Target, scales = "free_y", ncol = 5) + # 'free_y' is important as abundance scales vary
-  scale_fill_manual(values = source_colors) +
-  theme_minimal() +
-  theme(strip.text = element_text(face = "bold"),
-        legend.position = "bottom") +
-  labs(title = "Relative Abundance of Consensus Significant AMR Targets",
-       x = "Host Source",
-       y = "Relative Abundance")
-```
-
-
+## Testing proportions (Fisher)
 ```{r testing prevalence with fischer test}
 amr_binary <- amr_counts %>%
   left_join(genome_metadata %>% dplyr::select(ID, source), by = c("mag_id" = "ID")) %>%
@@ -559,6 +501,9 @@ fisher_results <- fisher_results %>%
 
 print(fisher_results)
 ```
+
+
+## ALDEx2
 ```{r aldex2 amr}
 library(ALDEx2)
 # Prepare count matrix for ALDEx2 (raw counts, not normalized)
@@ -661,7 +606,7 @@ vf_mag_proportions <- vf_mag_counts %>%
 
 ```
 
-#### Statistical testing of MAG proportions
+#### Statistical testing of MAG proportions (Fisher)
 ```{r statistical testing mag proportions vf}
 fisher_results <- vf_mag_proportions %>%
   dplyr::select(vf, source, n_mags, absent) %>%
@@ -763,6 +708,7 @@ pheatmap(vf_scaled,
   border_color = NA
 )
 ```
+
 ## Virulence presence/absence heatmap
 ```{r VF presence heatmap,  fig.height=14, fig.width=12, fig.fullwidth=TRUE}
 vf_presence <- vf_abundance %>%
@@ -783,6 +729,8 @@ pheatmap(
 
 ```
 
+
+## Virulence presence/absence PERMANOVA
 ```{r vf presence_absence anova}
 # remove zero-variance KOs
 vf_pa_nz <- vf_presence[, colSums(vf_presence) > 0 & colSums(vf_presence) < nrow(vf_presence)]
@@ -813,6 +761,8 @@ adonis2(
 
 ```
 
+
+## Virulence relative abundance PERMANOVA
 ```{r permanova_vf}
 vf_counts <- genome_annotations %>%
   filter(mag_id != "GCA_015060925.1") %>%
@@ -856,6 +806,10 @@ adonis2(
   by = "margin"
 )
 ```
+
+
+
+## Virulence presence/absence PCoA
 ```{r pcoa on presence absence vf}
 pcoa_pa <- cmdscale(vf_dist_pa, eig = TRUE, k = 2)
 
@@ -923,7 +877,7 @@ ggplot(pcoa_df, aes(PC1, PC2, color = continent)) +
     y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
   )
 
-ggplot(pcoa_df, aes(PC1, PC2, color = cluster)) +
+pcoa_vf_pa_cluster <- ggplot(pcoa_df, aes(PC1, PC2, color = cluster)) +
   geom_point(size = 2) +
   theme_minimal() +
   labs(
@@ -932,10 +886,11 @@ ggplot(pcoa_df, aes(PC1, PC2, color = cluster)) +
     y = paste0("PCoA2 (", round(variance_explained[2] * 100, 1), "%)")
   )
 
-
+pcoa_vf_pa_cluster
 ```
 
 
+## Virulence relative abundance PCoA
 ```{r pcoa vf}
 pcoa_res <- cmdscale(vf_dist, k = 2, eig = TRUE)
 
@@ -1008,7 +963,7 @@ ggplot(pcoa_df, aes(PC1, PC2, color = continent)) +
 
 ```
 
-
+## ALDEX2
 ```{r aldex2 vf}
 # Prepare count matrix for ALDEx2 (raw counts, not normalized)
 vf_counts_aldex <- vf_counts %>%
@@ -1060,8 +1015,10 @@ ggplot(aldex_vf_results, aes(x = effect, y = -log10(wi.eBH))) +
     color = "Significant"
   )
 ```
-# CAZY
 
+
+
+# CAZY
 ```{r cazy annotations}
 cazy_genes <- genome_annotations %>%
   filter(!is.na(cazy)) %>%
@@ -1116,7 +1073,7 @@ breaks <- seq(min_val, max_val, length.out = 101)
 ```
 
 
-
+## PCoAs KEGG, AMR and VF
 ```{r pcoas together, fig.height = 6, fig.width = 7}
 library(patchwork)
 
