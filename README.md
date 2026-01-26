@@ -1,6 +1,6 @@
 # Master Thesis Project
 
-Metagenomic comparison of different gut microbiome bacterial species for MSc project.
+Metagenomic comparison of different gut microbiome bacterial species for MSc thesis project.
 
 ## Analysis procedures
 
