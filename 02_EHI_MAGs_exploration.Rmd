@@ -165,7 +165,7 @@ n_mags <- mags_host2 %>%
 
 We have several MAGs per species, so here we select the "best MAG" (highest completeness and lowest contamination), to have statistics based on the best of each.
 ```{r best mags per species}
-best_mag_per_species <- mags_host3 %>%
+best_mag_per_species <- mags_host2 %>%
   group_by(species) %>%
   arrange(desc(completeness), contamination) %>%
   slice_head(n = 1) %>%
@@ -197,7 +197,7 @@ ggplot(best_mag_per_species, aes(x= species, y = best_genome_size, fill = best_p
 
 
 Filtering for Parabacteroides distasonis (make into a loop for all the relevant species later)
-```{r pdist}
+```{r pdist, eval = FALSE}
 p_dist <- ehi_mags %>%
   filter(completeness >90,
          contamination < 2.5,
@@ -214,7 +214,7 @@ write_tsv(p_dist_index, "data/mags_metadata/parabacteroides_distasonis_index.tsv
 
 
 
-```{r loop for all species}
+```{r loop for all species, eval = FALSE}
 #Loop through each species in species_selection list
 for (i in 1:nrow(species_selection_f)) {
   current_species <- species_selection_f$species[i]
@@ -246,7 +246,7 @@ for (i in 1:nrow(species_selection_f)) {
 
 ```
 
-```{r make index with all MAGs}
+```{r make index with all MAGs, eval = FALSE}
 ### First only with two:
 all_mags <- ehi_mags %>%
   filter(completeness > 90,
