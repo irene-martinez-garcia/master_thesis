@@ -37,7 +37,7 @@ RStudio > New Project > Version Control > Git
 
 And indicating the following git repository:
 
-> https://github.com/irene-martinez-garcia/comparative_metagenomics.git
+> https://github.com/irene-martinez-garcia/master_thesis.git
 
 Once the R project has been created, follow the instructions and code chunks shown in this webbook.
 

@@ -2,7 +2,7 @@ introduction
 prepare-the-r-environment
 environment
 libraries
-data-preparation
+data-preparation-human
 searching-for-the-mags
 downloading-the-mags-and-generating-data
 r-studio--data-analysis
@@ -12,7 +12,7 @@ sample-metadata
 load-genome-mapping
 genome-annotations
 distill-annotations-into-gifts
-load-getphylo-trees
+load-trees
 wrap-working-objects
 ehi-mags-exploration
 ehi-mags-1

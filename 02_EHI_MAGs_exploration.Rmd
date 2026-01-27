@@ -7,7 +7,7 @@ load("data/data.Rdata")
 
 
 ```{r load ehi mags}
-ehi_mags <- read_csv("data/ehi_mags.csv")
+ehi_mags <- read_csv("data/ehi_metadata_location.csv")
 colnames(ehi_mags)
 ```
 Check contamination and completeness
@@ -75,45 +75,41 @@ ehi_mags_filtered <- ehi_mags %>%
 
 ### Host classes
 ```{r count number of species in more than 2 host classes}
-species_hostclass_counts <- ehi_mags %>%
+species_hostclass_counts <- ehi_mags_filtered %>%
   filter(!is.na(species), species != "") %>% 
   filter(!is.na(host_class), host_class != "") %>% 
   group_by(species) %>%
   summarise(
     n_mags = n(),
     n_host_classes = n_distinct(host_class),
+    n_host_species = n_distinct(host_species),
     host_classes = paste(sort(unique(host_class)), collapse = ", "),
+    host_species = paste(sort(unique(host_species)), collapse = ", "),
     phylum = paste(unique(phylum), collapse = ", ")
   ) %>%
   arrange(desc(n_host_classes))
 
 
-species_selection <- species_hostclass_counts %>%
+species_selection_3 <- species_hostclass_counts %>%
   filter(n_host_classes >= 3)
 
-species_selection
+species_selection_2 <- species_hostclass_counts %>%
+  filter(n_host_classes >= 2)
+
+species_selection_3 %>% arrange(-n_mags)
+species_selection_2 %>% arrange(-n_mags)
 ```
 ```{r check the phylums}
-species_selection %>% group_by(phylum)%>%
+species_selection_2 %>% group_by(phylum)%>%
+  summarize(n_species = n())
+
+species_selection_3 %>% group_by(phylum)%>%
   summarize(n_species = n())
 ```
 ### Host classes- after filtering
 ```{r count number of species in more than 2 host classes after filtering}
-species_hostclass_counts_f <- ehi_mags_filtered %>%
-  dplyr::filter(!is.na(species), species != "") %>% 
-  dplyr::filter(!is.na(host_class), host_class != "") %>% 
-  group_by(species) %>%
-  summarise(
-    n_mags = n(),
-    n_host_classes = n_distinct(host_class),
-    host_classes = paste(sort(unique(host_class)), collapse = ", "),
-    phylum = paste(unique(phylum), collapse = ", ")
-  ) %>%
-  arrange(desc(n_host_classes))
-
-
-species_selection_f <- species_hostclass_counts_f %>%
-  dplyr::filter(n_host_classes >= 3, n_mags > 10) %>%
+species_selection_f <- species_selection_2 %>%
+  dplyr::filter(n_mags > 10) %>%
   arrange(desc(n_mags))
 
 species_selection_f
@@ -129,16 +125,7 @@ species_selection_f %>% group_by(phylum)%>%
 
 ### Count host classes per species
 ```{r count host classes per species}
-species_hostclass_counts <- ehi_mags_filtered %>%
-  dplyr::filter(!is.na(species), species != "",
-         !is.na(host_class), host_class != "") %>%
-  group_by(species) %>%
-  summarise(
-    n_host_classes = n_distinct(host_class)) %>%
-  arrange(desc(n_host_classes))
-
-
-counts_species_per_class<- species_hostclass_counts %>% 
+counts_species_per_class<- species_selection_f %>% 
   group_by(n_host_classes)%>%
   summarize(n_species = n())
 
@@ -158,29 +145,18 @@ ggplot(counts_species_per_class, aes(x = n_host_classes, y = n_species)) +
 
 ```
 ```{r add the count data to the ehi mags}
-
 mags_with_counts <- ehi_mags_filtered %>%
   left_join(species_hostclass_counts, by = "species")
 
 
-#filter for mags with >2 host classes
-mags_host3 <- mags_with_counts %>%
-  dplyr::filter(n_host_classes >= 3)
+#filter for mags with >1 host class
+mags_host2 <- mags_with_counts %>%
+  dplyr::filter(n_host_classes >= 2)
 
-n_mags <- mags_host3 %>% 
+n_mags <- mags_host2 %>% 
   group_by(species) %>%
   summarise(n_mags = n(), .groups = "drop")
 
-
-#Species level:
-species_host3 <- mags_host3 %>%
-  group_by(species)%>%
-  summarise(phylum = dplyr::first(phylum),
-            order = dplyr::first(order),
-            family = dplyr::first(family),
-            genus = dplyr::first(genus),
-            host_classes = paste(sort(unique(host_class)), collapse = ", "),
-            host_species = paste(sort(unique(host_species)), collapse = ", "))
 ```
 
 
@@ -204,7 +180,7 @@ best_mag_per_species <- mags_host3 %>%
     best_N50 = N50,
     best_host_classes = host_class,  
     best_assembly_type = assembly_type, 
-    best_phylum =str_remove_all(phylum, "p__")) 
+    best_phylum =str_remove_all(phylum.x, "p__")) 
   
 ```
 
