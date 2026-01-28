@@ -25,4 +25,11 @@ citrobacter-braakii
 lactococcus-lactis
 hafnia-paralvei
 enterococcus-faecalis
+enterococcus-hirae
+bacteroides-uniformis
+phocaeicola-vulgatus
+parabacteroides-goldsteinii
+akkermansia-municiphila
+bacteroides-fragilis
+providencia-rettgeri
 downloading-the-mags-after-filtering

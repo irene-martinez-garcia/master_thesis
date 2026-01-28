@@ -2,6 +2,23 @@
 
 ## NCBI MAGs metadata
 
+
+```{r Gut microbiome keywords}
+gut_keywords <- c("ceaca", "caeca", "excrement", "excrements", "rectal", "feces", 
+                  "stool", "stools", "gut", "cloaca", "cloacal", "fecal", "intestines",
+                  "intestine", "intestinal", "cecum", "ileum", "jejunum", "colon", "rectum", "rumen",
+                  "anal", "anus", "manure", "faeces")
+
+# Wrap each keyword in word boundaries: \bkeyword\b --otherwise artisanal passes the filter 
+pattern <- paste0("\\b(", paste(gut_keywords, collapse = "|"), ")\\b")
+
+
+# Filter the data
+#gut_samples <- metadata_wide %>%
+#  filter(str_detect(isolation_source, regex(pattern, ignore_case = TRUE)))
+```
+
+
 Download metadata for each taxa
 ```{bash, eval = FALSE}
 # Trying to download ncbi metadata for mags
@@ -65,6 +82,31 @@ host_counts
 
 metadata_wide %>%
   filter(host == "Homo sapiens")
+
+citrobacter_gut <- metadata_wide %>%
+  filter(str_detect(isolation_source, regex(pattern, ignore_case = TRUE)))
+
+citrobacter_gut %>%tt()
+
+## HUMAN
+summary_counts <- citrobacter_gut %>%
+  dplyr::summarize(
+    total_rows = n(),
+    human_samples = sum(
+      host == "Homo sapiens" | 
+      stringr::str_detect(isolation_source, stringr::regex("human", ignore_case = TRUE)), 
+      na.rm = TRUE
+    )
+  )
+
+print(summary_counts)
+
+## OTHER HOSTS
+other_hosts <- citrobacter_gut %>%
+  dplyr::filter(host != "Homo sapiens" | is.na(host)) %>%
+  dplyr::count(host, sort = TRUE)
+
+print(other_hosts)
 ```
 
 
@@ -96,34 +138,42 @@ jq -r '
 ```
 
 
-```{r lactococcus, eval = FALSE}
+```{r lactococcus}
 lactococcus_metadata <- read_tsv("data/ncbi/lactococcus_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
 
 
 metadata_wide <- lactococcus_metadata %>%
+  filter(attribute != "assembly") %>%  # assembly is in some attribute column, causing issues
   pivot_wider(
     id_cols = assembly,
     names_from = attribute,
     values_from = value,
-    values_fn = function(x) x[1]
+    values_fn = list(value = ~ paste(.x, collapse = "; "))
   )
 
 
-source_counts <- metadata_wide %>%
-  filter(!is.na(isolation_source)) %>%
-  dplyr::count(isolation_source, sort = TRUE)
+lactococcus_gut <- metadata_wide %>%
+  filter(str_detect(isolation_source, regex(pattern, ignore_case = TRUE)))
 
-source_counts
+## HUMAN
+summary_counts <- lactococcus_gut %>%
+  dplyr::summarize(
+    total_rows = n(),
+    human_samples = sum(
+      host == "Homo sapiens" | 
+      stringr::str_detect(isolation_source, stringr::regex("human", ignore_case = TRUE)), 
+      na.rm = TRUE
+    )
+  )
 
+print(summary_counts)
 
-host_counts <- metadata_wide %>%
-  filter(!is.na(host)) %>%
+## OTHER HOSTS
+other_hosts <- lactococcus_gut %>%
+  dplyr::filter(host != "Homo sapiens" | is.na(host)) %>%
   dplyr::count(host, sort = TRUE)
 
-host_counts
-
-metadata_wide %>%
-  filter(host == "Homo sapiens" | str_detect(isolation_source, "human"))
+print(other_hosts)
 ```
 
 
@@ -167,24 +217,99 @@ metadata_wide <- hafnia_metadata %>%
     values_fn = function(x) x[1]
   )
 
+hafnia_gut <- metadata_wide %>%
+  filter(str_detect(isolation_source, regex(pattern, ignore_case = TRUE)))
 
-source_counts <- metadata_wide %>%
-  filter(!is.na(isolation_source)) %>%
-  dplyr::count(isolation_source, sort = TRUE)
+## HUMAN
+summary_counts <- hafnia_gut %>%
+  dplyr::summarize(
+    total_rows = n(),
+    human_samples = sum(
+      host == "Homo sapiens" | 
+      stringr::str_detect(isolation_source, stringr::regex("human", ignore_case = TRUE)), 
+      na.rm = TRUE
+    )
+  )
 
-source_counts
+print(summary_counts)
 
-
-host_counts <- metadata_wide %>%
-  filter(!is.na(host)) %>%
+## OTHER HOSTS
+other_hosts <- hafnia_gut %>%
+  dplyr::filter(host != "Homo sapiens" | is.na(host)) %>%
   dplyr::count(host, sort = TRUE)
 
-host_counts
-
-metadata_wide %>%
-  filter(host == "Homo sapiens" | str_detect(isolation_source, "human"))
+print(other_hosts)
 ```
+
+
 ### Enterococcus faecalis
+```{bash, eval = FALSE}
+## ENTEROCOCCUS FAECALIS
+datasets summary genome taxon 1351 \
+  --as-json-lines > enterococcus_faecalis_genomes.jsonl
+
+
+#filtering by contamination and completeness
+jq -c '
+select(
+  .checkm_info.completeness >= 90 and
+  .checkm_info.contamination <= 2.5
+)
+' enterococcus_faecalis_genomes.jsonl > enterococcus_faecalis_high_quality_genomes.jsonl
+
+
+
+#put metadata in tsv
+jq -r '
+.accession as $asm |
+.assembly_info.biosample.attributes[]? |
+[$asm, .name, .value] | @tsv
+' enterococcus_faecalis_high_quality_genomes.jsonl > enterococcus_faecalis_biosample_attributes.tsv
+
+
+```
+
+
+```{r enterococcus_faecalis}
+enterococcus_faecalis_metadata <- read_tsv("data/ncbi/enterococcus_faecalis_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+
+
+metadata_wide <- enterococcus_faecalis_metadata %>%
+  pivot_wider(
+    id_cols = assembly,
+    names_from = attribute,
+    values_from = value,
+    values_fn = function(x) x[1]
+  )
+
+
+enterococcus_faecalis_gut <- metadata_wide %>%
+  filter(str_detect(isolation_source, regex(pattern, ignore_case = TRUE)))
+
+## HUMAN
+summary_counts <- enterococcus_faecalis_gut %>%
+  dplyr::summarize(
+    total_rows = n(),
+    human_samples = sum(
+      host == "Homo sapiens" | 
+      stringr::str_detect(isolation_source, stringr::regex("human", ignore_case = TRUE)), 
+      na.rm = TRUE
+    )
+  )
+
+print(summary_counts)
+
+## OTHER HOSTS
+other_hosts <- enterococcus_faecalis_gut %>%
+  dplyr::filter(host != "Homo sapiens" | is.na(host)) %>%
+  dplyr::count(host, sort = TRUE)
+
+print(other_hosts)
+```
+
+
+
+### Enterococcus hirae
 ```{bash, eval = FALSE}
 ## ENTEROCOCCUS HIRAE
 datasets summary genome taxon 1354 \
@@ -212,7 +337,7 @@ jq -r '
 ```
 
 
-```{r enterococcus}
+```{r enterococcus_hirae}
 enterococcus_metadata <- read_tsv("data/ncbi/enterococcus_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
 
 
@@ -225,23 +350,430 @@ metadata_wide <- enterococcus_metadata %>%
   )
 
 
-source_counts <- metadata_wide %>%
-  filter(!is.na(isolation_source)) %>%
-  dplyr::count(isolation_source, sort = TRUE)
+enterococcus_gut <- metadata_wide %>%
+  filter(str_detect(isolation_source, regex(pattern, ignore_case = TRUE)))
 
-source_counts
+## HUMAN
+summary_counts <- enterococcus_gut %>%
+  dplyr::summarize(
+    total_rows = n(),
+    human_samples = sum(
+      host == "Homo sapiens" | 
+      stringr::str_detect(isolation_source, stringr::regex("human", ignore_case = TRUE)), 
+      na.rm = TRUE
+    )
+  )
 
+print(summary_counts)
 
-host_counts <- metadata_wide %>%
-  filter(!is.na(host)) %>%
+## OTHER HOSTS
+other_hosts <- enterococcus_gut %>%
+  dplyr::filter(host != "Homo sapiens" | is.na(host)) %>%
   dplyr::count(host, sort = TRUE)
 
-host_counts
-
-metadata_wide %>%
-  filter(host == "Homo sapiens" | str_detect(isolation_source, "human"))
+print(other_hosts)
 ```
-Gut microbiome : c("ceaca", "caeca", "excrement", "rectal swabs", "feces", "stool", "gut", "cloaca", "cloacal", "fecal", "intestine", "intestinal")
+
+
+### Bacteroides uniformis
+```{bash, eval = FALSE}
+## BACTEROIDES UNIFORMIS
+datasets summary genome taxon 820 \
+  --as-json-lines > b_uniformis_genomes.jsonl
+
+
+#filtering by contamination and completeness
+jq -c '
+select(
+  .checkm_info.completeness >= 90 and
+  .checkm_info.contamination <= 2.5
+)
+' b_uniformis_genomes.jsonl > b_uniformis_high_quality_genomes.jsonl
+
+
+
+#put metadata in tsv
+jq -r '
+.accession as $asm |
+.assembly_info.biosample.attributes[]? |
+[$asm, .name, .value] | @tsv
+' b_uniformis_high_quality_genomes.jsonl > b_uniformis_biosample_attributes.tsv
+
+
+```
+
+
+```{r bacteroides_uniformis}
+b_uniformis_metadata <- read_tsv("data/ncbi/b_uniformis_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+
+
+metadata_wide <- b_uniformis_metadata %>%
+  filter(attribute != "assembly") %>%
+  pivot_wider(
+    id_cols = assembly,
+    names_from = attribute,
+    values_from = value,
+    values_fn = function(x) x[1]
+  )
+
+
+b_uniformis_gut <- metadata_wide %>%
+  filter(str_detect(isolation_source, regex(pattern, ignore_case = TRUE)))
+
+## HUMAN
+summary_counts <- b_uniformis_gut %>%
+  dplyr::summarize(
+    total_rows = n(),
+    human_samples = sum(
+      host == "Homo sapiens" | 
+      stringr::str_detect(isolation_source, stringr::regex("human", ignore_case = TRUE)), 
+      na.rm = TRUE
+    )
+  )
+
+print(summary_counts)
+
+## OTHER HOSTS
+other_hosts <- b_uniformis_gut %>%
+  dplyr::filter(host != "Homo sapiens" | is.na(host)) %>%
+  dplyr::count(host, sort = TRUE)
+
+print(other_hosts)
+```
+
+
+
+### Phocaeicola vulgatus
+```{bash, eval = FALSE}
+## PHOCAEICOLA VULGATUS
+datasets summary genome taxon 821 \
+  --as-json-lines > p_vulgatus_genomes.jsonl
+
+
+#filtering by contamination and completeness
+jq -c '
+select(
+  .checkm_info.completeness >= 90 and
+  .checkm_info.contamination <= 2.5
+)
+' p_vulgatus_genomes.jsonl > p_vulgatus_high_quality_genomes.jsonl
+
+
+
+#put metadata in tsv
+jq -r '
+.accession as $asm |
+.assembly_info.biosample.attributes[]? |
+[$asm, .name, .value] | @tsv
+' p_vulgatus_high_quality_genomes.jsonl > p_vulgatus_biosample_attributes.tsv
+
+
+```
+
+
+```{r phocaeicola_vulgatus}
+p_vulgatus_metadata <- read_tsv("data/ncbi/p_vulgatus_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+
+
+metadata_wide <- p_vulgatus_metadata %>%
+  filter(attribute != "assembly") %>%
+  pivot_wider(
+    id_cols = assembly,
+    names_from = attribute,
+    values_from = value,
+    values_fn = function(x) x[1]
+  )
+
+
+p_vulgatus_gut <- metadata_wide %>%
+  filter(str_detect(isolation_source, regex(pattern, ignore_case = TRUE)))
+
+## HUMAN
+summary_counts <- p_vulgatus_gut %>%
+  dplyr::summarize(
+    total_rows = n(),
+    human_samples = sum(
+      host == "Homo sapiens" | 
+      stringr::str_detect(isolation_source, stringr::regex("human", ignore_case = TRUE)), 
+      na.rm = TRUE
+    )
+  )
+
+print(summary_counts)
+
+## OTHER HOSTS
+other_hosts <- p_vulgatus_gut %>%
+  dplyr::filter(host != "Homo sapiens" | is.na(host)) %>%
+  dplyr::count(host, sort = TRUE)
+
+print(other_hosts)
+```
+
+
+### Parabacteroides goldsteinii
+```{bash, eval = FALSE}
+## PARABACTEROIDES GOLDSTEINII
+datasets summary genome taxon 328812 \
+  --as-json-lines > p_goldsteinii_genomes.jsonl
+
+
+#filtering by contamination and completeness
+jq -c '
+select(
+  .checkm_info.completeness >= 90 and
+  .checkm_info.contamination <= 2.5
+)
+' p_goldsteinii_genomes.jsonl > p_goldsteinii_high_quality_genomes.jsonl
+
+
+
+#put metadata in tsv
+jq -r '
+.accession as $asm |
+.assembly_info.biosample.attributes[]? |
+[$asm, .name, .value] | @tsv
+' p_goldsteinii_high_quality_genomes.jsonl > p_goldsteinii_biosample_attributes.tsv
+
+
+```
+
+
+```{r parabacteroides_goldsteinii}
+p_goldsteinii_metadata <- read_tsv("data/ncbi/p_goldsteinii_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+
+
+metadata_wide <- p_goldsteinii_metadata %>%
+  filter(attribute != "assembly") %>%
+  pivot_wider(
+    id_cols = assembly,
+    names_from = attribute,
+    values_from = value,
+    values_fn = function(x) x[1]
+  )
+
+
+p_goldsteinii_gut <- metadata_wide %>%
+  filter(str_detect(isolation_source, regex(pattern, ignore_case = TRUE)))
+
+## HUMAN
+summary_counts <- p_goldsteinii_gut %>%
+  dplyr::summarize(
+    total_rows = n(),
+    human_samples = sum(
+      host == "Homo sapiens" | 
+      stringr::str_detect(isolation_source, stringr::regex("human", ignore_case = TRUE)), 
+      na.rm = TRUE
+    )
+  )
+
+print(summary_counts)
+
+## OTHER HOSTS
+other_hosts <- p_goldsteinii_gut %>%
+  dplyr::filter(host != "Homo sapiens" | is.na(host)) %>%
+  dplyr::count(host, sort = TRUE)
+
+print(other_hosts)
+```
+### Akkermansia municiphila
+```{bash, eval = FALSE}
+## AKKERMANSIA MUNICIPHILA
+datasets summary genome taxon 239935 \
+  --as-json-lines > akkermansia_genomes.jsonl
+
+
+#filtering by contamination and completeness
+jq -c '
+select(
+  .checkm_info.completeness >= 90 and
+  .checkm_info.contamination <= 2.5
+)
+' akkermansia_genomes.jsonl > akkermansia_high_quality_genomes.jsonl
+
+
+
+#put metadata in tsv
+jq -r '
+.accession as $asm |
+.assembly_info.biosample.attributes[]? |
+[$asm, .name, .value] | @tsv
+' akkermansia_high_quality_genomes.jsonl > akkermansia_biosample_attributes.tsv
+
+
+```
+
+
+```{r akkermansia}
+akkermansia_metadata <- read_tsv("data/ncbi/akkermansia_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+
+
+metadata_wide <- akkermansia_metadata %>%
+  filter(attribute != "assembly") %>%
+  pivot_wider(
+    id_cols = assembly,
+    names_from = attribute,
+    values_from = value,
+    values_fn = function(x) x[1]
+  )
+
+
+akkermansia_gut <- metadata_wide %>%
+  filter(str_detect(isolation_source, regex(pattern, ignore_case = TRUE)))
+
+## HUMAN
+summary_counts <- akkermansia_gut %>%
+  dplyr::summarize(
+    total_rows = n(),
+    human_samples = sum(
+      host == "Homo sapiens" | 
+      stringr::str_detect(isolation_source, stringr::regex("human", ignore_case = TRUE)), 
+      na.rm = TRUE
+    )
+  )
+
+print(summary_counts)
+
+## OTHER HOSTS
+other_hosts <- akkermansia_gut %>%
+  dplyr::filter(host != "Homo sapiens" | is.na(host)) %>%
+  dplyr::count(host, sort = TRUE)
+
+print(other_hosts)
+```
+### Bacteroides fragilis
+```{bash, eval = FALSE}
+## BACTEROIDES FRAGILIS
+datasets summary genome taxon 817 \
+  --as-json-lines > b_fragilis_genomes.jsonl
+
+
+#filtering by contamination and completeness
+jq -c '
+select(
+  .checkm_info.completeness >= 90 and
+  .checkm_info.contamination <= 2.5
+)
+' b_fragilis_genomes.jsonl > b_fragilis_high_quality_genomes.jsonl
+
+
+
+#put metadata in tsv
+jq -r '
+.accession as $asm |
+.assembly_info.biosample.attributes[]? |
+[$asm, .name, .value] | @tsv
+' b_fragilis_high_quality_genomes.jsonl > b_fragilis_biosample_attributes.tsv
+
+
+```
+
+
+```{r bacteroides_fragilis}
+b_fragilis_metadata <- read_tsv("data/ncbi/b_fragilis_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+
+
+metadata_wide <- b_fragilis_metadata %>%
+  filter(attribute != "assembly") %>%
+  pivot_wider(
+    id_cols = assembly,
+    names_from = attribute,
+    values_from = value,
+    values_fn = function(x) x[1]
+  )
+
+
+b_fragilis_gut <- metadata_wide %>%
+  filter(str_detect(isolation_source, regex(pattern, ignore_case = TRUE)))
+
+## HUMAN
+summary_counts <- b_fragilis_gut %>%
+  dplyr::summarize(
+    total_rows = n(),
+    human_samples = sum(
+      host == "Homo sapiens" | 
+      stringr::str_detect(isolation_source, stringr::regex("human", ignore_case = TRUE)), 
+      na.rm = TRUE
+    )
+  )
+
+print(summary_counts)
+
+## OTHER HOSTS
+other_hosts <- b_fragilis_gut %>%
+  dplyr::filter(host != "Homo sapiens" | is.na(host)) %>%
+  dplyr::count(host, sort = TRUE)
+
+print(other_hosts)
+```
+
+
+### Providencia rettgeri
+```{bash, eval = FALSE}
+## PROVIDENCIA RETTGERI
+datasets summary genome taxon 587 \
+  --as-json-lines > providencia_genomes.jsonl
+
+
+#filtering by contamination and completeness
+jq -c '
+select(
+  .checkm_info.completeness >= 90 and
+  .checkm_info.contamination <= 2.5
+)
+' providencia_genomes.jsonl > providencia_high_quality_genomes.jsonl
+
+
+
+#put metadata in tsv
+jq -r '
+.accession as $asm |
+.assembly_info.biosample.attributes[]? |
+[$asm, .name, .value] | @tsv
+' providencia_high_quality_genomes.jsonl > providencia_biosample_attributes.tsv
+
+
+```
+
+
+```{r providencia rettgeri}
+providencia_metadata <- read_tsv("data/ncbi/providencia_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+
+
+metadata_wide <- providencia_metadata %>%
+  filter(attribute != "assembly") %>%
+  pivot_wider(
+    id_cols = assembly,
+    names_from = attribute,
+    values_from = value,
+    values_fn = function(x) x[1]
+  )
+
+
+providencia_gut <- metadata_wide %>%
+  filter(str_detect(isolation_source, regex(pattern, ignore_case = TRUE)))
+
+## HUMAN
+summary_counts <- providencia_gut %>%
+  dplyr::summarize(
+    total_rows = n(),
+    human_samples = sum(
+      host == "Homo sapiens" | 
+      stringr::str_detect(isolation_source, stringr::regex("human", ignore_case = TRUE)), 
+      na.rm = TRUE
+    )
+  )
+
+print(summary_counts)
+
+## OTHER HOSTS
+other_hosts <- providencia_gut %>%
+  dplyr::filter(host != "Homo sapiens" | is.na(host)) %>%
+  dplyr::count(host, sort = TRUE)
+
+print(other_hosts)
+```
+
+
 
 ```{r final selection, eval = FALSE}
 selected <- metadata_wide %>%

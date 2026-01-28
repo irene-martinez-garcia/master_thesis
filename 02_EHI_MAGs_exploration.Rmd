@@ -166,6 +166,7 @@ n_mags <- mags_host2 %>%
 We have several MAGs per species, so here we select the "best MAG" (highest completeness and lowest contamination), to have statistics based on the best of each.
 ```{r best mags per species}
 best_mag_per_species <- mags_host2 %>%
+  filter(species %in% species_selection_list) %>%
   group_by(species) %>%
   arrange(desc(completeness), contamination) %>%
   slice_head(n = 1) %>%
