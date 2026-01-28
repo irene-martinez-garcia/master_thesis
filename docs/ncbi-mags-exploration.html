@@ -4,18 +4,18 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Chapter 2 Data preparation (HUMAN) | AlberdiLab | Comparative metagenomics</title>
+  <title>Chapter 4 NCBI MAGs exploration | AlberdiLab | Comparative metagenomics</title>
   <meta name="description" content="&lt;p&gt;Data analysis code for comparative metagenomics of gut microbiome bacterial species in several vertebrates&lt;/p&gt;" />
   <meta name="generator" content="bookdown 0.46 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Chapter 2 Data preparation (HUMAN) | AlberdiLab | Comparative metagenomics" />
+  <meta property="og:title" content="Chapter 4 NCBI MAGs exploration | AlberdiLab | Comparative metagenomics" />
   <meta property="og:type" content="book" />
   
   <meta property="og:description" content="&lt;p&gt;Data analysis code for comparative metagenomics of gut microbiome bacterial species in several vertebrates&lt;/p&gt;" />
   <meta name="github-repo" content="irene-martinez-garcia/comparative_metagenomics" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Chapter 2 Data preparation (HUMAN) | AlberdiLab | Comparative metagenomics" />
+  <meta name="twitter:title" content="Chapter 4 NCBI MAGs exploration | AlberdiLab | Comparative metagenomics" />
   
   <meta name="twitter:description" content="&lt;p&gt;Data analysis code for comparative metagenomics of gut microbiome bacterial species in several vertebrates&lt;/p&gt;" />
   
@@ -29,8 +29,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="index.html"/>
-<link rel="next" href="ehi-mags-exploration.html"/>
+<link rel="prev" href="ehi-mags-exploration.html"/>
+
 
 
 
@@ -2045,328 +2045,413 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="data-preparation-human" class="section level1 hasAnchor" number="2">
-<h1><span class="header-section-number">Chapter 2</span> Data preparation (HUMAN)<a href="data-preparation-human.html#data-preparation-human" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<p>MAKING SURE THAT THE MAGS FROM GTDB ARE HUMAN</p>
-<div id="searching-for-the-mags" class="section level2 hasAnchor" number="2.1">
-<h2><span class="header-section-number">2.1</span> Searching for the MAGs<a href="data-preparation-human.html#searching-for-the-mags" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<ol style="list-style-type: decimal">
-<li>Choose the MAGs<br />
-In this case, we will be working with <em>Parabacteroides distasonis</em> and <em>Phocaeicola vulgatus</em>. In the EHI database, select the MAGs with &gt; 90% completeness and &lt; 2.5 contamination. Do the same in the GTDB, but also filter for isolation source CONTAINS human.</li>
-</ol>
-</div>
-<div id="downloading-the-mags-and-generating-data" class="section level2 hasAnchor" number="2.2">
-<h2><span class="header-section-number">2.2</span> Downloading the MAGs and generating data<a href="data-preparation-human.html#downloading-the-mags-and-generating-data" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<ol start="2" style="list-style-type: decimal">
-<li>Download genome indices and metadata<br />
-Download the EHI_MAG index for each species (in /data/mags_metadata folder) and the curl file and search metadata tsv from the GTDB and place in each species directory in Mjolnir.</li>
-</ol>
-<p>2.5) Extract genome metadata<br />
-- Use the GTDB search tsv to run this script to obtain more metadata. (modify script a bit to make it scalable).</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb3-1"><a href="data-preparation-human.html#cb3-1" tabindex="-1"></a> <span class="ex">python</span> scripts/extract_gtdb_metadata.py</span></code></pre></div>
-<ol start="3" style="list-style-type: decimal">
-<li>Create the master index<br />
-Run the create_index.R script to create an index of all the MAGs and the download paths (needs a list of species as input and right now it is hardcoded in the script)</li>
-</ol>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb4-1"><a href="data-preparation-human.html#cb4-1" tabindex="-1"></a><span class="ex">conda</span> activate mags_r_env</span>
-<span id="cb4-2"><a href="data-preparation-human.html#cb4-2" tabindex="-1"></a><span class="ex">Rscript</span> scripts/create_index.R </span></code></pre></div>
-<ol start="4" style="list-style-type: decimal">
-<li>Run the downloading_mags.smk to download all the genomes</li>
-</ol>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb5-1"><a href="data-preparation-human.html#cb5-1" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-s</span> snakefiles/downloading_mags.smk <span class="dt">\</span></span>
-<span id="cb5-2"><a href="data-preparation-human.html#cb5-2" tabindex="-1"></a>    <span class="at">--executor</span> slurm <span class="dt">\</span></span>
-<span id="cb5-3"><a href="data-preparation-human.html#cb5-3" tabindex="-1"></a>    <span class="at">--jobs</span> 50 <span class="dt">\</span></span>
-<span id="cb5-4"><a href="data-preparation-human.html#cb5-4" tabindex="-1"></a>    <span class="at">--rerun-incomplete</span> <span class="dt">\</span></span>
-<span id="cb5-5"><a href="data-preparation-human.html#cb5-5" tabindex="-1"></a>    <span class="at">--keep-going</span></span>
-<span id="cb5-6"><a href="data-preparation-human.html#cb5-6" tabindex="-1"></a>    </span>
-<span id="cb5-7"><a href="data-preparation-human.html#cb5-7" tabindex="-1"></a>    </span>
-<span id="cb5-8"><a href="data-preparation-human.html#cb5-8" tabindex="-1"></a><span class="co">#testing with the HUMAN_EHI</span></span>
-<span id="cb5-9"><a href="data-preparation-human.html#cb5-9" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-s</span> snakefiles/downloading_and_unzipping.smk <span class="dt">\</span></span>
-<span id="cb5-10"><a href="data-preparation-human.html#cb5-10" tabindex="-1"></a>    <span class="at">--executor</span> slurm <span class="dt">\</span></span>
-<span id="cb5-11"><a href="data-preparation-human.html#cb5-11" tabindex="-1"></a>    <span class="at">--jobs</span> 50 <span class="dt">\</span></span>
-<span id="cb5-12"><a href="data-preparation-human.html#cb5-12" tabindex="-1"></a>    <span class="at">--rerun-incomplete</span> <span class="dt">\</span></span>
-<span id="cb5-13"><a href="data-preparation-human.html#cb5-13" tabindex="-1"></a>    <span class="at">--keep-going</span></span></code></pre></div>
-<ol start="5" style="list-style-type: decimal">
-<li>Unzip all the MAGs and make sure they are in the same folder: run<br />
-(maybe add this to the downloading_mags.smk)</li>
-</ol>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb6-1"><a href="data-preparation-human.html#cb6-1" tabindex="-1"></a><span class="fu">bash</span> scripts/unzip_mags.sh parabacteroides_distasonis  </span>
-<span id="cb6-2"><a href="data-preparation-human.html#cb6-2" tabindex="-1"></a><span class="fu">bash</span> scripts/unzip_mags.sh phocaeicola_vulgatus</span></code></pre></div>
-<ol start="6" style="list-style-type: decimal">
-<li>Make a screen session for each species.</li>
-</ol>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb7-1"><a href="data-preparation-human.html#cb7-1" tabindex="-1"></a><span class="ex">screen</span> <span class="at">-S</span> parabacteroides_distasonis</span></code></pre></div>
-<ol start="7" style="list-style-type: decimal">
-<li>Run drakkar annotating_function.smk to re-annotate all the MAGs:</li>
-</ol>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb8-1"><a href="data-preparation-human.html#cb8-1" tabindex="-1"></a><span class="ex">drakkar</span> annotating <span class="at">-b</span> /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/data/parabacteroides_distasonis/mags/unzipped <span class="at">-o</span> /maps/projects/alberdilab/people/pjq449/comparative_metagenomics <span class="at">--env_path</span> /projects/alberdilab/data/environments/drakkar <span class="at">--annotation-type</span> function </span></code></pre></div>
-<ol start="8" style="list-style-type: decimal">
-<li>Annotate with prokka and make phylogenetic tree with getphylo</li>
-</ol>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb9-1"><a href="data-preparation-human.html#cb9-1" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-s</span> snakefiles/prokka_and_pangenome.smk <span class="at">--profile</span> snakefiles/slurm_profile</span></code></pre></div>
-<ol start="9" style="list-style-type: decimal">
-<li>Run genome_mapping.sh to map the mag ids to the corresponding names</li>
-</ol>
-<div class="sourceCode" id="cb10"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb10-1"><a href="data-preparation-human.html#cb10-1" tabindex="-1"></a><span class="fu">bash</span> scripts/genome_mapping.sh   <span class="co">#dont think we need this now</span></span></code></pre></div>
-<ol start="10" style="list-style-type: decimal">
-<li>Run drep</li>
-</ol>
-<div class="sourceCode" id="cb11"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb11-1"><a href="data-preparation-human.html#cb11-1" tabindex="-1"></a> <span class="ex">sbatch</span> scripts/drep_compare.slurm</span></code></pre></div>
-<ol start="11" style="list-style-type: decimal">
-<li>Run create_pangolin_input.R to create the input file ppanggolin needs</li>
-</ol>
-<div class="sourceCode" id="cb12"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb12-1"><a href="data-preparation-human.html#cb12-1" tabindex="-1"></a><span class="ex">conda</span> activate mags_r_env</span>
-<span id="cb12-2"><a href="data-preparation-human.html#cb12-2" tabindex="-1"></a><span class="ex">Rscript</span> scripts/create_pangolin_input.R</span>
-<span id="cb12-3"><a href="data-preparation-human.html#cb12-3" tabindex="-1"></a></span>
-<span id="cb12-4"><a href="data-preparation-human.html#cb12-4" tabindex="-1"></a><span class="co">#or if we want to use the annotation files by prokka:</span></span>
-<span id="cb12-5"><a href="data-preparation-human.html#cb12-5" tabindex="-1"></a><span class="ex">Rscript</span> scripts/create_pangolin_input_gff.R</span></code></pre></div>
-<ol start="12" style="list-style-type: decimal">
-<li>Pangenome analysis with ppanggolin</li>
-</ol>
-<div class="sourceCode" id="cb13"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb13-1"><a href="data-preparation-human.html#cb13-1" tabindex="-1"></a><span class="ex">conda</span> activate ppanggolin</span>
-<span id="cb13-2"><a href="data-preparation-human.html#cb13-2" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="data-preparation-human.html#cb13-3" tabindex="-1"></a><span class="ex">ppanggolin</span> all <span class="at">--fasta</span> /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/data/parabacteroides_distasonis_HUMAN_EHI/ppanggolin_input.tsv</span></code></pre></div>
-</div>
-<div id="r-studio--data-analysis" class="section level2 hasAnchor" number="2.3">
-<h2><span class="header-section-number">2.3</span> R Studio- Data Analysis<a href="data-preparation-human.html#r-studio--data-analysis" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<div id="ehi-mags" class="section level3 hasAnchor" number="2.3.1">
-<h3><span class="header-section-number">2.3.1</span> EHI MAGs<a href="data-preparation-human.html#ehi-mags" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb14-1"><a href="data-preparation-human.html#cb14-1" tabindex="-1"></a>ehi_mags <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;data/ehi_mags.csv&quot;</span>)</span></code></pre></div>
-<pre><code>Rows: 8846 Columns: 52
-── Column specification ─────────────────────────────────────────────────────────────────────────────────────────
-Delimiter: &quot;,&quot;
-chr (36): ID, mag_name, link_to_assembly, AB_batch, eha_number, GTDB_version, GTDB_release, domain, phylum, c...
-dbl (15): fastani_ani, closest_placement_ani, closest_placement_af, completeness, contamination, size, N50, c...
-lgl  (1): annotated
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-</div>
-<div id="prepare-color-scheme" class="section level3 hasAnchor" number="2.3.2">
-<h3><span class="header-section-number">2.3.2</span> Prepare color scheme<a href="data-preparation-human.html#prepare-color-scheme" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p><a href="www.alberdilab.dk">AlberdiLab</a> projects use unified color schemes developed for the <a href="www.earthhologenome.org">Earth Hologenome Initiative</a>, to facilitate figure interpretation.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb16-1"><a href="data-preparation-human.html#cb16-1" tabindex="-1"></a>ehi_mags_p <span class="ot">&lt;-</span> ehi_mags <span class="sc">%&gt;%</span></span>
-<span id="cb16-2"><a href="data-preparation-human.html#cb16-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">phylum=</span><span class="fu">str_remove_all</span>(phylum, <span class="st">&quot;p__&quot;</span>)) </span>
-<span id="cb16-3"><a href="data-preparation-human.html#cb16-3" tabindex="-1"></a></span>
-<span id="cb16-4"><a href="data-preparation-human.html#cb16-4" tabindex="-1"></a>phylum_colors <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;https://raw.githubusercontent.com/earthhologenome/EHI_taxonomy_colour/main/ehi_phylum_colors.tsv&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb16-5"><a href="data-preparation-human.html#cb16-5" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">phylum=</span><span class="fu">str_remove_all</span>(phylum, <span class="st">&quot;p__&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb16-6"><a href="data-preparation-human.html#cb16-6" tabindex="-1"></a>    <span class="fu">right_join</span>(ehi_mags_p, <span class="at">by=</span><span class="fu">join_by</span>(phylum <span class="sc">==</span> phylum)) <span class="sc">%&gt;%</span></span>
-<span id="cb16-7"><a href="data-preparation-human.html#cb16-7" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(phylum, colors) <span class="sc">%&gt;%</span> </span>
-<span id="cb16-8"><a href="data-preparation-human.html#cb16-8" tabindex="-1"></a>    <span class="fu">unique</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb16-9"><a href="data-preparation-human.html#cb16-9" tabindex="-1"></a>    <span class="fu">arrange</span>(phylum) <span class="sc">%&gt;%</span></span>
-<span id="cb16-10"><a href="data-preparation-human.html#cb16-10" tabindex="-1"></a>    <span class="fu">pull</span>(colors, <span class="at">name=</span>phylum)</span></code></pre></div>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb17-1"><a href="data-preparation-human.html#cb17-1" tabindex="-1"></a><span class="co">#source_colors &lt;- c(EHI = &quot;#8BC63F&quot;, GTDB = &quot;#2D522D&quot;)</span></span>
-<span id="cb17-2"><a href="data-preparation-human.html#cb17-2" tabindex="-1"></a>source_colors_human <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">EHI =</span> <span class="st">&quot;#8BC63F&quot;</span>, <span class="at">GTDB =</span> <span class="st">&quot;#A90D00&quot;</span>)</span></code></pre></div>
-</div>
-<div id="sample-metadata" class="section level3 hasAnchor" number="2.3.3">
-<h3><span class="header-section-number">2.3.3</span> Sample metadata<a href="data-preparation-human.html#sample-metadata" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb18-1"><a href="data-preparation-human.html#cb18-1" tabindex="-1"></a>gtdb_search_metadata <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/gtdb_search_results.tsv&quot;</span>) </span></code></pre></div>
-<pre><code>Warning: One or more parsing issues, call `problems()` on your data frame for details, e.g.:
-  dat &lt;- vroom(...)
-  problems(dat)</code></pre>
-<pre><code>Rows: 47 Columns: 10
+<div id="ncbi-mags-exploration" class="section level1 hasAnchor" number="4">
+<h1><span class="header-section-number">Chapter 4</span> NCBI MAGs exploration<a href="ncbi-mags-exploration.html#ncbi-mags-exploration" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="ncbi-mags-metadata" class="section level2 hasAnchor" number="4.1">
+<h2><span class="header-section-number">4.1</span> NCBI MAGs metadata<a href="ncbi-mags-exploration.html#ncbi-mags-metadata" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Download metadata for each taxa</p>
+<div class="sourceCode" id="cb77"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb77-1"><a href="ncbi-mags-exploration.html#cb77-1" tabindex="-1"></a><span class="co"># Trying to download ncbi metadata for mags</span></span>
+<span id="cb77-2"><a href="ncbi-mags-exploration.html#cb77-2" tabindex="-1"></a></span>
+<span id="cb77-3"><a href="ncbi-mags-exploration.html#cb77-3" tabindex="-1"></a><span class="ex">conda</span> activate drakkar_env</span>
+<span id="cb77-4"><a href="ncbi-mags-exploration.html#cb77-4" tabindex="-1"></a><span class="ex">conda</span> install <span class="at">-c</span> conda-forge ncbi-datasets-cli</span>
+<span id="cb77-5"><a href="ncbi-mags-exploration.html#cb77-5" tabindex="-1"></a></span>
+<span id="cb77-6"><a href="ncbi-mags-exploration.html#cb77-6" tabindex="-1"></a></span>
+<span id="cb77-7"><a href="ncbi-mags-exploration.html#cb77-7" tabindex="-1"></a></span>
+<span id="cb77-8"><a href="ncbi-mags-exploration.html#cb77-8" tabindex="-1"></a><span class="co">## CITROBACTER BRAAKII</span></span>
+<span id="cb77-9"><a href="ncbi-mags-exploration.html#cb77-9" tabindex="-1"></a><span class="ex">datasets</span> summary genome taxon 57706 <span class="dt">\</span></span>
+<span id="cb77-10"><a href="ncbi-mags-exploration.html#cb77-10" tabindex="-1"></a>  <span class="at">--as-json-lines</span> <span class="op">&gt;</span> genomes.jsonl</span>
+<span id="cb77-11"><a href="ncbi-mags-exploration.html#cb77-11" tabindex="-1"></a></span>
+<span id="cb77-12"><a href="ncbi-mags-exploration.html#cb77-12" tabindex="-1"></a></span>
+<span id="cb77-13"><a href="ncbi-mags-exploration.html#cb77-13" tabindex="-1"></a><span class="co">#filtering by contamination and completeness</span></span>
+<span id="cb77-14"><a href="ncbi-mags-exploration.html#cb77-14" tabindex="-1"></a><span class="ex">jq</span> <span class="at">-c</span> <span class="st">&#39;</span></span>
+<span id="cb77-15"><a href="ncbi-mags-exploration.html#cb77-15" tabindex="-1"></a><span class="st">select(</span></span>
+<span id="cb77-16"><a href="ncbi-mags-exploration.html#cb77-16" tabindex="-1"></a><span class="st">  .checkm_info.completeness &gt;= 90 and</span></span>
+<span id="cb77-17"><a href="ncbi-mags-exploration.html#cb77-17" tabindex="-1"></a><span class="st">  .checkm_info.contamination &lt;= 2.5</span></span>
+<span id="cb77-18"><a href="ncbi-mags-exploration.html#cb77-18" tabindex="-1"></a><span class="st">)</span></span>
+<span id="cb77-19"><a href="ncbi-mags-exploration.html#cb77-19" tabindex="-1"></a><span class="st">&#39;</span> genomes.jsonl <span class="op">&gt;</span> high_quality_genomes.jsonl</span>
+<span id="cb77-20"><a href="ncbi-mags-exploration.html#cb77-20" tabindex="-1"></a></span>
+<span id="cb77-21"><a href="ncbi-mags-exploration.html#cb77-21" tabindex="-1"></a></span>
+<span id="cb77-22"><a href="ncbi-mags-exploration.html#cb77-22" tabindex="-1"></a></span>
+<span id="cb77-23"><a href="ncbi-mags-exploration.html#cb77-23" tabindex="-1"></a><span class="co">#put metadata in tsv</span></span>
+<span id="cb77-24"><a href="ncbi-mags-exploration.html#cb77-24" tabindex="-1"></a><span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;</span></span>
+<span id="cb77-25"><a href="ncbi-mags-exploration.html#cb77-25" tabindex="-1"></a><span class="st">.accession as $asm |</span></span>
+<span id="cb77-26"><a href="ncbi-mags-exploration.html#cb77-26" tabindex="-1"></a><span class="st">.assembly_info.biosample.attributes[]? |</span></span>
+<span id="cb77-27"><a href="ncbi-mags-exploration.html#cb77-27" tabindex="-1"></a><span class="st">[$asm, .name, .value] | @tsv</span></span>
+<span id="cb77-28"><a href="ncbi-mags-exploration.html#cb77-28" tabindex="-1"></a><span class="st">&#39;</span> high_quality_genomes.jsonl <span class="op">&gt;</span> biosample_attributes.tsv</span></code></pre></div>
+<div id="citrobacter-braakii" class="section level3 hasAnchor" number="4.1.1">
+<h3><span class="header-section-number">4.1.1</span> Citrobacter braakii<a href="ncbi-mags-exploration.html#citrobacter-braakii" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="sourceCode" id="cb78"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb78-1"><a href="ncbi-mags-exploration.html#cb78-1" tabindex="-1"></a>c_braki_metadata <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/ncbi/c_braakii_biosample_attributes.tsv&quot;</span>,  <span class="at">col_names =</span> <span class="fu">c</span>(<span class="st">&quot;assembly&quot;</span>, <span class="st">&quot;attribute&quot;</span>, <span class="st">&quot;value&quot;</span>))</span></code></pre></div>
+<pre><code>Rows: 1496 Columns: 3
 ── Column specification ─────────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;\t&quot;
-chr (7): Accession, Organism Name, NCBI Taxonomy, GTDB Taxonomy, GTDB Type Material, Isolation Source, Isolat...
-dbl (2): CheckM2 Completeness, CheckM Contamination
-lgl (1): GTDB Representative of Species
+chr (3): assembly, attribute, value
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb21-1"><a href="data-preparation-human.html#cb21-1" tabindex="-1"></a><span class="fu">colnames</span>(gtdb_search_metadata)</span></code></pre></div>
-<pre class="script-output"><code> [1] &quot;Accession&quot;                      &quot;Organism Name&quot;                  &quot;NCBI Taxonomy&quot;                 
- [4] &quot;GTDB Taxonomy&quot;                  &quot;GTDB Representative of Species&quot; &quot;GTDB Type Material&quot;            
- [7] &quot;CheckM2 Completeness&quot;           &quot;CheckM Contamination&quot;           &quot;Isolation Source&quot;              
-[10] &quot;Isolation Source_2&quot;            </code></pre>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb23-1"><a href="data-preparation-human.html#cb23-1" tabindex="-1"></a>gtdb_accession_metadata<span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/parabacteroides_distasonis_human_GTDB_accession_metadata.tsv&quot;</span>) </span></code></pre></div>
-<pre><code>Rows: 47 Columns: 115
+<div class="sourceCode" id="cb80"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb80-1"><a href="ncbi-mags-exploration.html#cb80-1" tabindex="-1"></a>metadata_wide <span class="ot">&lt;-</span> c_braki_metadata <span class="sc">%&gt;%</span></span>
+<span id="cb80-2"><a href="ncbi-mags-exploration.html#cb80-2" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb80-3"><a href="ncbi-mags-exploration.html#cb80-3" tabindex="-1"></a>    <span class="at">id_cols =</span> assembly,</span>
+<span id="cb80-4"><a href="ncbi-mags-exploration.html#cb80-4" tabindex="-1"></a>    <span class="at">names_from =</span> attribute,</span>
+<span id="cb80-5"><a href="ncbi-mags-exploration.html#cb80-5" tabindex="-1"></a>    <span class="at">values_from =</span> value,</span>
+<span id="cb80-6"><a href="ncbi-mags-exploration.html#cb80-6" tabindex="-1"></a>    <span class="at">values_fn =</span> <span class="cf">function</span>(x) x[<span class="dv">1</span>]</span>
+<span id="cb80-7"><a href="ncbi-mags-exploration.html#cb80-7" tabindex="-1"></a>  )</span>
+<span id="cb80-8"><a href="ncbi-mags-exploration.html#cb80-8" tabindex="-1"></a></span>
+<span id="cb80-9"><a href="ncbi-mags-exploration.html#cb80-9" tabindex="-1"></a></span>
+<span id="cb80-10"><a href="ncbi-mags-exploration.html#cb80-10" tabindex="-1"></a>source_counts <span class="ot">&lt;-</span> metadata_wide <span class="sc">%&gt;%</span></span>
+<span id="cb80-11"><a href="ncbi-mags-exploration.html#cb80-11" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(isolation_source)) <span class="sc">%&gt;%</span></span>
+<span id="cb80-12"><a href="ncbi-mags-exploration.html#cb80-12" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(isolation_source, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb80-13"><a href="ncbi-mags-exploration.html#cb80-13" tabindex="-1"></a></span>
+<span id="cb80-14"><a href="ncbi-mags-exploration.html#cb80-14" tabindex="-1"></a>source_counts</span></code></pre></div>
+<pre class="script-output"><code># A tibble: 29 × 2
+   isolation_source                                               n
+   &lt;chr&gt;                                                      &lt;int&gt;
+ 1 food                                                          24
+ 2 rectal swab                                                   14
+ 3 blood                                                         12
+ 4 urine                                                         10
+ 5 Pooled sediment sample collected from floor of pig farm        8
+ 6 Popliteal lymph node of steer                                  8
+ 7 faecal                                                         8
+ 8 Pooled sediment sample collected from floor of cattle farm     6
+ 9 missing                                                        6
+10 sputum                                                         6
+# ℹ 19 more rows</code></pre>
+<div class="sourceCode" id="cb82"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb82-1"><a href="ncbi-mags-exploration.html#cb82-1" tabindex="-1"></a>host_counts <span class="ot">&lt;-</span> metadata_wide <span class="sc">%&gt;%</span></span>
+<span id="cb82-2"><a href="ncbi-mags-exploration.html#cb82-2" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(host)) <span class="sc">%&gt;%</span></span>
+<span id="cb82-3"><a href="ncbi-mags-exploration.html#cb82-3" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(host, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb82-4"><a href="ncbi-mags-exploration.html#cb82-4" tabindex="-1"></a></span>
+<span id="cb82-5"><a href="ncbi-mags-exploration.html#cb82-5" tabindex="-1"></a>host_counts</span></code></pre></div>
+<pre class="script-output"><code># A tibble: 12 × 2
+   host                       n
+   &lt;chr&gt;                  &lt;int&gt;
+ 1 Homo sapiens              64
+ 2 cow                        8
+ 3 Bos taurus                 4
+ 4 Sus scrofa cristatus       4
+ 5 Canis lupus familiaris     2
+ 6 Curlew Sandpiper           2
+ 7 European rook              2
+ 8 Milvus milvus              2
+ 9 environmental              2
+10 missing                    2
+11 not available              2
+12 pig                        2</code></pre>
+<div class="sourceCode" id="cb84"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb84-1"><a href="ncbi-mags-exploration.html#cb84-1" tabindex="-1"></a>metadata_wide <span class="sc">%&gt;%</span></span>
+<span id="cb84-2"><a href="ncbi-mags-exploration.html#cb84-2" tabindex="-1"></a>  <span class="fu">filter</span>(host <span class="sc">==</span> <span class="st">&quot;Homo sapiens&quot;</span>)</span></code></pre></div>
+<pre class="script-output"><code># A tibble: 64 × 56
+   assembly        isolation_source `ontological term` ifsac_category source_type collected_by    collection_date
+   &lt;chr&gt;           &lt;chr&gt;            &lt;chr&gt;              &lt;chr&gt;          &lt;chr&gt;       &lt;chr&gt;           &lt;chr&gt;          
+ 1 GCF_001062165.1 missing          &lt;NA&gt;               &lt;NA&gt;           &lt;NA&gt;        UW clinical la… Unknown        
+ 2 GCF_002073755.2 blood            &lt;NA&gt;               &lt;NA&gt;           &lt;NA&gt;        George Washing… 2014-10-24     
+ 3 GCF_012952645.1 urine            &lt;NA&gt;               &lt;NA&gt;           &lt;NA&gt;        University of … 2017           
+ 4 GCF_013267145.1 clinical isolate &lt;NA&gt;               &lt;NA&gt;           &lt;NA&gt;        University of … Unknown        
+ 5 GCF_016501405.1 sputum           &lt;NA&gt;               &lt;NA&gt;           &lt;NA&gt;        University of … 2019           
+ 6 GCF_016501525.1 urine            &lt;NA&gt;               &lt;NA&gt;           &lt;NA&gt;        University of … 2019           
+ 7 GCF_016501755.1 tissue           &lt;NA&gt;               &lt;NA&gt;           &lt;NA&gt;        University of … 2019           
+ 8 GCF_016501785.1 urine            &lt;NA&gt;               &lt;NA&gt;           &lt;NA&gt;        University of … 2018           
+ 9 GCF_016501885.1 sputum           &lt;NA&gt;               &lt;NA&gt;           &lt;NA&gt;        University of … 2019           
+10 GCF_016501905.1 blood            &lt;NA&gt;               &lt;NA&gt;           &lt;NA&gt;        University of … 2018           
+# ℹ 54 more rows
+# ℹ 49 more variables: geo_loc_name &lt;chr&gt;, isolate_name_alias &lt;chr&gt;, lat_lon &lt;chr&gt;, strain &lt;chr&gt;,
+#   PublicAccession &lt;chr&gt;, Species &lt;chr&gt;, Genus &lt;chr&gt;, project_name &lt;chr&gt;, sequenced_by &lt;chr&gt;,
+#   sample_type &lt;chr&gt;, host &lt;chr&gt;, host_disease &lt;chr&gt;, note &lt;chr&gt;, `identification method` &lt;chr&gt;,
+#   host_sex &lt;chr&gt;, host_age &lt;chr&gt;, culture_collection &lt;chr&gt;, isolate &lt;chr&gt;, host_disease_outcome &lt;chr&gt;,
+#   host_health_state &lt;chr&gt;, host_description &lt;chr&gt;, host_disease_stage &lt;chr&gt;, study_id &lt;chr&gt;,
+#   biomaterial_provider &lt;chr&gt;, env_broad_scale &lt;chr&gt;, `Tax ID` &lt;chr&gt;, host_tissue_sampled &lt;chr&gt;, temp &lt;chr&gt;, …</code></pre>
+</div>
+<div id="lactococcus-lactis" class="section level3 hasAnchor" number="4.1.2">
+<h3><span class="header-section-number">4.1.2</span> Lactococcus lactis<a href="ncbi-mags-exploration.html#lactococcus-lactis" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="sourceCode" id="cb86"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb86-1"><a href="ncbi-mags-exploration.html#cb86-1" tabindex="-1"></a><span class="co">## LACTOCOCCUS LACTIS</span></span>
+<span id="cb86-2"><a href="ncbi-mags-exploration.html#cb86-2" tabindex="-1"></a><span class="ex">datasets</span> summary genome taxon 1358 <span class="dt">\</span></span>
+<span id="cb86-3"><a href="ncbi-mags-exploration.html#cb86-3" tabindex="-1"></a>  <span class="at">--as-json-lines</span> <span class="op">&gt;</span> lactococcus_genomes.jsonl</span>
+<span id="cb86-4"><a href="ncbi-mags-exploration.html#cb86-4" tabindex="-1"></a></span>
+<span id="cb86-5"><a href="ncbi-mags-exploration.html#cb86-5" tabindex="-1"></a></span>
+<span id="cb86-6"><a href="ncbi-mags-exploration.html#cb86-6" tabindex="-1"></a><span class="co">#filtering by contamination and completeness</span></span>
+<span id="cb86-7"><a href="ncbi-mags-exploration.html#cb86-7" tabindex="-1"></a><span class="ex">jq</span> <span class="at">-c</span> <span class="st">&#39;</span></span>
+<span id="cb86-8"><a href="ncbi-mags-exploration.html#cb86-8" tabindex="-1"></a><span class="st">select(</span></span>
+<span id="cb86-9"><a href="ncbi-mags-exploration.html#cb86-9" tabindex="-1"></a><span class="st">  .checkm_info.completeness &gt;= 90 and</span></span>
+<span id="cb86-10"><a href="ncbi-mags-exploration.html#cb86-10" tabindex="-1"></a><span class="st">  .checkm_info.contamination &lt;= 2.5</span></span>
+<span id="cb86-11"><a href="ncbi-mags-exploration.html#cb86-11" tabindex="-1"></a><span class="st">)</span></span>
+<span id="cb86-12"><a href="ncbi-mags-exploration.html#cb86-12" tabindex="-1"></a><span class="st">&#39;</span> lactococcus_genomes.jsonl <span class="op">&gt;</span> lactococcus_high_quality_genomes.jsonl</span>
+<span id="cb86-13"><a href="ncbi-mags-exploration.html#cb86-13" tabindex="-1"></a></span>
+<span id="cb86-14"><a href="ncbi-mags-exploration.html#cb86-14" tabindex="-1"></a></span>
+<span id="cb86-15"><a href="ncbi-mags-exploration.html#cb86-15" tabindex="-1"></a></span>
+<span id="cb86-16"><a href="ncbi-mags-exploration.html#cb86-16" tabindex="-1"></a><span class="co">#put metadata in tsv</span></span>
+<span id="cb86-17"><a href="ncbi-mags-exploration.html#cb86-17" tabindex="-1"></a><span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;</span></span>
+<span id="cb86-18"><a href="ncbi-mags-exploration.html#cb86-18" tabindex="-1"></a><span class="st">.accession as $asm |</span></span>
+<span id="cb86-19"><a href="ncbi-mags-exploration.html#cb86-19" tabindex="-1"></a><span class="st">.assembly_info.biosample.attributes[]? |</span></span>
+<span id="cb86-20"><a href="ncbi-mags-exploration.html#cb86-20" tabindex="-1"></a><span class="st">[$asm, .name, .value] | @tsv</span></span>
+<span id="cb86-21"><a href="ncbi-mags-exploration.html#cb86-21" tabindex="-1"></a><span class="st">&#39;</span> lactococcus_high_quality_genomes.jsonl <span class="op">&gt;</span> lactococcus_biosample_attributes.tsv</span></code></pre></div>
+<div class="sourceCode" id="cb87"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb87-1"><a href="ncbi-mags-exploration.html#cb87-1" tabindex="-1"></a>lactococcus_metadata <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/ncbi/lactococcus_biosample_attributes.tsv&quot;</span>,  <span class="at">col_names =</span> <span class="fu">c</span>(<span class="st">&quot;assembly&quot;</span>, <span class="st">&quot;attribute&quot;</span>, <span class="st">&quot;value&quot;</span>))</span>
+<span id="cb87-2"><a href="ncbi-mags-exploration.html#cb87-2" tabindex="-1"></a></span>
+<span id="cb87-3"><a href="ncbi-mags-exploration.html#cb87-3" tabindex="-1"></a></span>
+<span id="cb87-4"><a href="ncbi-mags-exploration.html#cb87-4" tabindex="-1"></a>metadata_wide <span class="ot">&lt;-</span> lactococcus_metadata <span class="sc">%&gt;%</span></span>
+<span id="cb87-5"><a href="ncbi-mags-exploration.html#cb87-5" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb87-6"><a href="ncbi-mags-exploration.html#cb87-6" tabindex="-1"></a>    <span class="at">id_cols =</span> assembly,</span>
+<span id="cb87-7"><a href="ncbi-mags-exploration.html#cb87-7" tabindex="-1"></a>    <span class="at">names_from =</span> attribute,</span>
+<span id="cb87-8"><a href="ncbi-mags-exploration.html#cb87-8" tabindex="-1"></a>    <span class="at">values_from =</span> value,</span>
+<span id="cb87-9"><a href="ncbi-mags-exploration.html#cb87-9" tabindex="-1"></a>    <span class="at">values_fn =</span> <span class="cf">function</span>(x) x[<span class="dv">1</span>]</span>
+<span id="cb87-10"><a href="ncbi-mags-exploration.html#cb87-10" tabindex="-1"></a>  )</span>
+<span id="cb87-11"><a href="ncbi-mags-exploration.html#cb87-11" tabindex="-1"></a></span>
+<span id="cb87-12"><a href="ncbi-mags-exploration.html#cb87-12" tabindex="-1"></a></span>
+<span id="cb87-13"><a href="ncbi-mags-exploration.html#cb87-13" tabindex="-1"></a>source_counts <span class="ot">&lt;-</span> metadata_wide <span class="sc">%&gt;%</span></span>
+<span id="cb87-14"><a href="ncbi-mags-exploration.html#cb87-14" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(isolation_source)) <span class="sc">%&gt;%</span></span>
+<span id="cb87-15"><a href="ncbi-mags-exploration.html#cb87-15" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(isolation_source, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb87-16"><a href="ncbi-mags-exploration.html#cb87-16" tabindex="-1"></a></span>
+<span id="cb87-17"><a href="ncbi-mags-exploration.html#cb87-17" tabindex="-1"></a>source_counts</span>
+<span id="cb87-18"><a href="ncbi-mags-exploration.html#cb87-18" tabindex="-1"></a></span>
+<span id="cb87-19"><a href="ncbi-mags-exploration.html#cb87-19" tabindex="-1"></a></span>
+<span id="cb87-20"><a href="ncbi-mags-exploration.html#cb87-20" tabindex="-1"></a>host_counts <span class="ot">&lt;-</span> metadata_wide <span class="sc">%&gt;%</span></span>
+<span id="cb87-21"><a href="ncbi-mags-exploration.html#cb87-21" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(host)) <span class="sc">%&gt;%</span></span>
+<span id="cb87-22"><a href="ncbi-mags-exploration.html#cb87-22" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(host, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb87-23"><a href="ncbi-mags-exploration.html#cb87-23" tabindex="-1"></a></span>
+<span id="cb87-24"><a href="ncbi-mags-exploration.html#cb87-24" tabindex="-1"></a>host_counts</span>
+<span id="cb87-25"><a href="ncbi-mags-exploration.html#cb87-25" tabindex="-1"></a></span>
+<span id="cb87-26"><a href="ncbi-mags-exploration.html#cb87-26" tabindex="-1"></a>metadata_wide <span class="sc">%&gt;%</span></span>
+<span id="cb87-27"><a href="ncbi-mags-exploration.html#cb87-27" tabindex="-1"></a>  <span class="fu">filter</span>(host <span class="sc">==</span> <span class="st">&quot;Homo sapiens&quot;</span> <span class="sc">|</span> <span class="fu">str_detect</span>(isolation_source, <span class="st">&quot;human&quot;</span>))</span></code></pre></div>
+</div>
+<div id="hafnia-paralvei" class="section level3 hasAnchor" number="4.1.3">
+<h3><span class="header-section-number">4.1.3</span> Hafnia paralvei<a href="ncbi-mags-exploration.html#hafnia-paralvei" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="sourceCode" id="cb88"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb88-1"><a href="ncbi-mags-exploration.html#cb88-1" tabindex="-1"></a><span class="co">## HAFNIA PARALVEI</span></span>
+<span id="cb88-2"><a href="ncbi-mags-exploration.html#cb88-2" tabindex="-1"></a><span class="ex">datasets</span> summary genome taxon 546367 <span class="dt">\</span></span>
+<span id="cb88-3"><a href="ncbi-mags-exploration.html#cb88-3" tabindex="-1"></a>  <span class="at">--as-json-lines</span> <span class="op">&gt;</span> hafnia_genomes.jsonl</span>
+<span id="cb88-4"><a href="ncbi-mags-exploration.html#cb88-4" tabindex="-1"></a></span>
+<span id="cb88-5"><a href="ncbi-mags-exploration.html#cb88-5" tabindex="-1"></a></span>
+<span id="cb88-6"><a href="ncbi-mags-exploration.html#cb88-6" tabindex="-1"></a><span class="co">#filtering by contamination and completeness</span></span>
+<span id="cb88-7"><a href="ncbi-mags-exploration.html#cb88-7" tabindex="-1"></a><span class="ex">jq</span> <span class="at">-c</span> <span class="st">&#39;</span></span>
+<span id="cb88-8"><a href="ncbi-mags-exploration.html#cb88-8" tabindex="-1"></a><span class="st">select(</span></span>
+<span id="cb88-9"><a href="ncbi-mags-exploration.html#cb88-9" tabindex="-1"></a><span class="st">  .checkm_info.completeness &gt;= 90 and</span></span>
+<span id="cb88-10"><a href="ncbi-mags-exploration.html#cb88-10" tabindex="-1"></a><span class="st">  .checkm_info.contamination &lt;= 2.5</span></span>
+<span id="cb88-11"><a href="ncbi-mags-exploration.html#cb88-11" tabindex="-1"></a><span class="st">)</span></span>
+<span id="cb88-12"><a href="ncbi-mags-exploration.html#cb88-12" tabindex="-1"></a><span class="st">&#39;</span> hafnia_genomes.jsonl <span class="op">&gt;</span> hafnia_high_quality_genomes.jsonl</span>
+<span id="cb88-13"><a href="ncbi-mags-exploration.html#cb88-13" tabindex="-1"></a></span>
+<span id="cb88-14"><a href="ncbi-mags-exploration.html#cb88-14" tabindex="-1"></a></span>
+<span id="cb88-15"><a href="ncbi-mags-exploration.html#cb88-15" tabindex="-1"></a></span>
+<span id="cb88-16"><a href="ncbi-mags-exploration.html#cb88-16" tabindex="-1"></a><span class="co">#put metadata in tsv</span></span>
+<span id="cb88-17"><a href="ncbi-mags-exploration.html#cb88-17" tabindex="-1"></a><span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;</span></span>
+<span id="cb88-18"><a href="ncbi-mags-exploration.html#cb88-18" tabindex="-1"></a><span class="st">.accession as $asm |</span></span>
+<span id="cb88-19"><a href="ncbi-mags-exploration.html#cb88-19" tabindex="-1"></a><span class="st">.assembly_info.biosample.attributes[]? |</span></span>
+<span id="cb88-20"><a href="ncbi-mags-exploration.html#cb88-20" tabindex="-1"></a><span class="st">[$asm, .name, .value] | @tsv</span></span>
+<span id="cb88-21"><a href="ncbi-mags-exploration.html#cb88-21" tabindex="-1"></a><span class="st">&#39;</span> hafnia_high_quality_genomes.jsonl <span class="op">&gt;</span> hafnia_biosample_attributes.tsv</span></code></pre></div>
+<div class="sourceCode" id="cb89"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb89-1"><a href="ncbi-mags-exploration.html#cb89-1" tabindex="-1"></a>hafnia_metadata <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/ncbi/hafnia_biosample_attributes.tsv&quot;</span>,  <span class="at">col_names =</span> <span class="fu">c</span>(<span class="st">&quot;assembly&quot;</span>, <span class="st">&quot;attribute&quot;</span>, <span class="st">&quot;value&quot;</span>))</span></code></pre></div>
+<pre><code>Rows: 1454 Columns: 3
 ── Column specification ─────────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;\t&quot;
-chr  (69): accession, checkm2_model, checkm_marker_lineage, gtdb_genome_representative, gtdb_taxonomy, gtdb_t...
-dbl  (39): ambiguous_bases, checkm2_completeness, checkm2_contamination, checkm_completeness, checkm_contamin...
-lgl   (5): gtdb_representative, gtdb_type_species_of_genus, mimag_high_quality, mimag_low_quality, mimag_medi...
-date  (2): ncbi_date, ncbi_seq_rel_date
+chr (3): assembly, attribute, value
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb25-1"><a href="data-preparation-human.html#cb25-1" tabindex="-1"></a>ehi_metadata <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/mags_metadata/parabacteroides_distasonis_metadata.tsv&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb25-2"><a href="data-preparation-human.html#cb25-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">GC =</span> <span class="fu">as.numeric</span>(<span class="fu">str_remove</span>(GC, <span class="st">&quot;%&quot;</span>)))</span></code></pre></div>
-<pre><code>Rows: 25 Columns: 54
+<div class="sourceCode" id="cb91"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb91-1"><a href="ncbi-mags-exploration.html#cb91-1" tabindex="-1"></a>metadata_wide <span class="ot">&lt;-</span> hafnia_metadata <span class="sc">%&gt;%</span></span>
+<span id="cb91-2"><a href="ncbi-mags-exploration.html#cb91-2" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb91-3"><a href="ncbi-mags-exploration.html#cb91-3" tabindex="-1"></a>    <span class="at">id_cols =</span> assembly,</span>
+<span id="cb91-4"><a href="ncbi-mags-exploration.html#cb91-4" tabindex="-1"></a>    <span class="at">names_from =</span> attribute,</span>
+<span id="cb91-5"><a href="ncbi-mags-exploration.html#cb91-5" tabindex="-1"></a>    <span class="at">values_from =</span> value,</span>
+<span id="cb91-6"><a href="ncbi-mags-exploration.html#cb91-6" tabindex="-1"></a>    <span class="at">values_fn =</span> <span class="cf">function</span>(x) x[<span class="dv">1</span>]</span>
+<span id="cb91-7"><a href="ncbi-mags-exploration.html#cb91-7" tabindex="-1"></a>  )</span>
+<span id="cb91-8"><a href="ncbi-mags-exploration.html#cb91-8" tabindex="-1"></a></span>
+<span id="cb91-9"><a href="ncbi-mags-exploration.html#cb91-9" tabindex="-1"></a></span>
+<span id="cb91-10"><a href="ncbi-mags-exploration.html#cb91-10" tabindex="-1"></a>source_counts <span class="ot">&lt;-</span> metadata_wide <span class="sc">%&gt;%</span></span>
+<span id="cb91-11"><a href="ncbi-mags-exploration.html#cb91-11" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(isolation_source)) <span class="sc">%&gt;%</span></span>
+<span id="cb91-12"><a href="ncbi-mags-exploration.html#cb91-12" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(isolation_source, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb91-13"><a href="ncbi-mags-exploration.html#cb91-13" tabindex="-1"></a></span>
+<span id="cb91-14"><a href="ncbi-mags-exploration.html#cb91-14" tabindex="-1"></a>source_counts</span></code></pre></div>
+<pre class="script-output"><code># A tibble: 27 × 2
+   isolation_source                                n
+   &lt;chr&gt;                                       &lt;int&gt;
+ 1 missing                                        22
+ 2 pitcher plants                                 12
+ 3 fish                                           10
+ 4 human feces metagenome                          8
+ 5 bacterial strain isolated from fresh salmon     6
+ 6 urine                                           6
+ 7 Phyllosphere                                    4
+ 8 feces                                           4
+ 9 not applicable                                  4
+10 Cheese after GESM assay                         2
+# ℹ 17 more rows</code></pre>
+<div class="sourceCode" id="cb93"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb93-1"><a href="ncbi-mags-exploration.html#cb93-1" tabindex="-1"></a>host_counts <span class="ot">&lt;-</span> metadata_wide <span class="sc">%&gt;%</span></span>
+<span id="cb93-2"><a href="ncbi-mags-exploration.html#cb93-2" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(host)) <span class="sc">%&gt;%</span></span>
+<span id="cb93-3"><a href="ncbi-mags-exploration.html#cb93-3" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(host, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb93-4"><a href="ncbi-mags-exploration.html#cb93-4" tabindex="-1"></a></span>
+<span id="cb93-5"><a href="ncbi-mags-exploration.html#cb93-5" tabindex="-1"></a>host_counts</span></code></pre></div>
+<pre class="script-output"><code># A tibble: 10 × 2
+   host                                 n
+   &lt;chr&gt;                            &lt;int&gt;
+ 1 Homo sapiens                        24
+ 2 Sarracenia                          12
+ 3 Bovine                               2
+ 4 Brassica rapa var. parachinensis     2
+ 5 Cyprinus carpio                      2
+ 6 Gallus gallus                        2
+ 7 Mammuthus primigenius                2
+ 8 Scophthalmus maximus                 2
+ 9 missing                              2
+10 wild bird                            2</code></pre>
+<div class="sourceCode" id="cb95"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb95-1"><a href="ncbi-mags-exploration.html#cb95-1" tabindex="-1"></a>metadata_wide <span class="sc">%&gt;%</span></span>
+<span id="cb95-2"><a href="ncbi-mags-exploration.html#cb95-2" tabindex="-1"></a>  <span class="fu">filter</span>(host <span class="sc">==</span> <span class="st">&quot;Homo sapiens&quot;</span> <span class="sc">|</span> <span class="fu">str_detect</span>(isolation_source, <span class="st">&quot;human&quot;</span>))</span></code></pre></div>
+<pre class="script-output"><code># A tibble: 34 × 97
+   assembly    strain isolation_source collection_date geo_loc_name sample_type lat_lon collected_by host_disease
+   &lt;chr&gt;       &lt;chr&gt;  &lt;chr&gt;            &lt;chr&gt;           &lt;chr&gt;        &lt;chr&gt;       &lt;chr&gt;   &lt;chr&gt;        &lt;chr&gt;       
+ 1 GCF_001061… 1133_… missing          Unknown         USA: WA      &lt;NA&gt;        missing UW clinical… missing     
+ 2 GCF_001559… FDAAR… stool            2014-05-12      USA:DC       &lt;NA&gt;        Not Ap… Children&#39;s … Colonizatio…
+ 3 GCF_002313… FDAAR… endotracheal as… 2014-07-09      USA:DC       &lt;NA&gt;        Not Ap… Children&#39;s … Colonization
+ 4 GCF_018606… &lt;NA&gt;   urine            2017-11         USA: Clevel… metagenomi… &lt;NA&gt;    &lt;NA&gt;         &lt;NA&gt;        
+ 5 GCF_023698… Stebr… urine            2021-08-18      Germany      &lt;NA&gt;        50.92 … &lt;NA&gt;         &lt;NA&gt;        
+ 6 GCF_030843… &lt;NA&gt;   feces            missing         USA          metagenomi… missing &lt;NA&gt;         &lt;NA&gt;        
+ 7 GCF_033899… CIM-C… not applicable   unknown         Germany      &lt;NA&gt;        50.917… Hamprecht g… unknown     
+ 8 GCF_033899… CIM-C… not applicable   unknown         Germany      &lt;NA&gt;        50.917… Hamprecht g… unknown     
+ 9 GCF_043828… KE9839 &lt;NA&gt;             2020            Germany      isolated c… &lt;NA&gt;    &lt;NA&gt;         &lt;NA&gt;        
+10 GCF_049544… CRS24… bile             2024-04-29      South Korea… &lt;NA&gt;        37.410… Bundang CHA… Hilar chola…
+# ℹ 24 more rows
+# ℹ 88 more variables: host &lt;chr&gt;, note &lt;chr&gt;, isolate_name_alias &lt;chr&gt;, `identification method` &lt;chr&gt;,
+#   host_sex &lt;chr&gt;, host_age &lt;chr&gt;, culture_collection &lt;chr&gt;, isolate &lt;chr&gt;, host_disease_outcome &lt;chr&gt;,
+#   host_health_state &lt;chr&gt;, host_description &lt;chr&gt;, host_disease_stage &lt;chr&gt;, subsrc_note &lt;chr&gt;,
+#   assembly_method &lt;chr&gt;, assembly_method_version &lt;chr&gt;, completeness_estimated &lt;chr&gt;,
+#   contamination_estimated &lt;chr&gt;, environmental_sample &lt;chr&gt;, genome_coverage &lt;chr&gt;, mapping_method &lt;chr&gt;,
+#   mapping_method_version &lt;chr&gt;, metagenome_source &lt;chr&gt;, metagenomic &lt;chr&gt;, quality_assessment_method &lt;chr&gt;, …</code></pre>
+</div>
+<div id="enterococcus-faecalis" class="section level3 hasAnchor" number="4.1.4">
+<h3><span class="header-section-number">4.1.4</span> Enterococcus faecalis<a href="ncbi-mags-exploration.html#enterococcus-faecalis" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="sourceCode" id="cb97"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb97-1"><a href="ncbi-mags-exploration.html#cb97-1" tabindex="-1"></a><span class="co">## ENTEROCOCCUS HIRAE</span></span>
+<span id="cb97-2"><a href="ncbi-mags-exploration.html#cb97-2" tabindex="-1"></a><span class="ex">datasets</span> summary genome taxon 1354 <span class="dt">\</span></span>
+<span id="cb97-3"><a href="ncbi-mags-exploration.html#cb97-3" tabindex="-1"></a>  <span class="at">--as-json-lines</span> <span class="op">&gt;</span> enterococcus_genomes.jsonl</span>
+<span id="cb97-4"><a href="ncbi-mags-exploration.html#cb97-4" tabindex="-1"></a></span>
+<span id="cb97-5"><a href="ncbi-mags-exploration.html#cb97-5" tabindex="-1"></a></span>
+<span id="cb97-6"><a href="ncbi-mags-exploration.html#cb97-6" tabindex="-1"></a><span class="co">#filtering by contamination and completeness</span></span>
+<span id="cb97-7"><a href="ncbi-mags-exploration.html#cb97-7" tabindex="-1"></a><span class="ex">jq</span> <span class="at">-c</span> <span class="st">&#39;</span></span>
+<span id="cb97-8"><a href="ncbi-mags-exploration.html#cb97-8" tabindex="-1"></a><span class="st">select(</span></span>
+<span id="cb97-9"><a href="ncbi-mags-exploration.html#cb97-9" tabindex="-1"></a><span class="st">  .checkm_info.completeness &gt;= 90 and</span></span>
+<span id="cb97-10"><a href="ncbi-mags-exploration.html#cb97-10" tabindex="-1"></a><span class="st">  .checkm_info.contamination &lt;= 2.5</span></span>
+<span id="cb97-11"><a href="ncbi-mags-exploration.html#cb97-11" tabindex="-1"></a><span class="st">)</span></span>
+<span id="cb97-12"><a href="ncbi-mags-exploration.html#cb97-12" tabindex="-1"></a><span class="st">&#39;</span> enterococcus_genomes.jsonl <span class="op">&gt;</span> enterococcus_high_quality_genomes.jsonl</span>
+<span id="cb97-13"><a href="ncbi-mags-exploration.html#cb97-13" tabindex="-1"></a></span>
+<span id="cb97-14"><a href="ncbi-mags-exploration.html#cb97-14" tabindex="-1"></a></span>
+<span id="cb97-15"><a href="ncbi-mags-exploration.html#cb97-15" tabindex="-1"></a></span>
+<span id="cb97-16"><a href="ncbi-mags-exploration.html#cb97-16" tabindex="-1"></a><span class="co">#put metadata in tsv</span></span>
+<span id="cb97-17"><a href="ncbi-mags-exploration.html#cb97-17" tabindex="-1"></a><span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;</span></span>
+<span id="cb97-18"><a href="ncbi-mags-exploration.html#cb97-18" tabindex="-1"></a><span class="st">.accession as $asm |</span></span>
+<span id="cb97-19"><a href="ncbi-mags-exploration.html#cb97-19" tabindex="-1"></a><span class="st">.assembly_info.biosample.attributes[]? |</span></span>
+<span id="cb97-20"><a href="ncbi-mags-exploration.html#cb97-20" tabindex="-1"></a><span class="st">[$asm, .name, .value] | @tsv</span></span>
+<span id="cb97-21"><a href="ncbi-mags-exploration.html#cb97-21" tabindex="-1"></a><span class="st">&#39;</span> enterococcus_high_quality_genomes.jsonl <span class="op">&gt;</span> enterococcus_biosample_attributes.tsv</span></code></pre></div>
+<div class="sourceCode" id="cb98"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb98-1"><a href="ncbi-mags-exploration.html#cb98-1" tabindex="-1"></a>enterococcus_metadata <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/ncbi/enterococcus_biosample_attributes.tsv&quot;</span>,  <span class="at">col_names =</span> <span class="fu">c</span>(<span class="st">&quot;assembly&quot;</span>, <span class="st">&quot;attribute&quot;</span>, <span class="st">&quot;value&quot;</span>))</span></code></pre></div>
+<pre><code>Rows: 6648 Columns: 3
 ── Column specification ─────────────────────────────────────────────────────────────────────────────────────────
 Delimiter: &quot;\t&quot;
-chr (38): ID, mag_name, link_to_assembly, AB_batch, eha_number, GTDB_version, GTDB_release, domain, phylum, c...
-dbl (15): fastani_ani, closest_placement_ani, closest_placement_af, completeness, contamination, size, N50, c...
-lgl  (1): annotated
+chr (3): assembly, attribute, value
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-</div>
-<div id="load-genome-mapping" class="section level3 hasAnchor" number="2.3.4">
-<h3><span class="header-section-number">2.3.4</span> Load genome mapping<a href="data-preparation-human.html#load-genome-mapping" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb27-1"><a href="data-preparation-human.html#cb27-1" tabindex="-1"></a><span class="co"># Prepare EHI metadata with standardized column names</span></span>
-<span id="cb27-2"><a href="data-preparation-human.html#cb27-2" tabindex="-1"></a>ehi_clean <span class="ot">&lt;-</span> ehi_metadata <span class="sc">%&gt;%</span></span>
-<span id="cb27-3"><a href="data-preparation-human.html#cb27-3" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
-<span id="cb27-4"><a href="data-preparation-human.html#cb27-4" tabindex="-1"></a>    ID,</span>
-<span id="cb27-5"><a href="data-preparation-human.html#cb27-5" tabindex="-1"></a>    species,  </span>
-<span id="cb27-6"><a href="data-preparation-human.html#cb27-6" tabindex="-1"></a>    completeness,</span>
-<span id="cb27-7"><a href="data-preparation-human.html#cb27-7" tabindex="-1"></a>    contamination,</span>
-<span id="cb27-8"><a href="data-preparation-human.html#cb27-8" tabindex="-1"></a>    <span class="at">genome_size =</span> size,</span>
-<span id="cb27-9"><a href="data-preparation-human.html#cb27-9" tabindex="-1"></a>    GC,</span>
-<span id="cb27-10"><a href="data-preparation-human.html#cb27-10" tabindex="-1"></a>    N50,</span>
-<span id="cb27-11"><a href="data-preparation-human.html#cb27-11" tabindex="-1"></a>    contigs,</span>
-<span id="cb27-12"><a href="data-preparation-human.html#cb27-12" tabindex="-1"></a>    host_species,</span>
-<span id="cb27-13"><a href="data-preparation-human.html#cb27-13" tabindex="-1"></a>    host_order,</span>
-<span id="cb27-14"><a href="data-preparation-human.html#cb27-14" tabindex="-1"></a>    host_class,</span>
-<span id="cb27-15"><a href="data-preparation-human.html#cb27-15" tabindex="-1"></a>    assembly_type,</span>
-<span id="cb27-16"><a href="data-preparation-human.html#cb27-16" tabindex="-1"></a>    <span class="at">isolation_source=</span> sample_type,</span>
-<span id="cb27-17"><a href="data-preparation-human.html#cb27-17" tabindex="-1"></a>    mag_name, </span>
-<span id="cb27-18"><a href="data-preparation-human.html#cb27-18" tabindex="-1"></a>    eha_number</span>
-<span id="cb27-19"><a href="data-preparation-human.html#cb27-19" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb27-20"><a href="data-preparation-human.html#cb27-20" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">source =</span> <span class="st">&quot;EHI&quot;</span>)</span>
-<span id="cb27-21"><a href="data-preparation-human.html#cb27-21" tabindex="-1"></a></span>
-<span id="cb27-22"><a href="data-preparation-human.html#cb27-22" tabindex="-1"></a><span class="co"># Prepare GTDB metadata</span></span>
-<span id="cb27-23"><a href="data-preparation-human.html#cb27-23" tabindex="-1"></a><span class="co"># Join search and accession metadata</span></span>
-<span id="cb27-24"><a href="data-preparation-human.html#cb27-24" tabindex="-1"></a>gtdb_metadata <span class="ot">&lt;-</span> <span class="fu">full_join</span>(gtdb_accession_metadata, gtdb_search_metadata,  <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;search_accession&quot;</span> <span class="ot">=</span> <span class="st">&quot;Accession&quot;</span>)</span>
-<span id="cb27-25"><a href="data-preparation-human.html#cb27-25" tabindex="-1"></a>  )</span>
-<span id="cb27-26"><a href="data-preparation-human.html#cb27-26" tabindex="-1"></a></span>
-<span id="cb27-27"><a href="data-preparation-human.html#cb27-27" tabindex="-1"></a></span>
-<span id="cb27-28"><a href="data-preparation-human.html#cb27-28" tabindex="-1"></a></span>
-<span id="cb27-29"><a href="data-preparation-human.html#cb27-29" tabindex="-1"></a><span class="co"># Prepare GTDB metadata</span></span>
-<span id="cb27-30"><a href="data-preparation-human.html#cb27-30" tabindex="-1"></a>gtdb_clean <span class="ot">&lt;-</span> gtdb_metadata <span class="sc">%&gt;%</span></span>
-<span id="cb27-31"><a href="data-preparation-human.html#cb27-31" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
-<span id="cb27-32"><a href="data-preparation-human.html#cb27-32" tabindex="-1"></a>    <span class="at">ID =</span> search_accession,</span>
-<span id="cb27-33"><a href="data-preparation-human.html#cb27-33" tabindex="-1"></a>    <span class="at">completeness =</span> <span class="st">&quot;checkm2_completeness&quot;</span>,</span>
-<span id="cb27-34"><a href="data-preparation-human.html#cb27-34" tabindex="-1"></a>    <span class="at">contamination =</span> <span class="st">&quot;checkm2_contamination&quot;</span>,</span>
-<span id="cb27-35"><a href="data-preparation-human.html#cb27-35" tabindex="-1"></a>    <span class="at">gtdb_taxonomy =</span> <span class="st">&quot;GTDB Taxonomy&quot;</span>,</span>
-<span id="cb27-36"><a href="data-preparation-human.html#cb27-36" tabindex="-1"></a>    <span class="at">isolation_source =</span> <span class="st">&quot;Isolation Source&quot;</span>,</span>
-<span id="cb27-37"><a href="data-preparation-human.html#cb27-37" tabindex="-1"></a>    genome_size,</span>
-<span id="cb27-38"><a href="data-preparation-human.html#cb27-38" tabindex="-1"></a>    <span class="at">GC =</span> gc_percentage,</span>
-<span id="cb27-39"><a href="data-preparation-human.html#cb27-39" tabindex="-1"></a>    <span class="at">N50 =</span> n50_contigs,</span>
-<span id="cb27-40"><a href="data-preparation-human.html#cb27-40" tabindex="-1"></a>    <span class="at">contigs =</span> contig_count,</span>
-<span id="cb27-41"><a href="data-preparation-human.html#cb27-41" tabindex="-1"></a>    ncbi_country,</span>
-<span id="cb27-42"><a href="data-preparation-human.html#cb27-42" tabindex="-1"></a>    mimag_high_quality,</span>
-<span id="cb27-43"><a href="data-preparation-human.html#cb27-43" tabindex="-1"></a>    mimag_medium_quality,</span>
-<span id="cb27-44"><a href="data-preparation-human.html#cb27-44" tabindex="-1"></a>    gtdb_representative,</span>
-<span id="cb27-45"><a href="data-preparation-human.html#cb27-45" tabindex="-1"></a>    <span class="at">mag_name =</span> search_accession</span>
-<span id="cb27-46"><a href="data-preparation-human.html#cb27-46" tabindex="-1"></a>  )<span class="sc">%&gt;%</span></span>
-<span id="cb27-47"><a href="data-preparation-human.html#cb27-47" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">source =</span> <span class="st">&quot;GTDB&quot;</span>)</span>
-<span id="cb27-48"><a href="data-preparation-human.html#cb27-48" tabindex="-1"></a></span>
-<span id="cb27-49"><a href="data-preparation-human.html#cb27-49" tabindex="-1"></a><span class="co">#Join</span></span>
-<span id="cb27-50"><a href="data-preparation-human.html#cb27-50" tabindex="-1"></a>genome_metadata <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(ehi_clean, gtdb_clean)</span></code></pre></div>
-<div class="sourceCode" id="cb28"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb28-1"><a href="data-preparation-human.html#cb28-1" tabindex="-1"></a><span class="co"># Read master index</span></span>
-<span id="cb28-2"><a href="data-preparation-human.html#cb28-2" tabindex="-1"></a>master_index <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/master_mag_index_2.tsv&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb28-3"><a href="data-preparation-human.html#cb28-3" tabindex="-1"></a>  <span class="fu">filter</span>(species <span class="sc">==</span> <span class="st">&quot;parabacteroides_distasonis&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb28-4"><a href="data-preparation-human.html#cb28-4" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb28-5"><a href="data-preparation-human.html#cb28-5" tabindex="-1"></a>    <span class="co"># Extract the actual genome identifier from out_path</span></span>
-<span id="cb28-6"><a href="data-preparation-human.html#cb28-6" tabindex="-1"></a>    <span class="at">genome_identifier =</span> <span class="fu">case_when</span>(</span>
-<span id="cb28-7"><a href="data-preparation-human.html#cb28-7" tabindex="-1"></a>      <span class="co"># For EHI: extract EHA00531_bin.1 from the filename</span></span>
-<span id="cb28-8"><a href="data-preparation-human.html#cb28-8" tabindex="-1"></a>      <span class="fu">str_detect</span>(out_path, <span class="st">&quot;EHA&quot;</span>) <span class="sc">~</span> <span class="fu">str_extract</span>(out_path, <span class="st">&quot;EHA[0-9]+_bin</span><span class="sc">\\</span><span class="st">.[0-9]+&quot;</span>),</span>
-<span id="cb28-9"><a href="data-preparation-human.html#cb28-9" tabindex="-1"></a>      <span class="co"># For NCBI: use the ID as is (GCA/GCF number)</span></span>
-<span id="cb28-10"><a href="data-preparation-human.html#cb28-10" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> ID</span>
-<span id="cb28-11"><a href="data-preparation-human.html#cb28-11" tabindex="-1"></a>    )</span>
-<span id="cb28-12"><a href="data-preparation-human.html#cb28-12" tabindex="-1"></a>  )</span></code></pre></div>
-<pre><code>Rows: 72 Columns: 4
-── Column specification ─────────────────────────────────────────────────────────────────────────────────────────
-Delimiter: &quot;\t&quot;
-chr (4): species, ID, MAG_url, out_path
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<div class="sourceCode" id="cb30"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb30-1"><a href="data-preparation-human.html#cb30-1" tabindex="-1"></a><span class="co"># Check the mapping</span></span>
-<span id="cb30-2"><a href="data-preparation-human.html#cb30-2" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;Master index mapping:&quot;</span>)</span></code></pre></div>
-<pre class="script-output"><code>[1] &quot;Master index mapping:&quot;</code></pre>
-<div class="sourceCode" id="cb32"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb32-1"><a href="data-preparation-human.html#cb32-1" tabindex="-1"></a>master_index <span class="sc">%&gt;%</span> </span>
-<span id="cb32-2"><a href="data-preparation-human.html#cb32-2" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(ID, genome_identifier, out_path) <span class="sc">%&gt;%</span></span>
-<span id="cb32-3"><a href="data-preparation-human.html#cb32-3" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb32-4"><a href="data-preparation-human.html#cb32-4" tabindex="-1"></a>  <span class="fu">print</span>()</span></code></pre></div>
-<pre class="script-output"><code># A tibble: 0 × 3
-# ℹ 3 variables: ID &lt;chr&gt;, genome_identifier &lt;chr&gt;, out_path &lt;chr&gt;</code></pre>
-<div class="sourceCode" id="cb34"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb34-1"><a href="data-preparation-human.html#cb34-1" tabindex="-1"></a><span class="co"># Read contig-to-genome mapping</span></span>
-<span id="cb34-2"><a href="data-preparation-human.html#cb34-2" tabindex="-1"></a>contig_to_genome <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/contig_to_mag.tsv&quot;</span>,</span>
-<span id="cb34-3"><a href="data-preparation-human.html#cb34-3" tabindex="-1"></a>                              <span class="at">col_names =</span> <span class="fu">c</span>(<span class="st">&quot;contig&quot;</span>, <span class="st">&quot;genome_filename&quot;</span>))</span></code></pre></div>
-<pre><code>Rows: 10094 Columns: 2
-── Column specification ─────────────────────────────────────────────────────────────────────────────────────────
-Delimiter: &quot;\t&quot;
-chr (2): contig, genome_filename
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-</div>
-<div id="genome-annotations" class="section level3 hasAnchor" number="2.3.5">
-<h3><span class="header-section-number">2.3.5</span> Genome annotations<a href="data-preparation-human.html#genome-annotations" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb36"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb36-1"><a href="data-preparation-human.html#cb36-1" tabindex="-1"></a>genome_annotations <span class="ot">&lt;-</span><span class="fu">read_tsv</span>(<span class="st">&quot;data/human/gene_annotations_human.tsv.xz&quot;</span>)</span></code></pre></div>
-<pre><code>Warning: One or more parsing issues, call `problems()` on your data frame for details, e.g.:
-  dat &lt;- vroom(...)
-  problems(dat)</code></pre>
-<pre><code>Rows: 275277 Columns: 13
-── Column specification ─────────────────────────────────────────────────────────────────────────────────────────
-Delimiter: &quot;\t&quot;
-chr (11): gene, strand, kegg, ec, pfam, cazy, resistance_type, resistance_target, vf, vf_type, signalp
-dbl  (2): start, end
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<div class="sourceCode" id="cb39"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb39-1"><a href="data-preparation-human.html#cb39-1" tabindex="-1"></a><span class="co"># Read annotations and add IDs</span></span>
-<span id="cb39-2"><a href="data-preparation-human.html#cb39-2" tabindex="-1"></a>genome_annotations <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">&quot;data/human/gene_annotations_human.tsv.xz&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb39-3"><a href="data-preparation-human.html#cb39-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">contig =</span> <span class="fu">sub</span>(<span class="st">&quot;_[^_]*$&quot;</span>, <span class="st">&quot;&quot;</span>, gene)) <span class="sc">%&gt;%</span></span>
-<span id="cb39-4"><a href="data-preparation-human.html#cb39-4" tabindex="-1"></a>  <span class="fu">left_join</span>(contig_to_genome, <span class="at">by =</span> <span class="st">&quot;contig&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb39-5"><a href="data-preparation-human.html#cb39-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">genome=</span> genome_filename)<span class="sc">%&gt;%</span></span>
-<span id="cb39-6"><a href="data-preparation-human.html#cb39-6" tabindex="-1"></a>   <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(genome))</span></code></pre></div>
-<pre><code>Warning: One or more parsing issues, call `problems()` on your data frame for details, e.g.:
-  dat &lt;- vroom(...)
-  problems(dat)</code></pre>
-<pre><code>Rows: 275277 Columns: 13
-── Column specification ─────────────────────────────────────────────────────────────────────────────────────────
-Delimiter: &quot;\t&quot;
-chr (11): gene, strand, kegg, ec, pfam, cazy, resistance_type, resistance_target, vf, vf_type, signalp
-dbl  (2): start, end
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-</div>
-<div id="distill-annotations-into-gifts" class="section level3 hasAnchor" number="2.3.6">
-<h3><span class="header-section-number">2.3.6</span> Distill annotations into GIFTs<a href="data-preparation-human.html#distill-annotations-into-gifts" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb42"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb42-1"><a href="data-preparation-human.html#cb42-1" tabindex="-1"></a>genome_gifts <span class="ot">&lt;-</span> <span class="fu">distill</span>(genome_annotations,GIFT_db,<span class="at">genomecol=</span> <span class="dv">15</span>, <span class="at">annotcol=</span><span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>), <span class="at">verbosity =</span> T)</span></code></pre></div>
-</div>
-<div id="load-trees" class="section level3 hasAnchor" number="2.3.7">
-<h3><span class="header-section-number">2.3.7</span> Load trees<a href="data-preparation-human.html#load-trees" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb43"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb43-1"><a href="data-preparation-human.html#cb43-1" tabindex="-1"></a>genome_metadata<span class="sc">$</span>mag_name <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">&quot;</span><span class="sc">\\</span><span class="st">.fa$&quot;</span>, <span class="st">&quot;&quot;</span>, genome_metadata<span class="sc">$</span>mag_name)<span class="co">#remove .fa from the mag names so that they match the tree ids</span></span>
-<span id="cb43-2"><a href="data-preparation-human.html#cb43-2" tabindex="-1"></a></span>
-<span id="cb43-3"><a href="data-preparation-human.html#cb43-3" tabindex="-1"></a></span>
-<span id="cb43-4"><a href="data-preparation-human.html#cb43-4" tabindex="-1"></a>getphylo_tree <span class="ot">&lt;-</span> <span class="fu">read_tree</span>(<span class="st">&quot;data/combined_alignment.tree&quot;</span>)</span>
-<span id="cb43-5"><a href="data-preparation-human.html#cb43-5" tabindex="-1"></a>getphylo_tree<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;&#39;&quot;</span>, <span class="st">&quot;&quot;</span>, getphylo_tree<span class="sc">$</span>tip.label)</span>
-<span id="cb43-6"><a href="data-preparation-human.html#cb43-6" tabindex="-1"></a>tip_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">label =</span> getphylo_tree<span class="sc">$</span>tip.label) <span class="sc">%&gt;%</span></span>
-<span id="cb43-7"><a href="data-preparation-human.html#cb43-7" tabindex="-1"></a>  <span class="fu">left_join</span>(genome_metadata, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;label&quot;</span> <span class="ot">=</span> <span class="st">&quot;mag_name&quot;</span>))</span>
-<span id="cb43-8"><a href="data-preparation-human.html#cb43-8" tabindex="-1"></a></span>
-<span id="cb43-9"><a href="data-preparation-human.html#cb43-9" tabindex="-1"></a><span class="co">#replace long mag names with IDs</span></span>
-<span id="cb43-10"><a href="data-preparation-human.html#cb43-10" tabindex="-1"></a>getphylo_tree<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> tip_df<span class="sc">$</span>ID</span></code></pre></div>
+<div class="sourceCode" id="cb100"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb100-1"><a href="ncbi-mags-exploration.html#cb100-1" tabindex="-1"></a>metadata_wide <span class="ot">&lt;-</span> enterococcus_metadata <span class="sc">%&gt;%</span></span>
+<span id="cb100-2"><a href="ncbi-mags-exploration.html#cb100-2" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb100-3"><a href="ncbi-mags-exploration.html#cb100-3" tabindex="-1"></a>    <span class="at">id_cols =</span> assembly,</span>
+<span id="cb100-4"><a href="ncbi-mags-exploration.html#cb100-4" tabindex="-1"></a>    <span class="at">names_from =</span> attribute,</span>
+<span id="cb100-5"><a href="ncbi-mags-exploration.html#cb100-5" tabindex="-1"></a>    <span class="at">values_from =</span> value,</span>
+<span id="cb100-6"><a href="ncbi-mags-exploration.html#cb100-6" tabindex="-1"></a>    <span class="at">values_fn =</span> <span class="cf">function</span>(x) x[<span class="dv">1</span>]</span>
+<span id="cb100-7"><a href="ncbi-mags-exploration.html#cb100-7" tabindex="-1"></a>  )</span>
+<span id="cb100-8"><a href="ncbi-mags-exploration.html#cb100-8" tabindex="-1"></a></span>
+<span id="cb100-9"><a href="ncbi-mags-exploration.html#cb100-9" tabindex="-1"></a></span>
+<span id="cb100-10"><a href="ncbi-mags-exploration.html#cb100-10" tabindex="-1"></a>source_counts <span class="ot">&lt;-</span> metadata_wide <span class="sc">%&gt;%</span></span>
+<span id="cb100-11"><a href="ncbi-mags-exploration.html#cb100-11" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(isolation_source)) <span class="sc">%&gt;%</span></span>
+<span id="cb100-12"><a href="ncbi-mags-exploration.html#cb100-12" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(isolation_source, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb100-13"><a href="ncbi-mags-exploration.html#cb100-13" tabindex="-1"></a></span>
+<span id="cb100-14"><a href="ncbi-mags-exploration.html#cb100-14" tabindex="-1"></a>source_counts</span></code></pre></div>
+<pre class="script-output"><code># A tibble: 82 × 2
+   isolation_source                  n
+   &lt;chr&gt;                         &lt;int&gt;
+ 1 feces                            98
+ 2 missing                          50
+ 3 Popliteal lymph node of steer    40
+ 4 hospital sewage                  32
+ 5 fecal sample                     22
+ 6 Breast meat                      20
+ 7 Procapra picticaudata            16
+ 8 not collected                    14
+ 9 stool                            14
+10 river water                      10
+# ℹ 72 more rows</code></pre>
+<div class="sourceCode" id="cb102"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb102-1"><a href="ncbi-mags-exploration.html#cb102-1" tabindex="-1"></a>host_counts <span class="ot">&lt;-</span> metadata_wide <span class="sc">%&gt;%</span></span>
+<span id="cb102-2"><a href="ncbi-mags-exploration.html#cb102-2" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(host)) <span class="sc">%&gt;%</span></span>
+<span id="cb102-3"><a href="ncbi-mags-exploration.html#cb102-3" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(host, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb102-4"><a href="ncbi-mags-exploration.html#cb102-4" tabindex="-1"></a></span>
+<span id="cb102-5"><a href="ncbi-mags-exploration.html#cb102-5" tabindex="-1"></a>host_counts</span></code></pre></div>
+<pre class="script-output"><code># A tibble: 39 × 2
+   host                         n
+   &lt;chr&gt;                    &lt;int&gt;
+ 1 Homo sapiens               238
+ 2 cow                         41
+ 3 mouse                       40
+ 4 pig                         40
+ 5 Bos taurus                  30
+ 6 Gallus gallus domesticus    20
+ 7 swine                       20
+ 8 not applicable              18
+ 9 Gallus gallus               16
+10 pigeon                      12
+# ℹ 29 more rows</code></pre>
+<div class="sourceCode" id="cb104"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb104-1"><a href="ncbi-mags-exploration.html#cb104-1" tabindex="-1"></a>metadata_wide <span class="sc">%&gt;%</span></span>
+<span id="cb104-2"><a href="ncbi-mags-exploration.html#cb104-2" tabindex="-1"></a>  <span class="fu">filter</span>(host <span class="sc">==</span> <span class="st">&quot;Homo sapiens&quot;</span> <span class="sc">|</span> <span class="fu">str_detect</span>(isolation_source, <span class="st">&quot;human&quot;</span>))</span></code></pre></div>
+<pre class="script-output"><code># A tibble: 238 × 90
+   assembly  strain isolate collected_by collection_date geo_loc_name isolation_source lat_lon culture_collection
+   &lt;chr&gt;     &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt;        &lt;chr&gt;           &lt;chr&gt;        &lt;chr&gt;            &lt;chr&gt;   &lt;chr&gt;             
+ 1 GCF_0022… FDAAR… Not Ap… Children&#39;s … 2014-09-14      USA:DC       abscess          Not Ap… FDA:FDAARGOS_234  
+ 2 GCF_0041… bz_00… &lt;NA&gt;    &lt;NA&gt;         2015-01         USA: Cambri… stool            &lt;NA&gt;    &lt;NA&gt;              
+ 3 GCF_0098… BIOML… &lt;NA&gt;    &lt;NA&gt;         2016-01-15      USA:Boston   &lt;NA&gt;             42.36 … &lt;NA&gt;              
+ 4 GCF_0098… BIOML… &lt;NA&gt;    &lt;NA&gt;         2016-01-15      USA:Boston   &lt;NA&gt;             42.36 … &lt;NA&gt;              
+ 5 GCF_0098… BIOML… &lt;NA&gt;    &lt;NA&gt;         2016-01-15      USA:Boston   &lt;NA&gt;             42.36 … &lt;NA&gt;              
+ 6 GCF_0098… BIOML… &lt;NA&gt;    &lt;NA&gt;         2016-01-15      USA:Boston   &lt;NA&gt;             42.36 … &lt;NA&gt;              
+ 7 GCF_0098… BIOML… &lt;NA&gt;    &lt;NA&gt;         2016-01-15      USA:Boston   &lt;NA&gt;             42.36 … &lt;NA&gt;              
+ 8 GCF_0098… BIOML… &lt;NA&gt;    &lt;NA&gt;         2016-01-15      USA:Boston   &lt;NA&gt;             42.36 … &lt;NA&gt;              
+ 9 GCF_0098… BIOML… &lt;NA&gt;    &lt;NA&gt;         2016-01-15      USA:Boston   &lt;NA&gt;             42.36 … &lt;NA&gt;              
+10 GCF_0098… BIOML… &lt;NA&gt;    &lt;NA&gt;         2016-01-15      USA:Boston   &lt;NA&gt;             42.36 … &lt;NA&gt;              
+# ℹ 228 more rows
+# ℹ 81 more variables: host &lt;chr&gt;, host_age &lt;chr&gt;, host_description &lt;chr&gt;, host_disease &lt;chr&gt;,
+#   host_disease_outcome &lt;chr&gt;, host_disease_stage &lt;chr&gt;, host_health_state &lt;chr&gt;, host_sex &lt;chr&gt;,
+#   `identification method` &lt;chr&gt;, `type-material` &lt;chr&gt;, sample_type &lt;chr&gt;, note &lt;chr&gt;, env_broad_scale &lt;chr&gt;,
+#   env_local_scale &lt;chr&gt;, env_medium &lt;chr&gt;, isol_growth_condt &lt;chr&gt;, num_replicons &lt;chr&gt;,
+#   ref_biomaterial &lt;chr&gt;, isolate_name_alias &lt;chr&gt;, estimated_size &lt;chr&gt;, extrachrom_elements &lt;chr&gt;,
+#   host_body_habitat &lt;chr&gt;, host_genotype &lt;chr&gt;, host_phenotype &lt;chr&gt;, host_taxid &lt;chr&gt;, rel_to_oxygen &lt;chr&gt;, …</code></pre>
+<p>Gut microbiome : c(“ceaca”, “caeca”, “excrement”, “rectal swabs”, “feces”, “stool”, “gut”, “cloaca”, “cloacal”, “fecal”, “intestine”, “intestinal”)</p>
+<div class="sourceCode" id="cb106"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb106-1"><a href="ncbi-mags-exploration.html#cb106-1" tabindex="-1"></a>selected <span class="ot">&lt;-</span> metadata_wide <span class="sc">%&gt;%</span></span>
+<span id="cb106-2"><a href="ncbi-mags-exploration.html#cb106-2" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb106-3"><a href="ncbi-mags-exploration.html#cb106-3" tabindex="-1"></a>    host <span class="sc">==</span> <span class="st">&quot;Homo sapiens&quot;</span> <span class="sc">|</span></span>
+<span id="cb106-4"><a href="ncbi-mags-exploration.html#cb106-4" tabindex="-1"></a>    <span class="fu">str_detect</span>(isolation_source, <span class="fu">regex</span>(<span class="st">&quot;human&quot;</span>, <span class="at">ignore_case =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb106-5"><a href="ncbi-mags-exploration.html#cb106-5" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb106-6"><a href="ncbi-mags-exploration.html#cb106-6" tabindex="-1"></a>  <span class="fu">pull</span>(assembly) <span class="sc">%&gt;%</span></span>
+<span id="cb106-7"><a href="ncbi-mags-exploration.html#cb106-7" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
+<span id="cb106-8"><a href="ncbi-mags-exploration.html#cb106-8" tabindex="-1"></a></span>
+<span id="cb106-9"><a href="ncbi-mags-exploration.html#cb106-9" tabindex="-1"></a><span class="co">#check</span></span>
+<span id="cb106-10"><a href="ncbi-mags-exploration.html#cb106-10" tabindex="-1"></a><span class="fu">length</span>(selected)</span>
+<span id="cb106-11"><a href="ncbi-mags-exploration.html#cb106-11" tabindex="-1"></a><span class="fu">head</span>(selected)</span>
+<span id="cb106-12"><a href="ncbi-mags-exploration.html#cb106-12" tabindex="-1"></a></span>
+<span id="cb106-13"><a href="ncbi-mags-exploration.html#cb106-13" tabindex="-1"></a><span class="co">#save the accessions to download the mags in mjolnir</span></span>
+<span id="cb106-14"><a href="ncbi-mags-exploration.html#cb106-14" tabindex="-1"></a><span class="co">#writeLines(selected, &quot;selected_accessions.txt&quot;)</span></span></code></pre></div>
 </div>
 </div>
-<div id="wrap-working-objects" class="section level2 hasAnchor" number="2.4">
-<h2><span class="header-section-number">2.4</span> Wrap working objects<a href="data-preparation-human.html#wrap-working-objects" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>All working objects are wrapped into a single Rdata object to facilitate downstream usage.</p>
-<div class="sourceCode" id="cb44"><pre class="sourceCode r script-source"><code class="sourceCode r"><span id="cb44-1"><a href="data-preparation-human.html#cb44-1" tabindex="-1"></a><span class="fu">save</span>(ehi_mags,</span>
-<span id="cb44-2"><a href="data-preparation-human.html#cb44-2" tabindex="-1"></a>     phylum_colors,</span>
-<span id="cb44-3"><a href="data-preparation-human.html#cb44-3" tabindex="-1"></a>     genome_annotations,</span>
-<span id="cb44-4"><a href="data-preparation-human.html#cb44-4" tabindex="-1"></a>     genome_gifts,</span>
-<span id="cb44-5"><a href="data-preparation-human.html#cb44-5" tabindex="-1"></a>     contig_to_genome,</span>
-<span id="cb44-6"><a href="data-preparation-human.html#cb44-6" tabindex="-1"></a>     gtdb_metadata,</span>
-<span id="cb44-7"><a href="data-preparation-human.html#cb44-7" tabindex="-1"></a>     ehi_metadata,</span>
-<span id="cb44-8"><a href="data-preparation-human.html#cb44-8" tabindex="-1"></a>     master_index,</span>
-<span id="cb44-9"><a href="data-preparation-human.html#cb44-9" tabindex="-1"></a>     genome_metadata,</span>
-<span id="cb44-10"><a href="data-preparation-human.html#cb44-10" tabindex="-1"></a>     source_colors,</span>
-<span id="cb44-11"><a href="data-preparation-human.html#cb44-11" tabindex="-1"></a>     getphylo_tree,</span>
-<span id="cb44-12"><a href="data-preparation-human.html#cb44-12" tabindex="-1"></a>     <span class="at">file =</span> <span class="st">&quot;data/human/data.Rdata&quot;</span>)</span></code></pre></div>
+<div id="downloading-the-mags-after-filtering" class="section level2 hasAnchor" number="4.2">
+<h2><span class="header-section-number">4.2</span> Downloading the MAGs after filtering<a href="ncbi-mags-exploration.html#downloading-the-mags-after-filtering" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Download the MAGs when you finish selecting them</p>
+<div class="sourceCode" id="cb107"><pre class="sourceCode bash script-source"><code class="sourceCode bash"><span id="cb107-1"><a href="ncbi-mags-exploration.html#cb107-1" tabindex="-1"></a><span class="co">### DOWNLOAD THE MAGS</span></span>
+<span id="cb107-2"><a href="ncbi-mags-exploration.html#cb107-2" tabindex="-1"></a></span>
+<span id="cb107-3"><a href="ncbi-mags-exploration.html#cb107-3" tabindex="-1"></a><span class="ex">datasets</span> download genome accession </span>
+<span id="cb107-4"><a href="ncbi-mags-exploration.html#cb107-4" tabindex="-1"></a><span class="ex">--inputfile</span> selected_accessions.txt </span>
+<span id="cb107-5"><a href="ncbi-mags-exploration.html#cb107-5" tabindex="-1"></a><span class="ex">--include</span> genome </span>
+<span id="cb107-6"><a href="ncbi-mags-exploration.html#cb107-6" tabindex="-1"></a><span class="ex">--filename</span> selected_genomes.zip</span></code></pre></div>
 
 </div>
 </div>
+
+
+
+
+
+
             </section>
 
           </div>
         </div>
       </div>
-<a href="index.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="ehi-mags-exploration.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="ehi-mags-exploration.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+
     </div>
   </div>
 <script>/*! jQuery v3.6.0 | (c) OpenJS Foundation and other contributors | jquery.org/license */

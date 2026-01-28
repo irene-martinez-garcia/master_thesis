@@ -197,7 +197,7 @@ ggplot(best_mag_per_species, aes(x= species, y = best_genome_size, fill = best_p
 
 
 Filtering for Parabacteroides distasonis (make into a loop for all the relevant species later)
-```{r pdist, eval = FALSE}
+```{r pdist}
 p_dist <- ehi_mags %>%
   filter(completeness >90,
          contamination < 2.5,

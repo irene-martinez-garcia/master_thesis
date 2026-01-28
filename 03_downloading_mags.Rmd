@@ -1,0 +1,274 @@
+# NCBI MAGs exploration
+
+## NCBI MAGs metadata
+
+Download metadata for each taxa
+```{bash, eval = FALSE}
+# Trying to download ncbi metadata for mags
+
+conda activate drakkar_env
+conda install -c conda-forge ncbi-datasets-cli
+
+
+
+## CITROBACTER BRAAKII
+datasets summary genome taxon 57706 \
+  --as-json-lines > genomes.jsonl
+
+
+#filtering by contamination and completeness
+jq -c '
+select(
+  .checkm_info.completeness >= 90 and
+  .checkm_info.contamination <= 2.5
+)
+' genomes.jsonl > high_quality_genomes.jsonl
+
+
+
+#put metadata in tsv
+jq -r '
+.accession as $asm |
+.assembly_info.biosample.attributes[]? |
+[$asm, .name, .value] | @tsv
+' high_quality_genomes.jsonl > biosample_attributes.tsv
+
+
+```
+
+### Citrobacter braakii
+```{r citrobacter braakii}
+c_braki_metadata <- read_tsv("data/ncbi/c_braakii_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+
+
+metadata_wide <- c_braki_metadata %>%
+  pivot_wider(
+    id_cols = assembly,
+    names_from = attribute,
+    values_from = value,
+    values_fn = function(x) x[1]
+  )
+
+
+source_counts <- metadata_wide %>%
+  filter(!is.na(isolation_source)) %>%
+  dplyr::count(isolation_source, sort = TRUE)
+
+source_counts
+
+
+host_counts <- metadata_wide %>%
+  filter(!is.na(host)) %>%
+  dplyr::count(host, sort = TRUE)
+
+host_counts
+
+metadata_wide %>%
+  filter(host == "Homo sapiens")
+```
+
+
+### Lactococcus lactis
+```{bash, eval = FALSE}
+## LACTOCOCCUS LACTIS
+datasets summary genome taxon 1358 \
+  --as-json-lines > lactococcus_genomes.jsonl
+
+
+#filtering by contamination and completeness
+jq -c '
+select(
+  .checkm_info.completeness >= 90 and
+  .checkm_info.contamination <= 2.5
+)
+' lactococcus_genomes.jsonl > lactococcus_high_quality_genomes.jsonl
+
+
+
+#put metadata in tsv
+jq -r '
+.accession as $asm |
+.assembly_info.biosample.attributes[]? |
+[$asm, .name, .value] | @tsv
+' lactococcus_high_quality_genomes.jsonl > lactococcus_biosample_attributes.tsv
+
+
+```
+
+
+```{r lactococcus, eval = FALSE}
+lactococcus_metadata <- read_tsv("data/ncbi/lactococcus_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+
+
+metadata_wide <- lactococcus_metadata %>%
+  pivot_wider(
+    id_cols = assembly,
+    names_from = attribute,
+    values_from = value,
+    values_fn = function(x) x[1]
+  )
+
+
+source_counts <- metadata_wide %>%
+  filter(!is.na(isolation_source)) %>%
+  dplyr::count(isolation_source, sort = TRUE)
+
+source_counts
+
+
+host_counts <- metadata_wide %>%
+  filter(!is.na(host)) %>%
+  dplyr::count(host, sort = TRUE)
+
+host_counts
+
+metadata_wide %>%
+  filter(host == "Homo sapiens" | str_detect(isolation_source, "human"))
+```
+
+
+### Hafnia paralvei
+```{bash, eval = FALSE}
+## HAFNIA PARALVEI
+datasets summary genome taxon 546367 \
+  --as-json-lines > hafnia_genomes.jsonl
+
+
+#filtering by contamination and completeness
+jq -c '
+select(
+  .checkm_info.completeness >= 90 and
+  .checkm_info.contamination <= 2.5
+)
+' hafnia_genomes.jsonl > hafnia_high_quality_genomes.jsonl
+
+
+
+#put metadata in tsv
+jq -r '
+.accession as $asm |
+.assembly_info.biosample.attributes[]? |
+[$asm, .name, .value] | @tsv
+' hafnia_high_quality_genomes.jsonl > hafnia_biosample_attributes.tsv
+
+
+```
+
+
+```{r hafnia}
+hafnia_metadata <- read_tsv("data/ncbi/hafnia_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+
+
+metadata_wide <- hafnia_metadata %>%
+  pivot_wider(
+    id_cols = assembly,
+    names_from = attribute,
+    values_from = value,
+    values_fn = function(x) x[1]
+  )
+
+
+source_counts <- metadata_wide %>%
+  filter(!is.na(isolation_source)) %>%
+  dplyr::count(isolation_source, sort = TRUE)
+
+source_counts
+
+
+host_counts <- metadata_wide %>%
+  filter(!is.na(host)) %>%
+  dplyr::count(host, sort = TRUE)
+
+host_counts
+
+metadata_wide %>%
+  filter(host == "Homo sapiens" | str_detect(isolation_source, "human"))
+```
+### Enterococcus faecalis
+```{bash, eval = FALSE}
+## ENTEROCOCCUS HIRAE
+datasets summary genome taxon 1354 \
+  --as-json-lines > enterococcus_genomes.jsonl
+
+
+#filtering by contamination and completeness
+jq -c '
+select(
+  .checkm_info.completeness >= 90 and
+  .checkm_info.contamination <= 2.5
+)
+' enterococcus_genomes.jsonl > enterococcus_high_quality_genomes.jsonl
+
+
+
+#put metadata in tsv
+jq -r '
+.accession as $asm |
+.assembly_info.biosample.attributes[]? |
+[$asm, .name, .value] | @tsv
+' enterococcus_high_quality_genomes.jsonl > enterococcus_biosample_attributes.tsv
+
+
+```
+
+
+```{r enterococcus}
+enterococcus_metadata <- read_tsv("data/ncbi/enterococcus_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+
+
+metadata_wide <- enterococcus_metadata %>%
+  pivot_wider(
+    id_cols = assembly,
+    names_from = attribute,
+    values_from = value,
+    values_fn = function(x) x[1]
+  )
+
+
+source_counts <- metadata_wide %>%
+  filter(!is.na(isolation_source)) %>%
+  dplyr::count(isolation_source, sort = TRUE)
+
+source_counts
+
+
+host_counts <- metadata_wide %>%
+  filter(!is.na(host)) %>%
+  dplyr::count(host, sort = TRUE)
+
+host_counts
+
+metadata_wide %>%
+  filter(host == "Homo sapiens" | str_detect(isolation_source, "human"))
+```
+Gut microbiome : c("ceaca", "caeca", "excrement", "rectal swabs", "feces", "stool", "gut", "cloaca", "cloacal", "fecal", "intestine", "intestinal")
+
+```{r final selection, eval = FALSE}
+selected <- metadata_wide %>%
+  filter(
+    host == "Homo sapiens" |
+    str_detect(isolation_source, regex("human", ignore_case = TRUE))
+  ) %>%
+  pull(assembly) %>%
+  unique()
+
+#check
+length(selected)
+head(selected)
+
+#save the accessions to download the mags in mjolnir
+#writeLines(selected, "selected_accessions.txt")
+
+```
+## Downloading the MAGs after filtering
+
+Download the MAGs when you finish selecting them
+```{bash, eval = FALSE}
+### DOWNLOAD THE MAGS
+
+datasets download genome accession 
+--inputfile selected_accessions.txt 
+--include genome 
+--filename selected_genomes.zip
+
+```

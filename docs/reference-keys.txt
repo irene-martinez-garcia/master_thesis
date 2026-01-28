@@ -19,3 +19,10 @@ ehi-mags-1
 host-classes
 host-classes--after-filtering
 count-host-classes-per-species
+ncbi-mags-exploration
+ncbi-mags-metadata
+citrobacter-braakii
+lactococcus-lactis
+hafnia-paralvei
+enterococcus-faecalis
+downloading-the-mags-after-filtering
