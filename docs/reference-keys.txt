@@ -2,7 +2,7 @@ introduction
 prepare-the-r-environment
 environment
 libraries
-data-preparation-human
+data-preparation
 searching-for-the-mags
 downloading-the-mags-and-generating-data
 r-studio--data-analysis

@@ -776,11 +776,7 @@ print(other_hosts)
 
 
 ```{r final selection, eval = FALSE}
-selected <- metadata_wide %>%
-  filter(
-    host == "Homo sapiens" |
-    str_detect(isolation_source, regex("human", ignore_case = TRUE))
-  ) %>%
+selected <- hafnia_gut %>%
   pull(assembly) %>%
   unique()
 
@@ -789,7 +785,7 @@ length(selected)
 head(selected)
 
 #save the accessions to download the mags in mjolnir
-#writeLines(selected, "selected_accessions.txt")
+writeLines(selected, "data/mags_metadata/hafnia_paralvei_ncbi_selected_accessions.txt")
 
 ```
 ## Downloading the MAGs after filtering
@@ -798,9 +794,28 @@ Download the MAGs when you finish selecting them
 ```{bash, eval = FALSE}
 ### DOWNLOAD THE MAGS
 
-datasets download genome accession 
---inputfile selected_accessions.txt 
---include genome 
---filename selected_genomes.zip
+datasets download genome accession --inputfile ../hafnia_paralvei_ncbi_selected_accessions.txt --include genome --filename hafnia_paralvei_selected_genomes.zip
 
 ```
+
+
+```{r checking if mags in gtdb are same as ncbi}
+mags_gtdb <- read_tsv("data/mags_metadata/master_mag_index_lactococcus_lactis.tsv") %>% pull(ID)
+
+intersect(selected, mags_gtdb)
+
+
+```
+
+```{r in ncbi but not gtdb}
+# in selected but NOT in mags_gtdb
+setdiff(selected, mags_gtdb)
+
+```
+
+```{r in gtdb not in ncbi}
+
+# in mags_gtdb but NOT in selected
+setdiff(mags_gtdb, selected)
+```
+

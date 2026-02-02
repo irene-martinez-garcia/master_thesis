@@ -215,7 +215,7 @@ write_tsv(p_dist_index, "data/mags_metadata/parabacteroides_distasonis_index.tsv
 
 
 
-```{r loop for all species, eval = FALSE}
+```{r loop for all species}
 #Loop through each species in species_selection list
 for (i in 1:nrow(species_selection_f)) {
   current_species <- species_selection_f$species[i]
