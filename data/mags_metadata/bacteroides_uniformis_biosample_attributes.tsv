@@ -1,0 +1,618 @@
+GCF_044361425.1	98.39	0.5	4709701	46.5	strain	JCM5828
+GCF_044361425.1	98.39	0.5	4709701	46.5	host	sheep
+GCF_044361425.1	98.39	0.5	4709701	46.5	isolation_source	fece
+GCF_044361425.1	98.39	0.5	4709701	46.5	collection_date	2020-10-30
+GCF_044361425.1	98.39	0.5	4709701	46.5	geo_loc_name	China: Shaanxi
+GCF_044361425.1	98.39	0.5	4709701	46.5	sample_type	single bacteria culture
+GCF_044361425.1	98.39	0.5	4709701	46.5	type-material	type strain of Bacteroides uniformis
+GCF_015548005.1	96	1.52	4902210	46	strain	1001136B_160425_A4
+GCF_015548005.1	96	1.52	4902210	46	note	Bacteroides_uniformis_1001136B_160425_A4
+GCF_015548005.1	96	1.52	4902210	46	host	Homo sapiens
+GCF_015548005.1	96	1.52	4902210	46	isolation_source	stool
+GCF_015548005.1	96	1.52	4902210	46	collection_date	2016-04-25
+GCF_015548005.1	96	1.52	4902210	46	geo_loc_name	USA
+GCF_015548005.1	96	1.52	4902210	46	sample_type	whole organism
+GCF_016117815.1	98.39	0.74	4728573	46.5	strain	FDAARGOS_901
+GCF_016117815.1	98.39	0.74	4728573	46.5	isolate	Not applicable
+GCF_016117815.1	98.39	0.74	4728573	46.5	collected_by	DSMZ
+GCF_016117815.1	98.39	0.74	4728573	46.5	collection_date	Unknown
+GCF_016117815.1	98.39	0.74	4728573	46.5	geo_loc_name	Not applicable
+GCF_016117815.1	98.39	0.74	4728573	46.5	isolation_source	missing
+GCF_016117815.1	98.39	0.74	4728573	46.5	lat_lon	Not applicable
+GCF_016117815.1	98.39	0.74	4728573	46.5	culture_collection	DSM:6597
+GCF_016117815.1	98.39	0.74	4728573	46.5	host	missing
+GCF_016117815.1	98.39	0.74	4728573	46.5	host_age	Unknown
+GCF_016117815.1	98.39	0.74	4728573	46.5	host_description	Not applicable
+GCF_016117815.1	98.39	0.74	4728573	46.5	host_disease	Unknown
+GCF_016117815.1	98.39	0.74	4728573	46.5	host_disease_outcome	Unknown
+GCF_016117815.1	98.39	0.74	4728573	46.5	host_disease_stage	Unknown
+GCF_016117815.1	98.39	0.74	4728573	46.5	host_health_state	Unknown
+GCF_016117815.1	98.39	0.74	4728573	46.5	host_sex	Unknown
+GCF_016117815.1	98.39	0.74	4728573	46.5	identification method	Phenotypic and Molecular Methods
+GCF_016117815.1	98.39	0.74	4728573	46.5	type-material	type strain of Bacteroides uniformis
+GCF_021409535.1	98.39	0.5	4635717	46.5	strain	VPI-61
+GCF_021409535.1	98.39	0.5	4635717	46.5	collection_date	not collected
+GCF_021409535.1	98.39	0.5	4635717	46.5	env_broad_scale	human gut microbiome
+GCF_021409535.1	98.39	0.5	4635717	46.5	env_local_scale	feces
+GCF_021409535.1	98.39	0.5	4635717	46.5	env_medium	feces
+GCF_021409535.1	98.39	0.5	4635717	46.5	geo_loc_name	not collected
+GCF_021409535.1	98.39	0.5	4635717	46.5	host	Homo sapiens
+GCF_021409535.1	98.39	0.5	4635717	46.5	isol_growth_condt	https://doi.org/10.1099/00207713-28-2-245
+GCF_021409535.1	98.39	0.5	4635717	46.5	lat_lon	not collected
+GCF_021409535.1	98.39	0.5	4635717	46.5	num_replicons	1
+GCF_021409535.1	98.39	0.5	4635717	46.5	ref_biomaterial	https://doi.org/10.1099/00207713-28-2-245
+GCF_025147485.1	97.2	0.5	4629452	46.5	collection_date	not applicable
+GCF_025147485.1	97.2	0.5	4629452	46.5	env_broad_scale	not applicable
+GCF_025147485.1	97.2	0.5	4629452	46.5	env_local_scale	not applicable
+GCF_025147485.1	97.2	0.5	4629452	46.5	env_medium	not applicable
+GCF_025147485.1	97.2	0.5	4629452	46.5	geo_loc_name	not applicable
+GCF_025147485.1	97.2	0.5	4629452	46.5	host	Homo sapiens
+GCF_025147485.1	97.2	0.5	4629452	46.5	isol_growth_condt	not applicable
+GCF_025147485.1	97.2	0.5	4629452	46.5	lat_lon	not applicable
+GCF_025147485.1	97.2	0.5	4629452	46.5	num_replicons	not applicable
+GCF_025147485.1	97.2	0.5	4629452	46.5	ref_biomaterial	ATCC_8492
+GCF_025147485.1	97.2	0.5	4629452	46.5	biomaterial_provider	ATCC
+GCF_025147485.1	97.2	0.5	4629452	46.5	type-material	type strain of Bacteroides uniformis
+GCF_025147485.1	97.2	0.5	4629452	46.5	culture_collection	ATCC:8492
+GCF_025147485.1	97.2	0.5	4629452	46.5	strain	ATCC 8492
+GCF_028539285.1	98.39	0.5	4644854	46.5	strain	ATCC 8492
+GCF_028539285.1	98.39	0.5	4644854	46.5	host	Homo sapiens
+GCF_028539285.1	98.39	0.5	4644854	46.5	collection_date	not applicable
+GCF_028539285.1	98.39	0.5	4644854	46.5	geo_loc_name	not applicable
+GCF_028539285.1	98.39	0.5	4644854	46.5	sample_type	not applicable
+GCF_028539285.1	98.39	0.5	4644854	46.5	type-material	type strain of Bacteroides uniformis
+GCF_028539285.1	98.39	0.5	4644854	46.5	culture_collection	ATCC:8492
+GCF_040094575.1	96.19	2.32	4573851	46	strain	CLA-AA-H218
+GCF_040094575.1	96.19	2.32	4573851	46	collection_date	2020-09-25
+GCF_040094575.1	96.19	2.32	4573851	46	env_broad_scale	urban biome [ENVO:01000249]
+GCF_040094575.1	96.19	2.32	4573851	46	env_local_scale	digestive tract environment [ENVO:01001033]
+GCF_040094575.1	96.19	2.32	4573851	46	env_medium	fecal material [ENVO:00002003]
+GCF_040094575.1	96.19	2.32	4573851	46	geo_loc_name	Germany:Aachen
+GCF_040094575.1	96.19	2.32	4573851	46	host	Homo sapiens
+GCF_040094575.1	96.19	2.32	4573851	46	isol_growth_condt	not provided
+GCF_040094575.1	96.19	2.32	4573851	46	lat_lon	50.776389 N 6.043611 E
+GCF_040094575.1	96.19	2.32	4573851	46	num_replicons	not provided
+GCF_040094575.1	96.19	2.32	4573851	46	ref_biomaterial	not provided
+GCF_040094575.1	96.19	2.32	4573851	46	host_age	Adult
+GCF_040094575.1	96.19	2.32	4573851	46	host_taxid	9606
+GCF_040094575.1	96.19	2.32	4573851	46	host_tissue_sampled	feces [UBERON:0001988]
+GCF_040094575.1	96.19	2.32	4573851	46	rel_to_oxygen	anaerobe
+GCF_047309345.1	97.33	1.17	4781833	46.5	strain	79-K17
+GCF_047309345.1	97.33	1.17	4781833	46.5	collection_date	2019-08-20
+GCF_047309345.1	97.33	1.17	4781833	46.5	env_broad_scale	ENVO:00000428
+GCF_047309345.1	97.33	1.17	4781833	46.5	env_local_scale	Ileum
+GCF_047309345.1	97.33	1.17	4781833	46.5	env_medium	Brush
+GCF_047309345.1	97.33	1.17	4781833	46.5	geo_loc_name	Austria: Vienna
+GCF_047309345.1	97.33	1.17	4781833	46.5	host	Homo sapiens
+GCF_047309345.1	97.33	1.17	4781833	46.5	isolation_source	Ileum
+GCF_047309345.1	97.33	1.17	4781833	46.5	isol_growth_condt	S aerob & anaerob, KV medium
+GCF_047309345.1	97.33	1.17	4781833	46.5	lat_lon	48.2206 N 16.3468 E
+GCF_047309345.1	97.33	1.17	4781833	46.5	num_replicons	1
+GCF_047309345.1	97.33	1.17	4781833	46.5	ref_biomaterial	missing
+GCF_047309345.1	97.33	1.17	4781833	46.5	biotic_relationship	commensal
+GCF_047309345.1	97.33	1.17	4781833	46.5	collection_method	Brush
+GCF_047309345.1	97.33	1.17	4781833	46.5	gastrointest_disord	Control-Patient
+GCF_047309345.1	97.33	1.17	4781833	46.5	Biofilm location	No Biofilm
+GCF_047310425.1	95.16	2.44	4563150	46	strain	94-K33
+GCF_047310425.1	95.16	2.44	4563150	46	collection_date	2019-12-13
+GCF_047310425.1	95.16	2.44	4563150	46	env_broad_scale	ENVO:00000428
+GCF_047310425.1	95.16	2.44	4563150	46	env_local_scale	Ileum
+GCF_047310425.1	95.16	2.44	4563150	46	env_medium	Brush
+GCF_047310425.1	95.16	2.44	4563150	46	geo_loc_name	Austria: Vienna
+GCF_047310425.1	95.16	2.44	4563150	46	host	Homo sapiens
+GCF_047310425.1	95.16	2.44	4563150	46	isolation_source	Ileum
+GCF_047310425.1	95.16	2.44	4563150	46	isol_growth_condt	S aerob & anaerob, KV medium
+GCF_047310425.1	95.16	2.44	4563150	46	lat_lon	48.2206 N 16.3468 E
+GCF_047310425.1	95.16	2.44	4563150	46	num_replicons	1
+GCF_047310425.1	95.16	2.44	4563150	46	ref_biomaterial	missing
+GCF_047310425.1	95.16	2.44	4563150	46	biotic_relationship	commensal
+GCF_047310425.1	95.16	2.44	4563150	46	collection_method	Brush
+GCF_047310425.1	95.16	2.44	4563150	46	gastrointest_disord	Control-Patient
+GCF_047310425.1	95.16	2.44	4563150	46	Biofilm location	No Biofilm
+GCF_047311385.1	96.6	2.22	4737467	46	strain	75-K15
+GCF_047311385.1	96.6	2.22	4737467	46	collection_date	2019-08-01
+GCF_047311385.1	96.6	2.22	4737467	46	env_broad_scale	ENVO:00000428
+GCF_047311385.1	96.6	2.22	4737467	46	env_local_scale	Ileum
+GCF_047311385.1	96.6	2.22	4737467	46	env_medium	Brush
+GCF_047311385.1	96.6	2.22	4737467	46	geo_loc_name	Austria: Vienna
+GCF_047311385.1	96.6	2.22	4737467	46	host	Homo sapiens
+GCF_047311385.1	96.6	2.22	4737467	46	isolation_source	Ileum
+GCF_047311385.1	96.6	2.22	4737467	46	isol_growth_condt	S aerob & anaerob, KV medium
+GCF_047311385.1	96.6	2.22	4737467	46	lat_lon	48.2206 N 16.3468 E
+GCF_047311385.1	96.6	2.22	4737467	46	num_replicons	1
+GCF_047311385.1	96.6	2.22	4737467	46	ref_biomaterial	missing
+GCF_047311385.1	96.6	2.22	4737467	46	biotic_relationship	commensal
+GCF_047311385.1	96.6	2.22	4737467	46	collection_method	Brush
+GCF_047311385.1	96.6	2.22	4737467	46	gastrointest_disord	Control-Patient
+GCF_047311385.1	96.6	2.22	4737467	46	Biofilm location	No Biofilm
+GCF_051274835.1	98.39	0.5	4759449	46.5	strain	DSM 6597
+GCF_051274835.1	98.39	0.5	4759449	46.5	host	Homo sapiens
+GCF_051274835.1	98.39	0.5	4759449	46.5	isolation_source	feces
+GCF_051274835.1	98.39	0.5	4759449	46.5	collection_date	NA
+GCF_051274835.1	98.39	0.5	4759449	46.5	geo_loc_name	NA
+GCF_051274835.1	98.39	0.5	4759449	46.5	sample_type	Feces
+GCF_051274835.1	98.39	0.5	4759449	46.5	type-material	type strain of Bacteroides uniformis
+GCF_051274835.1	98.39	0.5	4759449	46.5	culture_collection	DSM:6597
+GCF_052344865.1	90.14	2.37	4201398	46.5	isolate	gSpreadC_ID_3176
+GCF_052344865.1	90.14	2.37	4201398	46.5	collection_date	2019-04-05
+GCF_052344865.1	90.14	2.37	4201398	46.5	env_broad_scale	human gut
+GCF_052344865.1	90.14	2.37	4201398	46.5	env_local_scale	stool
+GCF_052344865.1	90.14	2.37	4201398	46.5	env_medium	fecal material [ENVO:00002003]
+GCF_052344865.1	90.14	2.37	4201398	46.5	geo_loc_name	USA
+GCF_052344865.1	90.14	2.37	4201398	46.5	isolation_source	human gut; stool
+GCF_052344865.1	90.14	2.37	4201398	46.5	lat_lon	missing
+GCF_052344865.1	90.14	2.37	4201398	46.5	host	Homo sapiens
+GCF_052344865.1	90.14	2.37	4201398	46.5	host_age	missing
+GCF_052344865.1	90.14	2.37	4201398	46.5	host_diet	Ketogenic
+GCF_052344865.1	90.14	2.37	4201398	46.5	mag_assembled_from	Assembled from SRX5589559, SRS4550749
+GCF_052344865.1	90.14	2.37	4201398	46.5	metagenomic	1
+GCF_052344865.1	90.14	2.37	4201398	46.5	environmental-sample	1
+GCF_052344865.1	90.14	2.37	4201398	46.5	sample_type	metagenomic assembly
+GCF_052344865.1	90.14	2.37	4201398	46.5	metagenome_source	human gut metagenome
+GCF_052344865.1	90.14	2.37	4201398	46.5	derived_from	SRR8800859
+GCF_052344865.1	90.14	2.37	4201398	46.5	note	EA_SRX5589559-bin.7
+GCF_052346485.1	90.55	1.74	3831480	47	isolate	gSpreadC_ID_3095
+GCF_052346485.1	90.55	1.74	3831480	47	collection_date	2019-04-05
+GCF_052346485.1	90.55	1.74	3831480	47	env_broad_scale	human gut
+GCF_052346485.1	90.55	1.74	3831480	47	env_local_scale	stool
+GCF_052346485.1	90.55	1.74	3831480	47	env_medium	fecal material [ENVO:00002003]
+GCF_052346485.1	90.55	1.74	3831480	47	geo_loc_name	USA
+GCF_052346485.1	90.55	1.74	3831480	47	isolation_source	human gut; stool
+GCF_052346485.1	90.55	1.74	3831480	47	lat_lon	missing
+GCF_052346485.1	90.55	1.74	3831480	47	host	Homo sapiens
+GCF_052346485.1	90.55	1.74	3831480	47	host_age	missing
+GCF_052346485.1	90.55	1.74	3831480	47	host_diet	Omnivore
+GCF_052346485.1	90.55	1.74	3831480	47	mag_assembled_from	Assembled from SRX5589556, SRS4550746
+GCF_052346485.1	90.55	1.74	3831480	47	metagenomic	1
+GCF_052346485.1	90.55	1.74	3831480	47	environmental-sample	1
+GCF_052346485.1	90.55	1.74	3831480	47	sample_type	metagenomic assembly
+GCF_052346485.1	90.55	1.74	3831480	47	metagenome_source	human gut metagenome
+GCF_052346485.1	90.55	1.74	3831480	47	derived_from	SRR8800862
+GCF_052346485.1	90.55	1.74	3831480	47	note	EA_SRX5589556-bin.22
+GCF_900107315.1	98.39	0.5	4634992	46.5	strain	DSM 6597
+GCF_900107315.1	98.39	0.5	4634992	46.5	collection_date	missing
+GCF_900107315.1	98.39	0.5	4634992	46.5	isol_growth_condt	missing
+GCF_900107315.1	98.39	0.5	4634992	46.5	ref_biomaterial	missing
+GCF_900107315.1	98.39	0.5	4634992	46.5	env_local_scale	missing
+GCF_900107315.1	98.39	0.5	4634992	46.5	env_medium	missing
+GCF_900107315.1	98.39	0.5	4634992	46.5	env_broad_scale	missing
+GCF_900107315.1	98.39	0.5	4634992	46.5	num_replicons	missing
+GCF_900107315.1	98.39	0.5	4634992	46.5	host	not applicable
+GCF_900107315.1	98.39	0.5	4634992	46.5	geo_loc_name	missing
+GCF_900107315.1	98.39	0.5	4634992	46.5	lat_lon	missing
+GCF_900107315.1	98.39	0.5	4634992	46.5	isolation_source	missing
+GCF_900107315.1	98.39	0.5	4634992	46.5	type-material	type strain of Bacteroides uniformis
+GCF_964237915.1	96.98	1.9	4874690	46.5	ENA-CHECKLIST	ERC000011
+GCF_964237915.1	96.98	1.9	4874690	46.5	ENA-FIRST-PUBLIC	2023-08-10T04:25:49Z
+GCF_964237915.1	96.98	1.9	4874690	46.5	ENA-LAST-UPDATE	2023-08-10T04:25:49Z
+GCF_964237915.1	96.98	1.9	4874690	46.5	External Id	SAMEA9956729
+GCF_964237915.1	96.98	1.9	4874690	46.5	INSDC center name	MONASH INSTITUTE OF MEDICAL RESEARCH - MONASH UNIVERSITY
+GCF_964237915.1	96.98	1.9	4874690	46.5	INSDC first public	2023-08-10T04:25:49Z
+GCF_964237915.1	96.98	1.9	4874690	46.5	INSDC last update	2023-08-10T04:25:49Z
+GCF_964237915.1	96.98	1.9	4874690	46.5	INSDC status	public
+GCF_964237915.1	96.98	1.9	4874690	46.5	Submitter Id	CC00208
+GCF_964237915.1	96.98	1.9	4874690	46.5	common name	Bacteroides uniformis
+GCF_964237915.1	96.98	1.9	4874690	46.5	sample_name	CC00208
+GCF_964237915.1	96.98	1.9	4874690	46.5	scientific_name	Bacteroides uniformis
+GCA_015548005.1	96	1.52	4902210	46	strain	1001136B_160425_A4
+GCA_015548005.1	96	1.52	4902210	46	note	Bacteroides_uniformis_1001136B_160425_A4
+GCA_015548005.1	96	1.52	4902210	46	host	Homo sapiens
+GCA_015548005.1	96	1.52	4902210	46	isolation_source	stool
+GCA_015548005.1	96	1.52	4902210	46	collection_date	2016-04-25
+GCA_015548005.1	96	1.52	4902210	46	geo_loc_name	USA
+GCA_015548005.1	96	1.52	4902210	46	sample_type	whole organism
+GCA_016117815.1	98.39	0.74	4728573	46.5	strain	FDAARGOS_901
+GCA_016117815.1	98.39	0.74	4728573	46.5	isolate	Not applicable
+GCA_016117815.1	98.39	0.74	4728573	46.5	collected_by	DSMZ
+GCA_016117815.1	98.39	0.74	4728573	46.5	collection_date	Unknown
+GCA_016117815.1	98.39	0.74	4728573	46.5	geo_loc_name	Not applicable
+GCA_016117815.1	98.39	0.74	4728573	46.5	isolation_source	missing
+GCA_016117815.1	98.39	0.74	4728573	46.5	lat_lon	Not applicable
+GCA_016117815.1	98.39	0.74	4728573	46.5	culture_collection	DSM:6597
+GCA_016117815.1	98.39	0.74	4728573	46.5	host	missing
+GCA_016117815.1	98.39	0.74	4728573	46.5	host_age	Unknown
+GCA_016117815.1	98.39	0.74	4728573	46.5	host_description	Not applicable
+GCA_016117815.1	98.39	0.74	4728573	46.5	host_disease	Unknown
+GCA_016117815.1	98.39	0.74	4728573	46.5	host_disease_outcome	Unknown
+GCA_016117815.1	98.39	0.74	4728573	46.5	host_disease_stage	Unknown
+GCA_016117815.1	98.39	0.74	4728573	46.5	host_health_state	Unknown
+GCA_016117815.1	98.39	0.74	4728573	46.5	host_sex	Unknown
+GCA_016117815.1	98.39	0.74	4728573	46.5	identification method	Phenotypic and Molecular Methods
+GCA_016117815.1	98.39	0.74	4728573	46.5	type-material	type strain of Bacteroides uniformis
+GCA_021409535.1	98.39	0.5	4635717	46.5	strain	VPI-61
+GCA_021409535.1	98.39	0.5	4635717	46.5	collection_date	not collected
+GCA_021409535.1	98.39	0.5	4635717	46.5	env_broad_scale	human gut microbiome
+GCA_021409535.1	98.39	0.5	4635717	46.5	env_local_scale	feces
+GCA_021409535.1	98.39	0.5	4635717	46.5	env_medium	feces
+GCA_021409535.1	98.39	0.5	4635717	46.5	geo_loc_name	not collected
+GCA_021409535.1	98.39	0.5	4635717	46.5	host	Homo sapiens
+GCA_021409535.1	98.39	0.5	4635717	46.5	isol_growth_condt	https://doi.org/10.1099/00207713-28-2-245
+GCA_021409535.1	98.39	0.5	4635717	46.5	lat_lon	not collected
+GCA_021409535.1	98.39	0.5	4635717	46.5	num_replicons	1
+GCA_021409535.1	98.39	0.5	4635717	46.5	ref_biomaterial	https://doi.org/10.1099/00207713-28-2-245
+GCA_025147485.1	97.2	0.5	4629452	46.5	collection_date	not applicable
+GCA_025147485.1	97.2	0.5	4629452	46.5	env_broad_scale	not applicable
+GCA_025147485.1	97.2	0.5	4629452	46.5	env_local_scale	not applicable
+GCA_025147485.1	97.2	0.5	4629452	46.5	env_medium	not applicable
+GCA_025147485.1	97.2	0.5	4629452	46.5	geo_loc_name	not applicable
+GCA_025147485.1	97.2	0.5	4629452	46.5	host	Homo sapiens
+GCA_025147485.1	97.2	0.5	4629452	46.5	isol_growth_condt	not applicable
+GCA_025147485.1	97.2	0.5	4629452	46.5	lat_lon	not applicable
+GCA_025147485.1	97.2	0.5	4629452	46.5	num_replicons	not applicable
+GCA_025147485.1	97.2	0.5	4629452	46.5	ref_biomaterial	ATCC_8492
+GCA_025147485.1	97.2	0.5	4629452	46.5	biomaterial_provider	ATCC
+GCA_025147485.1	97.2	0.5	4629452	46.5	type-material	type strain of Bacteroides uniformis
+GCA_025147485.1	97.2	0.5	4629452	46.5	culture_collection	ATCC:8492
+GCA_025147485.1	97.2	0.5	4629452	46.5	strain	ATCC 8492
+GCA_028539285.1	98.39	0.5	4644854	46.5	strain	ATCC 8492
+GCA_028539285.1	98.39	0.5	4644854	46.5	host	Homo sapiens
+GCA_028539285.1	98.39	0.5	4644854	46.5	collection_date	not applicable
+GCA_028539285.1	98.39	0.5	4644854	46.5	geo_loc_name	not applicable
+GCA_028539285.1	98.39	0.5	4644854	46.5	sample_type	not applicable
+GCA_028539285.1	98.39	0.5	4644854	46.5	type-material	type strain of Bacteroides uniformis
+GCA_028539285.1	98.39	0.5	4644854	46.5	culture_collection	ATCC:8492
+GCA_040094575.1	96.19	2.32	4573851	46	strain	CLA-AA-H218
+GCA_040094575.1	96.19	2.32	4573851	46	collection_date	2020-09-25
+GCA_040094575.1	96.19	2.32	4573851	46	env_broad_scale	urban biome [ENVO:01000249]
+GCA_040094575.1	96.19	2.32	4573851	46	env_local_scale	digestive tract environment [ENVO:01001033]
+GCA_040094575.1	96.19	2.32	4573851	46	env_medium	fecal material [ENVO:00002003]
+GCA_040094575.1	96.19	2.32	4573851	46	geo_loc_name	Germany:Aachen
+GCA_040094575.1	96.19	2.32	4573851	46	host	Homo sapiens
+GCA_040094575.1	96.19	2.32	4573851	46	isol_growth_condt	not provided
+GCA_040094575.1	96.19	2.32	4573851	46	lat_lon	50.776389 N 6.043611 E
+GCA_040094575.1	96.19	2.32	4573851	46	num_replicons	not provided
+GCA_040094575.1	96.19	2.32	4573851	46	ref_biomaterial	not provided
+GCA_040094575.1	96.19	2.32	4573851	46	host_age	Adult
+GCA_040094575.1	96.19	2.32	4573851	46	host_taxid	9606
+GCA_040094575.1	96.19	2.32	4573851	46	host_tissue_sampled	feces [UBERON:0001988]
+GCA_040094575.1	96.19	2.32	4573851	46	rel_to_oxygen	anaerobe
+GCA_040912245.1	94.44	2.43	4803062	46.5	collection_date	2021-04-08
+GCA_040912245.1	94.44	2.43	4803062	46.5	env_broad_scale	human gut
+GCA_040912245.1	94.44	2.43	4803062	46.5	env_local_scale	human feces
+GCA_040912245.1	94.44	2.43	4803062	46.5	env_medium	rich broth
+GCA_040912245.1	94.44	2.43	4803062	46.5	geo_loc_name	USA: New York
+GCA_040912245.1	94.44	2.43	4803062	46.5	host	Homo sapiens
+GCA_040912245.1	94.44	2.43	4803062	46.5	isolation_source	feces
+GCA_040912245.1	94.44	2.43	4803062	46.5	isol_growth_condt	37C rich media
+GCA_040912245.1	94.44	2.43	4803062	46.5	lat_lon	40.7128 N 74.0060 W
+GCA_040912245.1	94.44	2.43	4803062	46.5	num_replicons	na
+GCA_040912245.1	94.44	2.43	4803062	46.5	ref_biomaterial	10.1101/2022.11.01.514782
+GCA_040912245.1	94.44	2.43	4803062	46.5	strain	RTP21357st1_G12_RTP21357_210408
+GCA_040912245.1	94.44	2.43	4803062	46.5	note	RTP21357st1
+GCA_040912245.1	94.44	2.43	4803062	46.5	isolate_name_alias	Bacteroides_uniformis_RTP21357st1_G12_RTP21357_210408
+GCA_040912265.1	95.52	2.26	4801078	46.5	collection_date	2021-04-08
+GCA_040912265.1	95.52	2.26	4801078	46.5	env_broad_scale	human gut
+GCA_040912265.1	95.52	2.26	4801078	46.5	env_local_scale	human feces
+GCA_040912265.1	95.52	2.26	4801078	46.5	env_medium	rich broth
+GCA_040912265.1	95.52	2.26	4801078	46.5	geo_loc_name	USA: New York
+GCA_040912265.1	95.52	2.26	4801078	46.5	host	Homo sapiens
+GCA_040912265.1	95.52	2.26	4801078	46.5	isolation_source	feces
+GCA_040912265.1	95.52	2.26	4801078	46.5	isol_growth_condt	37C rich media
+GCA_040912265.1	95.52	2.26	4801078	46.5	lat_lon	40.7128 N 74.0060 W
+GCA_040912265.1	95.52	2.26	4801078	46.5	num_replicons	na
+GCA_040912265.1	95.52	2.26	4801078	46.5	ref_biomaterial	10.1101/2022.11.01.514782
+GCA_040912265.1	95.52	2.26	4801078	46.5	strain	RTP21357st1_C6_RTP21357_210408
+GCA_040912265.1	95.52	2.26	4801078	46.5	note	RTP21357st1
+GCA_040912265.1	95.52	2.26	4801078	46.5	isolate_name_alias	Bacteroides_uniformis_RTP21357st1_C6_RTP21357_210408
+GCA_044361425.1	98.39	0.5	4709701	46.5	strain	JCM5828
+GCA_044361425.1	98.39	0.5	4709701	46.5	host	sheep
+GCA_044361425.1	98.39	0.5	4709701	46.5	isolation_source	fece
+GCA_044361425.1	98.39	0.5	4709701	46.5	collection_date	2020-10-30
+GCA_044361425.1	98.39	0.5	4709701	46.5	geo_loc_name	China: Shaanxi
+GCA_044361425.1	98.39	0.5	4709701	46.5	sample_type	single bacteria culture
+GCA_044361425.1	98.39	0.5	4709701	46.5	type-material	type strain of Bacteroides uniformis
+GCA_047309345.1	97.33	1.17	4781833	46.5	strain	79-K17
+GCA_047309345.1	97.33	1.17	4781833	46.5	collection_date	2019-08-20
+GCA_047309345.1	97.33	1.17	4781833	46.5	env_broad_scale	ENVO:00000428
+GCA_047309345.1	97.33	1.17	4781833	46.5	env_local_scale	Ileum
+GCA_047309345.1	97.33	1.17	4781833	46.5	env_medium	Brush
+GCA_047309345.1	97.33	1.17	4781833	46.5	geo_loc_name	Austria: Vienna
+GCA_047309345.1	97.33	1.17	4781833	46.5	host	Homo sapiens
+GCA_047309345.1	97.33	1.17	4781833	46.5	isolation_source	Ileum
+GCA_047309345.1	97.33	1.17	4781833	46.5	isol_growth_condt	S aerob & anaerob, KV medium
+GCA_047309345.1	97.33	1.17	4781833	46.5	lat_lon	48.2206 N 16.3468 E
+GCA_047309345.1	97.33	1.17	4781833	46.5	num_replicons	1
+GCA_047309345.1	97.33	1.17	4781833	46.5	ref_biomaterial	missing
+GCA_047309345.1	97.33	1.17	4781833	46.5	biotic_relationship	commensal
+GCA_047309345.1	97.33	1.17	4781833	46.5	collection_method	Brush
+GCA_047309345.1	97.33	1.17	4781833	46.5	gastrointest_disord	Control-Patient
+GCA_047309345.1	97.33	1.17	4781833	46.5	Biofilm location	No Biofilm
+GCA_047310425.1	95.16	2.44	4563150	46	strain	94-K33
+GCA_047310425.1	95.16	2.44	4563150	46	collection_date	2019-12-13
+GCA_047310425.1	95.16	2.44	4563150	46	env_broad_scale	ENVO:00000428
+GCA_047310425.1	95.16	2.44	4563150	46	env_local_scale	Ileum
+GCA_047310425.1	95.16	2.44	4563150	46	env_medium	Brush
+GCA_047310425.1	95.16	2.44	4563150	46	geo_loc_name	Austria: Vienna
+GCA_047310425.1	95.16	2.44	4563150	46	host	Homo sapiens
+GCA_047310425.1	95.16	2.44	4563150	46	isolation_source	Ileum
+GCA_047310425.1	95.16	2.44	4563150	46	isol_growth_condt	S aerob & anaerob, KV medium
+GCA_047310425.1	95.16	2.44	4563150	46	lat_lon	48.2206 N 16.3468 E
+GCA_047310425.1	95.16	2.44	4563150	46	num_replicons	1
+GCA_047310425.1	95.16	2.44	4563150	46	ref_biomaterial	missing
+GCA_047310425.1	95.16	2.44	4563150	46	biotic_relationship	commensal
+GCA_047310425.1	95.16	2.44	4563150	46	collection_method	Brush
+GCA_047310425.1	95.16	2.44	4563150	46	gastrointest_disord	Control-Patient
+GCA_047310425.1	95.16	2.44	4563150	46	Biofilm location	No Biofilm
+GCA_047311385.1	96.6	2.22	4737467	46	strain	75-K15
+GCA_047311385.1	96.6	2.22	4737467	46	collection_date	2019-08-01
+GCA_047311385.1	96.6	2.22	4737467	46	env_broad_scale	ENVO:00000428
+GCA_047311385.1	96.6	2.22	4737467	46	env_local_scale	Ileum
+GCA_047311385.1	96.6	2.22	4737467	46	env_medium	Brush
+GCA_047311385.1	96.6	2.22	4737467	46	geo_loc_name	Austria: Vienna
+GCA_047311385.1	96.6	2.22	4737467	46	host	Homo sapiens
+GCA_047311385.1	96.6	2.22	4737467	46	isolation_source	Ileum
+GCA_047311385.1	96.6	2.22	4737467	46	isol_growth_condt	S aerob & anaerob, KV medium
+GCA_047311385.1	96.6	2.22	4737467	46	lat_lon	48.2206 N 16.3468 E
+GCA_047311385.1	96.6	2.22	4737467	46	num_replicons	1
+GCA_047311385.1	96.6	2.22	4737467	46	ref_biomaterial	missing
+GCA_047311385.1	96.6	2.22	4737467	46	biotic_relationship	commensal
+GCA_047311385.1	96.6	2.22	4737467	46	collection_method	Brush
+GCA_047311385.1	96.6	2.22	4737467	46	gastrointest_disord	Control-Patient
+GCA_047311385.1	96.6	2.22	4737467	46	Biofilm location	No Biofilm
+GCA_051274835.1	98.39	0.5	4759449	46.5	strain	DSM 6597
+GCA_051274835.1	98.39	0.5	4759449	46.5	host	Homo sapiens
+GCA_051274835.1	98.39	0.5	4759449	46.5	isolation_source	feces
+GCA_051274835.1	98.39	0.5	4759449	46.5	collection_date	NA
+GCA_051274835.1	98.39	0.5	4759449	46.5	geo_loc_name	NA
+GCA_051274835.1	98.39	0.5	4759449	46.5	sample_type	Feces
+GCA_051274835.1	98.39	0.5	4759449	46.5	type-material	type strain of Bacteroides uniformis
+GCA_051274835.1	98.39	0.5	4759449	46.5	culture_collection	DSM:6597
+GCA_052344865.1	90.14	2.37	4201398	46.5	isolate	gSpreadC_ID_3176
+GCA_052344865.1	90.14	2.37	4201398	46.5	collection_date	2019-04-05
+GCA_052344865.1	90.14	2.37	4201398	46.5	env_broad_scale	human gut
+GCA_052344865.1	90.14	2.37	4201398	46.5	env_local_scale	stool
+GCA_052344865.1	90.14	2.37	4201398	46.5	env_medium	fecal material [ENVO:00002003]
+GCA_052344865.1	90.14	2.37	4201398	46.5	geo_loc_name	USA
+GCA_052344865.1	90.14	2.37	4201398	46.5	isolation_source	human gut; stool
+GCA_052344865.1	90.14	2.37	4201398	46.5	lat_lon	missing
+GCA_052344865.1	90.14	2.37	4201398	46.5	host	Homo sapiens
+GCA_052344865.1	90.14	2.37	4201398	46.5	host_age	missing
+GCA_052344865.1	90.14	2.37	4201398	46.5	host_diet	Ketogenic
+GCA_052344865.1	90.14	2.37	4201398	46.5	mag_assembled_from	Assembled from SRX5589559, SRS4550749
+GCA_052344865.1	90.14	2.37	4201398	46.5	metagenomic	1
+GCA_052344865.1	90.14	2.37	4201398	46.5	environmental-sample	1
+GCA_052344865.1	90.14	2.37	4201398	46.5	sample_type	metagenomic assembly
+GCA_052344865.1	90.14	2.37	4201398	46.5	metagenome_source	human gut metagenome
+GCA_052344865.1	90.14	2.37	4201398	46.5	derived_from	SRR8800859
+GCA_052344865.1	90.14	2.37	4201398	46.5	note	EA_SRX5589559-bin.7
+GCA_052346485.1	90.55	1.74	3831480	47	isolate	gSpreadC_ID_3095
+GCA_052346485.1	90.55	1.74	3831480	47	collection_date	2019-04-05
+GCA_052346485.1	90.55	1.74	3831480	47	env_broad_scale	human gut
+GCA_052346485.1	90.55	1.74	3831480	47	env_local_scale	stool
+GCA_052346485.1	90.55	1.74	3831480	47	env_medium	fecal material [ENVO:00002003]
+GCA_052346485.1	90.55	1.74	3831480	47	geo_loc_name	USA
+GCA_052346485.1	90.55	1.74	3831480	47	isolation_source	human gut; stool
+GCA_052346485.1	90.55	1.74	3831480	47	lat_lon	missing
+GCA_052346485.1	90.55	1.74	3831480	47	host	Homo sapiens
+GCA_052346485.1	90.55	1.74	3831480	47	host_age	missing
+GCA_052346485.1	90.55	1.74	3831480	47	host_diet	Omnivore
+GCA_052346485.1	90.55	1.74	3831480	47	mag_assembled_from	Assembled from SRX5589556, SRS4550746
+GCA_052346485.1	90.55	1.74	3831480	47	metagenomic	1
+GCA_052346485.1	90.55	1.74	3831480	47	environmental-sample	1
+GCA_052346485.1	90.55	1.74	3831480	47	sample_type	metagenomic assembly
+GCA_052346485.1	90.55	1.74	3831480	47	metagenome_source	human gut metagenome
+GCA_052346485.1	90.55	1.74	3831480	47	derived_from	SRR8800862
+GCA_052346485.1	90.55	1.74	3831480	47	note	EA_SRX5589556-bin.22
+GCA_900107315.1	98.39	0.5	4634992	46.5	strain	DSM 6597
+GCA_900107315.1	98.39	0.5	4634992	46.5	collection_date	missing
+GCA_900107315.1	98.39	0.5	4634992	46.5	isol_growth_condt	missing
+GCA_900107315.1	98.39	0.5	4634992	46.5	ref_biomaterial	missing
+GCA_900107315.1	98.39	0.5	4634992	46.5	env_local_scale	missing
+GCA_900107315.1	98.39	0.5	4634992	46.5	env_medium	missing
+GCA_900107315.1	98.39	0.5	4634992	46.5	env_broad_scale	missing
+GCA_900107315.1	98.39	0.5	4634992	46.5	num_replicons	missing
+GCA_900107315.1	98.39	0.5	4634992	46.5	host	not applicable
+GCA_900107315.1	98.39	0.5	4634992	46.5	geo_loc_name	missing
+GCA_900107315.1	98.39	0.5	4634992	46.5	lat_lon	missing
+GCA_900107315.1	98.39	0.5	4634992	46.5	isolation_source	missing
+GCA_900107315.1	98.39	0.5	4634992	46.5	type-material	type strain of Bacteroides uniformis
+GCA_964237915.1	96.98	1.9	4874690	46.5	ENA-CHECKLIST	ERC000011
+GCA_964237915.1	96.98	1.9	4874690	46.5	ENA-FIRST-PUBLIC	2023-08-10T04:25:49Z
+GCA_964237915.1	96.98	1.9	4874690	46.5	ENA-LAST-UPDATE	2023-08-10T04:25:49Z
+GCA_964237915.1	96.98	1.9	4874690	46.5	External Id	SAMEA9956729
+GCA_964237915.1	96.98	1.9	4874690	46.5	INSDC center name	MONASH INSTITUTE OF MEDICAL RESEARCH - MONASH UNIVERSITY
+GCA_964237915.1	96.98	1.9	4874690	46.5	INSDC first public	2023-08-10T04:25:49Z
+GCA_964237915.1	96.98	1.9	4874690	46.5	INSDC last update	2023-08-10T04:25:49Z
+GCA_964237915.1	96.98	1.9	4874690	46.5	INSDC status	public
+GCA_964237915.1	96.98	1.9	4874690	46.5	Submitter Id	CC00208
+GCA_964237915.1	96.98	1.9	4874690	46.5	common name	Bacteroides uniformis
+GCA_964237915.1	96.98	1.9	4874690	46.5	sample_name	CC00208
+GCA_964237915.1	96.98	1.9	4874690	46.5	scientific_name	Bacteroides uniformis
+GCF_000154205.1	98.77	0.5	4719097	46.5	finishing strategy (depth of coverage)	Level 3: Improved-High-Quality Draft8.1x;94
+GCF_000154205.1	98.77	0.5	4719097	46.5	collection_date	not determined
+GCF_000154205.1	98.77	0.5	4719097	46.5	estimated_size	4717000
+GCF_000154205.1	98.77	0.5	4719097	46.5	isol_growth_condt	not determined
+GCF_000154205.1	98.77	0.5	4719097	46.5	host	Homo sapiens
+GCF_000154205.1	98.77	0.5	4719097	46.5	project_type	Reference Genome
+GCF_000154205.1	98.77	0.5	4719097	46.5	lat_lon	not determined
+GCF_000154205.1	98.77	0.5	4719097	46.5	env_broad_scale	terrestrial biome [ENVO:00000446]
+GCF_000154205.1	98.77	0.5	4719097	46.5	misc_param: HMP body site	not determined
+GCF_000154205.1	98.77	0.5	4719097	46.5	nucleic acid extraction	not determined
+GCF_000154205.1	98.77	0.5	4719097	46.5	investigation_type	missing
+GCF_000154205.1	98.77	0.5	4719097	46.5	env_local_scale	human-associated habitat [ENVO:00009003]
+GCF_000154205.1	98.77	0.5	4719097	46.5	host_taxid	9606
+GCF_000154205.1	98.77	0.5	4719097	46.5	project_name	Bacteroides uniformis ATCC 8492
+GCF_000154205.1	98.77	0.5	4719097	46.5	assembly	PCAP
+GCF_000154205.1	98.77	0.5	4719097	46.5	geo_loc_name	not determined
+GCF_000154205.1	98.77	0.5	4719097	46.5	source_material_id	ATCC 8492
+GCF_000154205.1	98.77	0.5	4719097	46.5	env_medium	biological product [ENVO:02000043]
+GCF_000154205.1	98.77	0.5	4719097	46.5	ref_biomaterial	not determined
+GCF_000154205.1	98.77	0.5	4719097	46.5	misc_param: HMP supersite	gastrointestinal_tract
+GCF_000154205.1	98.77	0.5	4719097	46.5	num_replicons	not determined
+GCF_000154205.1	98.77	0.5	4719097	46.5	sequencing method	454-GS20, Sanger
+GCF_000154205.1	98.77	0.5	4719097	46.5	sop	http://hmpdacc.org/doc/CommonGeneAnnotation_SOP.pdf
+GCF_000154205.1	98.77	0.5	4719097	46.5	strain	ATCC 8492
+GCF_000154205.1	98.77	0.5	4719097	46.5	env_package	missing
+GCF_000154205.1	98.77	0.5	4719097	46.5	isolation_source	missing
+GCA_000154205.1	98.77	0.5	4719097	46.5	finishing strategy (depth of coverage)	Level 3: Improved-High-Quality Draft8.1x;94
+GCA_000154205.1	98.77	0.5	4719097	46.5	collection_date	not determined
+GCA_000154205.1	98.77	0.5	4719097	46.5	estimated_size	4717000
+GCA_000154205.1	98.77	0.5	4719097	46.5	isol_growth_condt	not determined
+GCA_000154205.1	98.77	0.5	4719097	46.5	host	Homo sapiens
+GCA_000154205.1	98.77	0.5	4719097	46.5	project_type	Reference Genome
+GCA_000154205.1	98.77	0.5	4719097	46.5	lat_lon	not determined
+GCA_000154205.1	98.77	0.5	4719097	46.5	env_broad_scale	terrestrial biome [ENVO:00000446]
+GCA_000154205.1	98.77	0.5	4719097	46.5	misc_param: HMP body site	not determined
+GCA_000154205.1	98.77	0.5	4719097	46.5	nucleic acid extraction	not determined
+GCA_000154205.1	98.77	0.5	4719097	46.5	investigation_type	missing
+GCA_000154205.1	98.77	0.5	4719097	46.5	env_local_scale	human-associated habitat [ENVO:00009003]
+GCA_000154205.1	98.77	0.5	4719097	46.5	host_taxid	9606
+GCA_000154205.1	98.77	0.5	4719097	46.5	project_name	Bacteroides uniformis ATCC 8492
+GCA_000154205.1	98.77	0.5	4719097	46.5	assembly	PCAP
+GCA_000154205.1	98.77	0.5	4719097	46.5	geo_loc_name	not determined
+GCA_000154205.1	98.77	0.5	4719097	46.5	source_material_id	ATCC 8492
+GCA_000154205.1	98.77	0.5	4719097	46.5	env_medium	biological product [ENVO:02000043]
+GCA_000154205.1	98.77	0.5	4719097	46.5	ref_biomaterial	not determined
+GCA_000154205.1	98.77	0.5	4719097	46.5	misc_param: HMP supersite	gastrointestinal_tract
+GCA_000154205.1	98.77	0.5	4719097	46.5	num_replicons	not determined
+GCA_000154205.1	98.77	0.5	4719097	46.5	sequencing method	454-GS20, Sanger
+GCA_000154205.1	98.77	0.5	4719097	46.5	sop	http://hmpdacc.org/doc/CommonGeneAnnotation_SOP.pdf
+GCA_000154205.1	98.77	0.5	4719097	46.5	strain	ATCC 8492
+GCA_000154205.1	98.77	0.5	4719097	46.5	env_package	missing
+GCA_000154205.1	98.77	0.5	4719097	46.5	isolation_source	missing
+GCF_000437295.1	98.77	0.65	4270326	46.5	ENA first public	2014-11-20
+GCF_000437295.1	98.77	0.65	4270326	46.5	ENA last update	2016-10-21
+GCF_000437295.1	98.77	0.65	4270326	46.5	ENA-CHECKLIST	ERC000011
+GCF_000437295.1	98.77	0.65	4270326	46.5	External Id	SAMEA3138749
+GCF_000437295.1	98.77	0.65	4270326	46.5	INSDC center alias	EBI
+GCF_000437295.1	98.77	0.65	4270326	46.5	INSDC center name	European Bioinformatics Institute
+GCF_000437295.1	98.77	0.65	4270326	46.5	INSDC first public	2014-11-20T12:20:15Z
+GCF_000437295.1	98.77	0.65	4270326	46.5	INSDC last update	2016-10-21T09:48:33Z
+GCF_000437295.1	98.77	0.65	4270326	46.5	INSDC status	public
+GCF_000437295.1	98.77	0.65	4270326	46.5	Submitter Id	GCA_000437295
+GCF_000437295.1	98.77	0.65	4270326	46.5	broker name	European Nucleotide Archive
+GCF_000437295.1	98.77	0.65	4270326	46.5	isolation_source	derived from human gut metagenome
+GCF_000437295.1	98.77	0.65	4270326	46.5	note	Y
+GCF_000437295.1	98.77	0.65	4270326	46.5	sample_name	GCA_000437295
+GCA_000437295.1	98.77	0.65	4270326	46.5	ENA first public	2014-11-20
+GCA_000437295.1	98.77	0.65	4270326	46.5	ENA last update	2016-10-21
+GCA_000437295.1	98.77	0.65	4270326	46.5	ENA-CHECKLIST	ERC000011
+GCA_000437295.1	98.77	0.65	4270326	46.5	External Id	SAMEA3138749
+GCA_000437295.1	98.77	0.65	4270326	46.5	INSDC center alias	EBI
+GCA_000437295.1	98.77	0.65	4270326	46.5	INSDC center name	European Bioinformatics Institute
+GCA_000437295.1	98.77	0.65	4270326	46.5	INSDC first public	2014-11-20T12:20:15Z
+GCA_000437295.1	98.77	0.65	4270326	46.5	INSDC last update	2016-10-21T09:48:33Z
+GCA_000437295.1	98.77	0.65	4270326	46.5	INSDC status	public
+GCA_000437295.1	98.77	0.65	4270326	46.5	Submitter Id	GCA_000437295
+GCA_000437295.1	98.77	0.65	4270326	46.5	broker name	European Nucleotide Archive
+GCA_000437295.1	98.77	0.65	4270326	46.5	isolation_source	derived from human gut metagenome
+GCA_000437295.1	98.77	0.65	4270326	46.5	note	Y
+GCA_000437295.1	98.77	0.65	4270326	46.5	sample_name	GCA_000437295
+GCF_000273785.1	97.65	2.25	4958941	46.5	env_broad_scale	terrestrial biome [ENVO:00000446]
+GCF_000273785.1	97.65	2.25	4958941	46.5	collection_date	not determined
+GCF_000273785.1	97.65	2.25	4958941	46.5	estimated_size	not determined
+GCF_000273785.1	97.65	2.25	4958941	46.5	strain	CL03T00C23
+GCF_000273785.1	97.65	2.25	4958941	46.5	project_type	Reference Genome
+GCF_000273785.1	97.65	2.25	4958941	46.5	lat_lon	not determined
+GCF_000273785.1	97.65	2.25	4958941	46.5	finishing strategy (depth of coverage)	Level 2: High-Quality Draft60
+GCF_000273785.1	97.65	2.25	4958941	46.5	source_material_id	BEI HM-715
+GCF_000273785.1	97.65	2.25	4958941	46.5	misc_param: HMP body site	not determined
+GCF_000273785.1	97.65	2.25	4958941	46.5	nucleic acid extraction	not determined
+GCF_000273785.1	97.65	2.25	4958941	46.5	investigation_type	bacteria_archaea
+GCF_000273785.1	97.65	2.25	4958941	46.5	misc_param: HMP supersite	not determined
+GCF_000273785.1	97.65	2.25	4958941	46.5	host_taxid	9606
+GCF_000273785.1	97.65	2.25	4958941	46.5	env_local_scale	human-associated habitat [ENVO:00009003]
+GCF_000273785.1	97.65	2.25	4958941	46.5	isol_growth_condt	not determined
+GCF_000273785.1	97.65	2.25	4958941	46.5	project_name	Bacteroides uniformis CL03T00C23
+GCF_000273785.1	97.65	2.25	4958941	46.5	assembly	not determined
+GCF_000273785.1	97.65	2.25	4958941	46.5	geo_loc_name	not determined
+GCF_000273785.1	97.65	2.25	4958941	46.5	ref_biomaterial	not determined
+GCF_000273785.1	97.65	2.25	4958941	46.5	host	Homo sapiens
+GCF_000273785.1	97.65	2.25	4958941	46.5	env_medium	biological product [ENVO:02000043]
+GCF_000273785.1	97.65	2.25	4958941	46.5	sequencing method	not determined
+GCF_000273785.1	97.65	2.25	4958941	46.5	sop	http://hmpdacc.org/doc/CommonGeneAnnotation_SOP.pdf
+GCF_000273785.1	97.65	2.25	4958941	46.5	env_package	missing
+GCF_000273785.1	97.65	2.25	4958941	46.5	num_replicons	not determined
+GCA_000273785.1	97.65	2.25	4958941	46.5	env_broad_scale	terrestrial biome [ENVO:00000446]
+GCA_000273785.1	97.65	2.25	4958941	46.5	collection_date	not determined
+GCA_000273785.1	97.65	2.25	4958941	46.5	estimated_size	not determined
+GCA_000273785.1	97.65	2.25	4958941	46.5	strain	CL03T00C23
+GCA_000273785.1	97.65	2.25	4958941	46.5	project_type	Reference Genome
+GCA_000273785.1	97.65	2.25	4958941	46.5	lat_lon	not determined
+GCA_000273785.1	97.65	2.25	4958941	46.5	finishing strategy (depth of coverage)	Level 2: High-Quality Draft60
+GCA_000273785.1	97.65	2.25	4958941	46.5	source_material_id	BEI HM-715
+GCA_000273785.1	97.65	2.25	4958941	46.5	misc_param: HMP body site	not determined
+GCA_000273785.1	97.65	2.25	4958941	46.5	nucleic acid extraction	not determined
+GCA_000273785.1	97.65	2.25	4958941	46.5	investigation_type	bacteria_archaea
+GCA_000273785.1	97.65	2.25	4958941	46.5	misc_param: HMP supersite	not determined
+GCA_000273785.1	97.65	2.25	4958941	46.5	host_taxid	9606
+GCA_000273785.1	97.65	2.25	4958941	46.5	env_local_scale	human-associated habitat [ENVO:00009003]
+GCA_000273785.1	97.65	2.25	4958941	46.5	isol_growth_condt	not determined
+GCA_000273785.1	97.65	2.25	4958941	46.5	project_name	Bacteroides uniformis CL03T00C23
+GCA_000273785.1	97.65	2.25	4958941	46.5	assembly	not determined
+GCA_000273785.1	97.65	2.25	4958941	46.5	geo_loc_name	not determined
+GCA_000273785.1	97.65	2.25	4958941	46.5	ref_biomaterial	not determined
+GCA_000273785.1	97.65	2.25	4958941	46.5	host	Homo sapiens
+GCA_000273785.1	97.65	2.25	4958941	46.5	env_medium	biological product [ENVO:02000043]
+GCA_000273785.1	97.65	2.25	4958941	46.5	sequencing method	not determined
+GCA_000273785.1	97.65	2.25	4958941	46.5	sop	http://hmpdacc.org/doc/CommonGeneAnnotation_SOP.pdf
+GCA_000273785.1	97.65	2.25	4958941	46.5	env_package	missing
+GCA_000273785.1	97.65	2.25	4958941	46.5	num_replicons	not determined
+GCF_000273275.1	98.04	0.73	4922797	46	env_broad_scale	terrestrial biome [ENVO:00000446]
+GCF_000273275.1	98.04	0.73	4922797	46	collection_date	not determined
+GCF_000273275.1	98.04	0.73	4922797	46	estimated_size	not determined
+GCF_000273275.1	98.04	0.73	4922797	46	strain	CL03T12C37
+GCF_000273275.1	98.04	0.73	4922797	46	project_type	Reference Genome
+GCF_000273275.1	98.04	0.73	4922797	46	lat_lon	not determined
+GCF_000273275.1	98.04	0.73	4922797	46	finishing strategy (depth of coverage)	Level 2: High-Quality Draft51
+GCF_000273275.1	98.04	0.73	4922797	46	source_material_id	BEI HM-716
+GCF_000273275.1	98.04	0.73	4922797	46	misc_param: HMP body site	not determined
+GCF_000273275.1	98.04	0.73	4922797	46	nucleic acid extraction	not determined
+GCF_000273275.1	98.04	0.73	4922797	46	investigation_type	bacteria_archaea
+GCF_000273275.1	98.04	0.73	4922797	46	misc_param: HMP supersite	not determined
+GCF_000273275.1	98.04	0.73	4922797	46	host_taxid	9606
+GCF_000273275.1	98.04	0.73	4922797	46	env_local_scale	human-associated habitat [ENVO:00009003]
+GCF_000273275.1	98.04	0.73	4922797	46	isol_growth_condt	not determined
+GCF_000273275.1	98.04	0.73	4922797	46	project_name	Bacteroides uniformis CL03T12C37
+GCF_000273275.1	98.04	0.73	4922797	46	assembly	not determined
+GCF_000273275.1	98.04	0.73	4922797	46	geo_loc_name	not determined
+GCF_000273275.1	98.04	0.73	4922797	46	ref_biomaterial	not determined
+GCF_000273275.1	98.04	0.73	4922797	46	host	Homo sapiens
+GCF_000273275.1	98.04	0.73	4922797	46	env_medium	biological product [ENVO:02000043]
+GCF_000273275.1	98.04	0.73	4922797	46	sequencing method	not determined
+GCF_000273275.1	98.04	0.73	4922797	46	sop	http://hmpdacc.org/doc/CommonGeneAnnotation_SOP.pdf
+GCF_000273275.1	98.04	0.73	4922797	46	env_package	missing
+GCF_000273275.1	98.04	0.73	4922797	46	num_replicons	not determined
+GCF_018292165.1	98.04	0.53	4920161	46	strain	CL03T12C37
+GCF_018292165.1	98.04	0.53	4920161	46	isolation_source	feces
+GCF_018292165.1	98.04	0.53	4920161	46	host	Homo sapiens
+GCF_018292165.1	98.04	0.53	4920161	46	collection_date	2009-05
+GCF_018292165.1	98.04	0.53	4920161	46	geo_loc_name	USA: Boston
+GCF_018292165.1	98.04	0.53	4920161	46	sample_type	cultured bacterial isolate
+GCF_018292165.1	98.04	0.53	4920161	46	biomaterial_provider	Dr. Lauire Comstock, Brigham & Women's Hospital, 181 Longwood Avenue, Boston, MA 02115 USA
+GCF_018292165.1	98.04	0.53	4920161	46	host_tissue_sampled	feces
+GCF_018292165.1	98.04	0.53	4920161	46	lat_lon	42.3361 N 71.1075 W
+GCA_000273275.1	98.04	0.73	4922797	46	env_broad_scale	terrestrial biome [ENVO:00000446]
+GCA_000273275.1	98.04	0.73	4922797	46	collection_date	not determined
+GCA_000273275.1	98.04	0.73	4922797	46	estimated_size	not determined
+GCA_000273275.1	98.04	0.73	4922797	46	strain	CL03T12C37
+GCA_000273275.1	98.04	0.73	4922797	46	project_type	Reference Genome
+GCA_000273275.1	98.04	0.73	4922797	46	lat_lon	not determined
+GCA_000273275.1	98.04	0.73	4922797	46	finishing strategy (depth of coverage)	Level 2: High-Quality Draft51
+GCA_000273275.1	98.04	0.73	4922797	46	source_material_id	BEI HM-716
+GCA_000273275.1	98.04	0.73	4922797	46	misc_param: HMP body site	not determined
+GCA_000273275.1	98.04	0.73	4922797	46	nucleic acid extraction	not determined
+GCA_000273275.1	98.04	0.73	4922797	46	investigation_type	bacteria_archaea
+GCA_000273275.1	98.04	0.73	4922797	46	misc_param: HMP supersite	not determined
+GCA_000273275.1	98.04	0.73	4922797	46	host_taxid	9606
+GCA_000273275.1	98.04	0.73	4922797	46	env_local_scale	human-associated habitat [ENVO:00009003]
+GCA_000273275.1	98.04	0.73	4922797	46	isol_growth_condt	not determined
+GCA_000273275.1	98.04	0.73	4922797	46	project_name	Bacteroides uniformis CL03T12C37
+GCA_000273275.1	98.04	0.73	4922797	46	assembly	not determined
+GCA_000273275.1	98.04	0.73	4922797	46	geo_loc_name	not determined
+GCA_000273275.1	98.04	0.73	4922797	46	ref_biomaterial	not determined
+GCA_000273275.1	98.04	0.73	4922797	46	host	Homo sapiens
+GCA_000273275.1	98.04	0.73	4922797	46	env_medium	biological product [ENVO:02000043]
+GCA_000273275.1	98.04	0.73	4922797	46	sequencing method	not determined
+GCA_000273275.1	98.04	0.73	4922797	46	sop	http://hmpdacc.org/doc/CommonGeneAnnotation_SOP.pdf
+GCA_000273275.1	98.04	0.73	4922797	46	env_package	missing
+GCA_000273275.1	98.04	0.73	4922797	46	num_replicons	not determined
+GCA_018292165.1	98.04	0.53	4920161	46	strain	CL03T12C37
+GCA_018292165.1	98.04	0.53	4920161	46	isolation_source	feces
+GCA_018292165.1	98.04	0.53	4920161	46	host	Homo sapiens
+GCA_018292165.1	98.04	0.53	4920161	46	collection_date	2009-05
+GCA_018292165.1	98.04	0.53	4920161	46	geo_loc_name	USA: Boston
+GCA_018292165.1	98.04	0.53	4920161	46	sample_type	cultured bacterial isolate
+GCA_018292165.1	98.04	0.53	4920161	46	biomaterial_provider	Dr. Lauire Comstock, Brigham & Women's Hospital, 181 Longwood Avenue, Boston, MA 02115 USA
+GCA_018292165.1	98.04	0.53	4920161	46	host_tissue_sampled	feces
+GCA_018292165.1	98.04	0.53	4920161	46	lat_lon	42.3361 N 71.1075 W

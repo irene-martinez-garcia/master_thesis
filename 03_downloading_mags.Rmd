@@ -1,8 +1,6 @@
 # NCBI MAGs exploration
 
 ## NCBI MAGs metadata
-
-
 ```{r Gut microbiome keywords}
 gut_keywords <- c("ceaca", "caeca", "excrement", "excrements", "rectal", "feces", 
                   "stool", "stools", "gut", "cloaca", "cloacal", "fecal", "intestines",
@@ -45,45 +43,67 @@ select(
 
 #put metadata in tsv
 jq -r '
-.accession as $asm |
-.assembly_info.biosample.attributes[]? |
-[$asm, .name, .value] | @tsv
-' high_quality_genomes.jsonl > biosample_attributes.tsv
+  .accession as $asm
+  | .checkm_info.completeness as $comp
+  | .checkm_info.contamination as $cont
+  | .assembly_stats.total_sequence_length as $genome_size
+  | .assembly_stats.gc_percent as $gc
+  | .assembly_info.biosample.attributes[]?
+  | [$asm, $comp, $cont, $genome_size, $gc, .name, .value]
+  | @tsv
+' high_quality_genomes.jsonl > citrobacter_biosample_attributes.tsv
 
 
 ```
 
+
+
+
 ### Citrobacter braakii
-```{r citrobacter braakii}
-c_braki_metadata <- read_tsv("data/ncbi/c_braakii_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+```{r citrobacter braakii, eval = FALSE}
+c_braki_metadata <- read_tsv("data/mags_metadata/citrobacter_braakii_biosample_attributes.tsv",
+  col_names = c(
+    "accession",
+    "completeness",
+    "contamination",
+    "genome_size",
+    "gc_percent",
+    "name",
+    "value"
+  )
+)
 
-
-metadata_wide <- c_braki_metadata %>%
+wide <- c_braki_metadata %>%
   pivot_wider(
-    id_cols = assembly,
-    names_from = attribute,
-    values_from = value,
-    values_fn = function(x) x[1]
+    id_cols = c(
+      accession,
+      completeness,
+      contamination,
+      genome_size,
+      gc_percent
+    ),
+    names_from  = name,
+    values_from = value
   )
 
 
-source_counts <- metadata_wide %>%
+source_counts <- wide %>%
   filter(!is.na(isolation_source)) %>%
   dplyr::count(isolation_source, sort = TRUE)
 
 source_counts
 
 
-host_counts <- metadata_wide %>%
+host_counts <- wide %>%
   filter(!is.na(host)) %>%
   dplyr::count(host, sort = TRUE)
 
 host_counts
 
-metadata_wide %>%
+wide %>%
   filter(host == "Homo sapiens")
 
-citrobacter_gut <- metadata_wide %>%
+citrobacter_gut <- wide %>%
   filter(str_detect(isolation_source, regex(pattern, ignore_case = TRUE)))
 
 citrobacter_gut %>%tt()
@@ -129,17 +149,23 @@ select(
 
 #put metadata in tsv
 jq -r '
-.accession as $asm |
-.assembly_info.biosample.attributes[]? |
-[$asm, .name, .value] | @tsv
+  .accession as $asm
+  | .checkm_info.completeness as $comp
+  | .checkm_info.contamination as $cont
+  | .assembly_stats.total_sequence_length as $genome_size
+  | .assembly_stats.gc_percent as $gc
+  | .assembly_info.biosample.attributes[]?
+  | [$asm, $comp, $cont, $genome_size, $gc, .name, .value]
+  | @tsv
 ' lactococcus_high_quality_genomes.jsonl > lactococcus_biosample_attributes.tsv
+
 
 
 ```
 
 
-```{r lactococcus}
-lactococcus_metadata <- read_tsv("data/ncbi/lactococcus_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+```{r lactococcus, eval = FALSE}
+lactococcus_metadata <- read_tsv("data/mags_metadata/lactococcus_lactis_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
 
 
 metadata_wide <- lactococcus_metadata %>%
@@ -205,8 +231,8 @@ jq -r '
 ```
 
 
-```{r hafnia}
-hafnia_metadata <- read_tsv("data/ncbi/hafnia_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+```{r hafnia, eval = FALSE}
+hafnia_metadata <- read_tsv("data/ncbi/hafnia_paralvei_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
 
 
 metadata_wide <- hafnia_metadata %>%
@@ -270,7 +296,7 @@ jq -r '
 ```
 
 
-```{r enterococcus_faecalis}
+```{r enterococcus_faecalis, eval = FALSE}
 enterococcus_faecalis_metadata <- read_tsv("data/ncbi/enterococcus_faecalis_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
 
 
@@ -337,8 +363,8 @@ jq -r '
 ```
 
 
-```{r enterococcus_hirae}
-enterococcus_metadata <- read_tsv("data/ncbi/enterococcus_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+```{r enterococcus_hirae, eval = FALSE}
+enterococcus_metadata <- read_tsv("data/ncbi/enterococcus_hirae_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
 
 
 metadata_wide <- enterococcus_metadata %>%
@@ -403,8 +429,8 @@ jq -r '
 ```
 
 
-```{r bacteroides_uniformis}
-b_uniformis_metadata <- read_tsv("data/ncbi/b_uniformis_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+```{r bacteroides_uniformis, eval = FALSE}
+b_uniformis_metadata <- read_tsv("data/ncbi/bacteroides_uniformis_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
 
 
 metadata_wide <- b_uniformis_metadata %>%
@@ -471,7 +497,7 @@ jq -r '
 ```
 
 
-```{r phocaeicola_vulgatus}
+```{r phocaeicola_vulgatus, eval = FALSE}
 p_vulgatus_metadata <- read_tsv("data/ncbi/p_vulgatus_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
 
 
@@ -538,8 +564,8 @@ jq -r '
 ```
 
 
-```{r parabacteroides_goldsteinii}
-p_goldsteinii_metadata <- read_tsv("data/ncbi/p_goldsteinii_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+```{r parabacteroides_goldsteinii, eval = FALSE}
+p_goldsteinii_metadata <- read_tsv("data/ncbi/parabacteroides_goldsteinii_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
 
 
 metadata_wide <- p_goldsteinii_metadata %>%
@@ -603,8 +629,8 @@ jq -r '
 ```
 
 
-```{r akkermansia}
-akkermansia_metadata <- read_tsv("data/ncbi/akkermansia_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+```{r akkermansia, eval = FALSE}
+akkermansia_metadata <- read_tsv("data/ncbi/akkermansia_muciniphila_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
 
 
 metadata_wide <- akkermansia_metadata %>%
@@ -668,8 +694,8 @@ jq -r '
 ```
 
 
-```{r bacteroides_fragilis}
-b_fragilis_metadata <- read_tsv("data/ncbi/b_fragilis_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+```{r bacteroides_fragilis, eval = FALSE}
+b_fragilis_metadata <- read_tsv("data/ncbi/bacteroides_fragilis_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
 
 
 metadata_wide <- b_fragilis_metadata %>%
@@ -735,8 +761,8 @@ jq -r '
 ```
 
 
-```{r providencia rettgeri}
-providencia_metadata <- read_tsv("data/ncbi/providencia_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
+```{r providencia rettgeri, eval = FALSE}
+providencia_metadata <- read_tsv("data/ncbi/providencia_rettgeri_biosample_attributes.tsv",  col_names = c("assembly", "attribute", "value"))
 
 
 metadata_wide <- providencia_metadata %>%
@@ -776,16 +802,97 @@ print(other_hosts)
 
 
 ```{r final selection, eval = FALSE}
-selected <- hafnia_gut %>%
-  pull(assembly) %>%
-  unique()
+species <- c(
+  "lactococcus_lactis",
+  "hafnia_paralvei",
+  "enterococcus_faecalis",
+  "enterococcus_hirae",
+  "bacteroides_uniformis",
+  "phocaeicola_vulgatus",
+  "parabacteroides_goldsteinii",
+  "akkermansia_muciniphila",
+  "bacteroides_fragilis",
+  "providencia_rettgeri",
+  "citrobacter_braakii"
+)
 
-#check
-length(selected)
-head(selected)
+for (sp in species) {
 
-#save the accessions to download the mags in mjolnir
-writeLines(selected, "data/mags_metadata/hafnia_paralvei_ncbi_selected_accessions.txt")
+  message("Processing ", sp)
+
+  infile <- file.path(
+    "data/mags_metadata",
+    paste0(sp, "_biosample_attributes.tsv")
+  )
+
+  metadata_long <- read_tsv(
+    infile,
+    col_names = c(
+      "accession",
+      "completeness",
+      "contamination",
+      "genome_size",
+      "gc_percent",
+      "name",
+      "value"
+    ),
+    show_col_types = FALSE
+  )
+
+  metadata_wide <- metadata_long %>%
+    pivot_wider(
+      id_cols = c(
+        accession,
+        completeness,
+        contamination,
+        genome_size,
+        gc_percent
+      ),
+      names_from  = name,
+      values_from = value,
+      values_fn   = ~ dplyr::first(na.omit(.x)),
+      names_repair = "unique"
+    )
+
+  ## filter gut-associated genomes
+  if ("isolation_source" %in% colnames(metadata_wide)) {
+
+    gut_metadata <- metadata_wide %>%
+      filter(
+        str_detect(
+          isolation_source,
+          regex(pattern, ignore_case = TRUE)
+        )
+      )
+
+  } else {
+    warning(sp, " has no isolation_source column")
+    gut_metadata <- metadata_wide[0, ]
+  }
+
+  ## save ONLY the gut-filtered metadata
+  saveRDS(
+    gut_metadata,
+    file.path(
+      "data/mags_metadata",
+      paste0(sp, "_ncbi_metadata.rds")
+    )
+  )
+
+  selected_accessions <- gut_metadata %>%
+    pull(accession) %>%
+    unique()
+
+  selected_accessions <- selected_accessions[!is.na(selected_accessions)]
+
+  writeLines(
+    selected_accessions,
+    file.path(
+      "data/mags_metadata",
+      paste0(sp, "_ncbi_selected_accessions.txt")
+    )
+  )
+}
 
 ```
 ## Downloading the MAGs after filtering
@@ -794,12 +901,12 @@ Download the MAGs when you finish selecting them
 ```{bash, eval = FALSE}
 ### DOWNLOAD THE MAGS
 
-datasets download genome accession --inputfile ../hafnia_paralvei_ncbi_selected_accessions.txt --include genome --filename hafnia_paralvei_selected_genomes.zip
+datasets download genome accession --inputfile ../bacteroides_unifmormis_ncbi_selected_accessions.txt --include genome --filename hafnia_paralvei_selected_genomes.zip
 
 ```
 
 
-```{r checking if mags in gtdb are same as ncbi}
+```{r checking if mags in gtdb are same as ncbi, eval = FALSE}
 mags_gtdb <- read_tsv("data/mags_metadata/master_mag_index_lactococcus_lactis.tsv") %>% pull(ID)
 
 intersect(selected, mags_gtdb)
@@ -807,13 +914,13 @@ intersect(selected, mags_gtdb)
 
 ```
 
-```{r in ncbi but not gtdb}
+```{r in ncbi but not gtdb, eval = FALSE}
 # in selected but NOT in mags_gtdb
 setdiff(selected, mags_gtdb)
 
 ```
 
-```{r in gtdb not in ncbi}
+```{r in gtdb not in ncbi, eval = FALSE}
 
 # in mags_gtdb but NOT in selected
 setdiff(mags_gtdb, selected)

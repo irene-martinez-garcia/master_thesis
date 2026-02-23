@@ -1,0 +1,74 @@
+GCF_010319105.1	98.1	2.33	4342905	40.5	sample_name	BML2526
+GCF_010319105.1	98.1	2.33	4342905	40.5	collection_date	2018
+GCF_010319105.1	98.1	2.33	4342905	40.5	env_broad_scale	missing
+GCF_010319105.1	98.1	2.33	4342905	40.5	env_local_scale	missing
+GCF_010319105.1	98.1	2.33	4342905	40.5	env_medium	missing
+GCF_010319105.1	98.1	2.33	4342905	40.5	geo_loc_name	Japan:Saitama
+GCF_010319105.1	98.1	2.33	4342905	40.5	host	Homo sapiens
+GCF_010319105.1	98.1	2.33	4342905	40.5	isol_growth_condt	missing
+GCF_010319105.1	98.1	2.33	4342905	40.5	lat_lon	missing
+GCF_010319105.1	98.1	2.33	4342905	40.5	locus_tag_prefix	BML2526
+GCF_010319105.1	98.1	2.33	4342905	40.5	num_replicons	missing
+GCF_010319105.1	98.1	2.33	4342905	40.5	project_name	Emergence of IMP producing Providencia species in Japan
+GCF_010319105.1	98.1	2.33	4342905	40.5	ref_biomaterial	missing
+GCF_010319105.1	98.1	2.33	4342905	40.5	strain	BML2526
+GCF_010319405.1	98.1	2.33	4351300	40.5	sample_name	BML2576
+GCF_010319405.1	98.1	2.33	4351300	40.5	collection_date	2018
+GCF_010319405.1	98.1	2.33	4351300	40.5	env_broad_scale	missing
+GCF_010319405.1	98.1	2.33	4351300	40.5	env_local_scale	missing
+GCF_010319405.1	98.1	2.33	4351300	40.5	env_medium	missing
+GCF_010319405.1	98.1	2.33	4351300	40.5	geo_loc_name	Japan:Saitama
+GCF_010319405.1	98.1	2.33	4351300	40.5	host	Homo sapiens
+GCF_010319405.1	98.1	2.33	4351300	40.5	isol_growth_condt	missing
+GCF_010319405.1	98.1	2.33	4351300	40.5	lat_lon	missing
+GCF_010319405.1	98.1	2.33	4351300	40.5	locus_tag_prefix	BML2576
+GCF_010319405.1	98.1	2.33	4351300	40.5	num_replicons	missing
+GCF_010319405.1	98.1	2.33	4351300	40.5	project_name	Emergence of IMP producing Providencia species in Japan
+GCF_010319405.1	98.1	2.33	4351300	40.5	ref_biomaterial	missing
+GCF_010319405.1	98.1	2.33	4351300	40.5	strain	BML2576
+GCF_013702265.1	99.28	1	4023756	43	strain	PROV023
+GCF_013702265.1	99.28	1	4023756	43	collected_by	a swine farm
+GCF_013702265.1	99.28	1	4023756	43	collection_date	2017
+GCF_013702265.1	99.28	1	4023756	43	geo_loc_name	China: Sichuan
+GCF_013702265.1	99.28	1	4023756	43	isolation_source	swine excrement
+GCF_013702265.1	99.28	1	4023756	43	lat_lon	30 N 104 E
+GCA_010319105.1	98.1	2.33	4342905	40.5	sample_name	BML2526
+GCA_010319105.1	98.1	2.33	4342905	40.5	collection_date	2018
+GCA_010319105.1	98.1	2.33	4342905	40.5	env_broad_scale	missing
+GCA_010319105.1	98.1	2.33	4342905	40.5	env_local_scale	missing
+GCA_010319105.1	98.1	2.33	4342905	40.5	env_medium	missing
+GCA_010319105.1	98.1	2.33	4342905	40.5	geo_loc_name	Japan:Saitama
+GCA_010319105.1	98.1	2.33	4342905	40.5	host	Homo sapiens
+GCA_010319105.1	98.1	2.33	4342905	40.5	isol_growth_condt	missing
+GCA_010319105.1	98.1	2.33	4342905	40.5	lat_lon	missing
+GCA_010319105.1	98.1	2.33	4342905	40.5	locus_tag_prefix	BML2526
+GCA_010319105.1	98.1	2.33	4342905	40.5	num_replicons	missing
+GCA_010319105.1	98.1	2.33	4342905	40.5	project_name	Emergence of IMP producing Providencia species in Japan
+GCA_010319105.1	98.1	2.33	4342905	40.5	ref_biomaterial	missing
+GCA_010319105.1	98.1	2.33	4342905	40.5	strain	BML2526
+GCA_010319405.1	98.1	2.33	4351300	40.5	sample_name	BML2576
+GCA_010319405.1	98.1	2.33	4351300	40.5	collection_date	2018
+GCA_010319405.1	98.1	2.33	4351300	40.5	env_broad_scale	missing
+GCA_010319405.1	98.1	2.33	4351300	40.5	env_local_scale	missing
+GCA_010319405.1	98.1	2.33	4351300	40.5	env_medium	missing
+GCA_010319405.1	98.1	2.33	4351300	40.5	geo_loc_name	Japan:Saitama
+GCA_010319405.1	98.1	2.33	4351300	40.5	host	Homo sapiens
+GCA_010319405.1	98.1	2.33	4351300	40.5	isol_growth_condt	missing
+GCA_010319405.1	98.1	2.33	4351300	40.5	lat_lon	missing
+GCA_010319405.1	98.1	2.33	4351300	40.5	locus_tag_prefix	BML2576
+GCA_010319405.1	98.1	2.33	4351300	40.5	num_replicons	missing
+GCA_010319405.1	98.1	2.33	4351300	40.5	project_name	Emergence of IMP producing Providencia species in Japan
+GCA_010319405.1	98.1	2.33	4351300	40.5	ref_biomaterial	missing
+GCA_010319405.1	98.1	2.33	4351300	40.5	strain	BML2576
+GCA_013702265.1	99.28	1	4023756	43	strain	PROV023
+GCA_013702265.1	99.28	1	4023756	43	collected_by	a swine farm
+GCA_013702265.1	99.28	1	4023756	43	collection_date	2017
+GCA_013702265.1	99.28	1	4023756	43	geo_loc_name	China: Sichuan
+GCA_013702265.1	99.28	1	4023756	43	isolation_source	swine excrement
+GCA_013702265.1	99.28	1	4023756	43	lat_lon	30 N 104 E
+GCA_040839475.1	98.56	2.08	4276824	40.5	strain	dmpro_r346a
+GCA_040839475.1	98.56	2.08	4276824	40.5	host	Homo sapiens
+GCA_040839475.1	98.56	2.08	4276824	40.5	isolation_source	urine
+GCA_040839475.1	98.56	2.08	4276824	40.5	collection_date	2016-12-29
+GCA_040839475.1	98.56	2.08	4276824	40.5	geo_loc_name	Bangladesh: Dhaka
+GCA_040839475.1	98.56	2.08	4276824	40.5	sample_type	Pure culture one microbial species

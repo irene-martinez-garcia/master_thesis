@@ -1,0 +1,167 @@
+
+## Define species list
+```{r Define species and mags to remove list, eval = FALSE}
+# ALL SPECIES
+species_list <- c(
+  "lactococcus_lactis",
+  "parabacteroides_goldsteinii",
+  "enterococcus_faecalis",
+  "bacteroides_uniformis",
+  "phocaeicola_vulgatus",
+  "hafnia_paralvei",
+  "citrobacter_braakii",
+  "enterococcus_hirae",
+  "akkermansia_muciniphila",
+  "bacteroides_fragilis"
+)
+
+
+mags_to_remove_list <- list(
+  lactococcus_lactis = c(
+    "GCA_018369575.1.fna","GCA_947063445.1.fna","GCA_947101685.1.fna",
+    "GCA_948698275.1.fna","GCA_937910935.1.fna","GCA_947072755.1.fna",
+    "GCA_948655095.1.fna","GCA_948703095.1.fna","GCA_947041925.1.fna",
+    "GCA_947073355.1.fna","GCA_948675165.1.fna","GCA_948718815.1.fna"
+  ),
+  parabacteroides_goldsteinii = character(0), # none to remove
+  enterococcus_faecalis = character(0),
+  hafnia_paralvei = character(0),
+  bacteroides_uniformis = character(0),
+  phocaeicola_vulgatus = c("GCA_040912025.1", "GCF_048453085.1", "GCA_048453085.1"),
+  citrobacter_braakii = character(0),
+  enterococcus_hirae = character(0),
+  akkermansia_muciniphila = character(0),
+  bacteroides_fragilis = character(0)
+)
+
+# pg <- results[["parabacteroides_goldsteinii"]]$metadata
+# eh <- results[["enterococcus_hirae"]]$metadata
+# pv <- results[["phocaeicola_vulgatus"]]$metadata
+# am <- results[["akkermansia_muciniphila"]]$metadata
+# bf <- results[["bacteroides_fragilis"]]$metadata
+# bu <- results[["bacteroides_uniformis"]]$metadata
+# ll <- results[["lactococcus_lactis"]]$metadata
+ #hp <- results[["hafnia_paralvei"]]$metadata
+```
+
+
+```{r test the loop with data preparation}
+species_list <- c(
+  "citronacter_braakii",
+  "hafnia_paralvei"
+)
+
+mags_to_remove_list <- list(
+  citronacter_braakii = character(0),
+  hafnia_paralvei = character(0)
+)
+
+
+# ---- Run for all species ----
+results <- setNames(vector("list", length(species_list)), species_list)
+
+for (sp in species_list) {
+  results[[sp]] <- process_one_species(
+    species        = sp,
+    mags_to_remove = mags_to_remove_list[[sp]]
+  )
+}
+
+# Examples:
+# results[["lactococcus_lactis"]]$metadata
+# results[["lactococcus_lactis"]]$annotations
+```
+
+## Testing functions with one species
+
+```{r example loading data}
+sp <- "citrobacter_braakii"
+res <- process_one_species(sp)
+
+genome_metadata <- res$metadata
+gene_annotations <- res$annotations
+
+ndb <- read_csv("data/mags_metadata/citrobacter_braakii_Ndb.csv") #include in process one species
+
+```
+
+
+```{r example_drep, fig.height = 10, fig_width = 8}
+recreate_drep_tree(ndb)
+```
+
+```{r example_drep_final, fig.height = 14, fig_width = 8}
+drep_results <- drep_tree_metadata(genome_metadata, ndb)
+
+tree <- drep_results$tree
+tip_df <- drep_results$tip_df
+ani_matrix <- drep_results$ani_matrix
+
+
+p_host_order <- plot_tree_basic(tree, tip_df, color_by = "host_order",
+                          label_tips = TRUE, show_threshold = 99.5)
+p_host_order
+```
+
+
+
+```{r example run with one species}
+# Build matrices
+kegg_mat <- make_annotation_matrix(genome_annotations, "kegg")
+amr_mat  <- make_annotation_matrix(genome_annotations, "resistance_type")
+
+# Fisher + volcano
+kegg_fisher <- run_fisher_tests(kegg_mat, genome_metadata, "kegg")
+amr_fisher  <- run_fisher_tests(amr_mat, genome_metadata, "amr")
+
+plot_volcano(kegg_fisher, "kegg")
+plot_volcano(amr_fisher, "amr")
+
+# PCA
+pca_kegg <- run_pca(kegg_mat)
+pca_amr  <- run_pca(amr_mat)
+
+# PERMANOVA
+results <- pa_permanova(kegg_mat, genome_metadata)
+results$dist
+results$permanova
+
+pcoa_res <- ape::pcoa(results$dist, correction = "cailliez")
+
+pcoa_df <- data.frame(
+  ID = rownames(results$pa_nz),
+  PC1 = pcoa_res$vectors[, 1],
+  PC2 = pcoa_res$vectors[, 2],
+  host_type = genome_metadata$host_type,
+  host_order = genome_metadata$host_order
+)
+
+var_exp <- round(100 * pcoa_res$values$Rel_corr_eig[1:2], 1)
+
+pcoa_kegg_pa <- ggplot(pcoa_df, aes(PC1, PC2, color = host_type)) +
+  geom_point(size = 2) +
+  scale_color_manual(values = host_type_colors, name = "Host type")+
+  theme_minimal() +
+  labs(
+    title = "PCoA of KEGG presence/absence matrix across MAGs (colored by host type)",
+    x = paste0("PC1 (",round(var_exp[1], 1), "%)"),
+    y = paste0("PC2 (", round(var_exp[2], 1), "%)")
+  )
+
+ggplot(pcoa_df, aes(PC1, PC2, color = host_order)) +
+  geom_point(size = 2) +
+  scale_color_manual(values = host_order_colors, name = "Host order")+
+  theme_minimal() +
+  labs(
+    title = "PCoA of KEGG presence/absence matrix across MAGs (colored by host order)",
+    x = paste0("PC1 (",round(var_exp[1], 1), "%)"),
+    y = paste0("PC2 (", round(var_exp[2], 1), "%)")
+  )
+
+```
+
+
+
+
+
+

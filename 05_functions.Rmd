@@ -1,0 +1,1849 @@
+
+# Functions and helpers
+
+```{r color schemes}
+source_colors <- c(EHI = "#8BC63F", GTDB = "#2D522D", NCBI= "#20558A")
+
+host_type_colors <- c(human = "#A90D00" , animal = "darkgreen") 
+
+host_order_colors <- c(
+  "Accipitriformes" = "#143AC2",  # Aves
+  "Carnivora"       = "#633C2C",  # Mammalia
+  "Chiroptera"      = "#1B2021",  # Mammalia
+  "Primates"        = "#CC0000",  # Mammalia
+  "Rodentia"        = "#FDA991",  # Mammalia
+  "Diptera"         = "#FFAE2B",  # Insecta
+  "Isoptera"        = "#E27500",  # Insecta
+  "Lepidoptera"     = "#C8591D",  # Insecta
+  "Squamata"        = "#1D921B"   # Reptilia
+)
+
+country_palette <- c(
+  # Southern Europe
+  "Spain" = "#1B9E77",
+  "Italy" = "#33A02C",
+  "Greece" = "#66C2A5",
+  "Portugal" = "#2CA25F",
+  "Malta" = "#99D8C9",
+
+  # Northern/Central Europe
+  "Germany" = "#1F78B4",
+  "United Kingdom" = "#4A90E2",
+  "Ireland" = "#6BAED6",
+
+  # East Asia 
+  "Japan" = "#E31A1C",
+  "South Korea" = "#FB6A4A",
+  "China" = "#CB181D",
+
+  # North America 
+  "USA" = "#756BB1",
+  "Canada" = "#9E9AC8",
+
+  # Distinct
+  "Australia" = "#FFD92F",   
+  "Greenland" = "#A6CEE3",
+
+  "none" = "grey70"
+)
+
+
+```
+
+## DATA PREPARATION
+### Load all the data
+```{r load_species_files}
+## Load all the data 
+load_species_files <- function(species, base_dir = "data/mags_metadata") {
+
+  paths <- list(
+    ehi_metadata       = file.path(base_dir, paste0(species, "_metadata.tsv")), #EH metadata
+    gtdb_final         = file.path(base_dir, paste0(species, "_gtdb_final_metadata.tsv")), #GTDB metadata
+    contig_map         = file.path(base_dir, paste0(species, "_contig_to_mag.tsv")), #contig map to genome
+    gene_annotations   = file.path(base_dir, paste0(species, "_gene_annotations.tsv.xz")), #functional annotations
+    ncbi_metadata_rds  = file.path(base_dir, paste0(species, "_ncbi_metadata.rds")),  #NCBI metadata
+    ndb                = file.path(base_dir, paste0(species, "_Ndb.csv")) # FASTANI
+  )
+
+  load_if_exists <- function(path, loader) {
+    if (file.exists(path)) loader(path) else NULL
+  }
+
+  result <- list(
+    ehi_metadata     = load_if_exists(paths$ehi_metadata,       function(p) readr::read_tsv(p, show_col_types = FALSE)),
+    gtdb_final       = load_if_exists(paths$gtdb_final,         function(p) readr::read_tsv(p, show_col_types = FALSE)),
+    contig_map       = load_if_exists(paths$contig_map,         function(p) readr::read_tsv(p, show_col_types = FALSE)),
+    gene_annotations = load_if_exists(paths$gene_annotations,   function(p) readr::read_tsv(p, show_col_types = FALSE)),
+    ndb              = load_if_exists(paths$ndb,   function(p) readr::read_csv(p, show_col_types = FALSE)),
+    ncbi_metadata    = load_if_exists(paths$ncbi_metadata_rds,  readRDS))
+
+  return(result)
+}
+```
+
+
+```{r helpers to standardize columns}
+# Find the most plausible genome size column and rename to genome_size
+detect_and_rename_genome_size <- function(df) {
+  if (is.null(df)) return(df)
+
+  # If exact already present, nothing to do
+  if ("genome_size" %in% names(df)) return(df)
+
+  # Common explicit variants (ordered by preference)
+  candidates <- c(
+    # EHI 
+    "size", "Size", "SIZE",
+    # NCBI 
+    "genome_size...4", "genome_size...43",
+    # other common labels
+    "size_bp", "Size_bp", "genome_size_bp",
+    "total_length", "assembly_length", "estimated_size"
+  )
+
+  hit <- intersect(candidates, names(df))
+  if (length(hit) >= 1) {
+    # If multiple hits appear, prefer the first listed above
+    df <- dplyr::rename(df, genome_size = !!hit[1])
+    return(df)
+  }
+
+  # Fallback: first column containing "genome_size" or "size" or "length"
+  fuzzy <- grep("(genome_)?size|length", names(df), ignore.case = TRUE, value = TRUE)
+  if (length(fuzzy) >= 1) {
+    df <- dplyr::rename(df, genome_size = !!fuzzy[1])
+    return(df)
+  }
+
+  df
+}
+
+# Normalize 'n50' (lowercase in some NCBI exports) to 'N50'
+detect_and_rename_n50 <- function(df) {
+  if (is.null(df)) return(df)
+  if (!("N50" %in% names(df)) && ("n50" %in% names(df))) {
+    df <- dplyr::rename(df, N50 = n50)
+  }
+  df
+}
+
+# Enforce consistent types across sources before bind_rows()
+harmonize_schema <- function(df) {
+  if (is.null(df)) return(NULL)
+
+
+  # Column name standardization
+
+  rename_map <- c(
+    "isolation_source.x" = "isolation_source",
+    "isolation_source.y" = "isolation_source",
+    "isolation_source_x" = "isolation_source",
+    "isolation_source_y" = "isolation_source",
+
+    "geo_loc_name"       = "country",
+    "geographic location (latitude)"  = "latitude",
+    "geographic location (longitude)" = "longitude"
+  )
+
+  # Rename if present
+  for (old in names(rename_map)) {
+    if (old %in% names(df)) {
+      names(df)[names(df) == old] <- rename_map[[old]]
+    }
+  }
+
+
+  #  Define expected schema
+
+  char_cols <- c(
+    "ID","source","species","gtdb_taxonomy","gtdb_representative",
+    "isolation_source","host","host_status","disease","diagnosis",
+    "host_species","host_order","host_class","host_summary",
+    "country","locality","collection_date","ncbi_biosample",
+    "mag_name","eha_number","common_name","sample_name","external_id","submitter_id",
+    "env_broad","env_medium","env_local","env_local_context"
+  )
+
+  num_cols <- c(
+    "completeness","contamination","genome_size","GC","N50","contigs",
+    "latitude","longitude"
+  )
+
+  logi_cols <- c("mimag_high_quality","mimag_medium_quality")
+
+  #  Add missing columns
+
+  for (cc in char_cols) if (!cc %in% names(df)) df[[cc]] <- NA_character_
+  for (nc in num_cols)  if (!nc %in% names(df)) df[[nc]] <- NA_real_
+  for (lc in logi_cols) if (!lc %in% names(df)) df[[lc]] <- NA
+
+
+  #  Type-coerce consistently
+
+  df <- df %>%
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::all_of(char_cols),
+        ~ as.character(.x)
+      ),
+      dplyr::across(
+        dplyr::all_of(num_cols),
+        ~ suppressWarnings(as.numeric(.x))
+      ),
+      dplyr::across(
+        dplyr::all_of(logi_cols),
+        ~ as.logical(.x)
+      )
+    )
+
+
+  #  Return cleaned df
+
+  df
+}
+
+
+# ---- Prepare gene annotations: add the genome with contig_map ----
+prep_gene_annotations_with_genome <- function(ann_raw, contig_map_raw) {
+  if (is.null(ann_raw)) return(NULL)
+  if (is.null(contig_map_raw)) {
+    stop("contig_map is required to attach 'genome' to gene_annotations.")
+  }
+
+  # --- Standardize contig_map to columns: contig, genome ---
+  cm <- contig_map_raw
+
+  contig_col_candidates <- intersect(names(cm), c("contig", "contig_id", "contig_name", "scaffold"))
+  if (length(contig_col_candidates) == 0) {
+    stop("contig_map must have a contig column (one of: contig, contig_id, contig_name, scaffold).")
+  }
+
+  genome_col_candidates <- intersect(
+    names(cm),
+    c("genome", "genome_filename", "mag", "bin", "genome_id", "assembly")
+  )
+  if (length(genome_col_candidates) == 0) {
+    stop("contig_map must have a genome column (e.g., genome, genome_filename, mag, bin, genome_id, assembly).")
+  }
+
+  cm <- cm %>%
+    dplyr::rename(
+      contig = !!rlang::sym(contig_col_candidates[1]),
+      genome = !!rlang::sym(genome_col_candidates[1])
+    ) %>%
+    dplyr::mutate(
+      contig = as.character(contig),
+      genome = as.character(genome)
+    )
+
+  # --- Ensure annotations have a contig column ---
+  an <- ann_raw
+
+  if (!("contig" %in% names(an))) {
+    # Try to derive from a gene-like column by stripping the last _segment
+    gene_col_candidates <- intersect(names(an), c("gene", "gene_id", "locus_tag", "feature_id"))
+    if (length(gene_col_candidates) == 0) {
+      stop("gene_annotations must have `contig` or a gene-like column (gene/gene_id/locus_tag/feature_id).")
+    }
+
+    an <- an %>%
+      dplyr::rename(.gene_tmp = !!rlang::sym(gene_col_candidates[1])) %>%
+      dplyr::mutate(contig = sub("_[^_]*$", "", .data$.gene_tmp)) %>%
+      dplyr::select(-dplyr::any_of(".gene_tmp"))
+  }
+
+  # --- Join to add genome and filter out missing ---
+  an <- an %>%
+    dplyr::mutate(contig = as.character(contig)) %>%
+    dplyr::left_join(cm, by = "contig") %>%
+    dplyr::filter(!is.na(.data$genome))
+
+  return(an)
+}
+
+
+clean_biosample_value <- function(v) {
+  if (is.na(v)) return(NA_character_)
+  v <- str_trim(v)
+  m <- str_match(v, '^Attribute\\s+"(.*)"$')
+  if (!is.na(m[1,2])) v <- str_trim(m[1,2])
+  v_low <- tolower(v)
+  if (v_low %in% c("missing","not provided","not applicable","na","n/a","none","unknown",
+                   "unspecified","not collected","not determined","not available")) return(NA_character_)
+  if (v == "") return(NA_character_)
+  v
+}
+
+```
+
+
+### Prepare EHI metadata
+```{r prepare EHI metadata}
+# Prepare EHI metadata into a standardized schema
+prep_ehi_metadata <- function(ehi_raw) {
+  if (is.null(ehi_raw)) return(NULL)
+
+  ehi_raw <- detect_and_rename_genome_size(ehi_raw)
+  ehi_raw <- detect_and_rename_n50(ehi_raw)
+
+  ehi_clean <- ehi_raw %>%
+    mutate(
+      GC = suppressWarnings(as.numeric(str_remove(GC, "%")))
+    ) %>%
+    dplyr::select(
+      any_of(c(
+        "ID","species","completeness","contamination",
+        "genome_size","GC","N50","contigs",
+        "host_species","host_order","host_class",
+        "sample_type","isolation_source","country","locality",
+        "mag_name","eha_number"
+      ))
+    ) %>%
+    mutate(
+      isolation_source = coalesce(isolation_source, sample_type),
+      source = "EHI"
+    ) %>%
+    dplyr::select(-sample_type)
+
+  harmonize_schema(ehi_clean)
+}
+```
+
+
+### Prepare GTDB metadata
+```{r prepare GTDB metadata}
+prep_gtdb_final <- function(gtdb_raw) {
+  if (is.null(gtdb_raw)) return(NULL)
+
+  # Standardize size & N50 labels
+  gtdb_raw <- detect_and_rename_genome_size(gtdb_raw)
+  gtdb_raw <- detect_and_rename_n50(gtdb_raw)
+
+  gtdb_clean <- gtdb_raw %>%
+    # Pick only columns we may need (robust to presence/absence)
+    dplyr::select(dplyr::any_of(c(
+      "ID","accession","gtdb_taxonomy","gtdb_representative",
+      "checkm2_completeness","checkm2_contamination",
+      "genome_size","gc_percentage","N50","n50_contigs",
+      "contigs","contig_count",
+      "ncbi_biosample","country","geo_loc_name",
+      "isolation_source","isolation_source.x","isolation_source_x",
+      "isolation_source.y","isolation_source_y",
+      "host","host_status","disease","diagnosis","host_summary",
+      # latitude/longitude may appear with ENA-style names; keep both
+      "latitude","longitude","geographic location (latitude)","geographic location (longitude)",
+      # environment / context variants
+      "env_broad","env_broad_scale","env_medium","env_local","env_local_scale",
+      "env_local_context","local environmental context",
+      # names with spaces/case variants from ENA
+      "common_name","common name","sample_name","external_id","External Id","submitter_id","Submitter Id",
+      "collection_date"
+    ))) %>%
+    # Normalize N50/contigs if only alt names exist
+    { if (!"N50" %in% names(.) && "n50_contigs" %in% names(.)) dplyr::rename(., N50 = n50_contigs) else . } %>%
+    { if (!"contigs" %in% names(.) && "contig_count" %in% names(.)) dplyr::rename(., contigs = contig_count) else . } %>%
+    # Conditional renames for ENA/GTDB variants (no-op if missing)
+    { if ("env_broad_scale" %in% names(.)) dplyr::rename(., env_broad = `env_broad_scale`) else . } %>%
+    { if ("env_local_scale" %in% names(.)) dplyr::rename(., env_local = `env_local_scale`) else . } %>%
+    { if ("local environmental context" %in% names(.)) dplyr::rename(., env_local_context = `local environmental context`) else . } %>%
+    { if ("common name" %in% names(.)) dplyr::rename(., common_name = `common name`) else . } %>%
+    { if ("External Id" %in% names(.)) dplyr::rename(., external_id = `External Id`) else . } %>%
+    { if ("Submitter Id" %in% names(.)) dplyr::rename(., submitter_id = `Submitter Id`) else . } %>%
+    # Add core source + numeric fields
+    dplyr::mutate(
+      source        = "GTDB",
+      completeness  = .data$checkm2_completeness,
+      contamination = .data$checkm2_contamination,
+      GC            = .data$gc_percentage
+    )
+
+  #  Coalesce isolation_source variants safely (handle dot/underscore suffixes)
+  iso_candidates <- c("isolation_source","isolation_source.x","isolation_source_x",
+                      "isolation_source.y","isolation_source_y")
+  present_iso <- intersect(iso_candidates, names(gtdb_clean))
+  if (length(present_iso) > 0) {
+    # progressive coalesce across present variants
+    iso <- gtdb_clean[[present_iso[1]]]
+    if (length(present_iso) > 1) {
+      for (nm in present_iso[-1]) iso <- dplyr::coalesce(iso, gtdb_clean[[nm]])
+    }
+    gtdb_clean[["isolation_source"]] <- iso
+  }
+
+  # Prefer GTDB 'country', else ENA 'geo_loc_name'
+  if ("geo_loc_name" %in% names(gtdb_clean)) {
+    gtdb_clean[["country"]] <- dplyr::coalesce(gtdb_clean[["country"]], gtdb_clean[["geo_loc_name"]])
+  }
+
+  #  Drop helper/duplicate columns we normalized away
+  gtdb_clean <- gtdb_clean %>%
+    dplyr::select(-dplyr::any_of(c(
+      "checkm2_completeness","checkm2_contamination","gc_percentage",
+      "n50_contigs","contig_count","geo_loc_name",
+      "isolation_source.x","isolation_source_x","isolation_source.y","isolation_source_y"
+    )))
+
+  # Final schema/type harmonization (handles lat/long ENA names, adds missing cols)
+  gtdb_clean <- harmonize_schema(gtdb_clean)
+
+  return(gtdb_clean)
+}
+```
+
+
+### Prepare NCBI metadata
+```{r prepare ncbi metadata}
+# Prepare NCBI metadata into standardized schema
+prep_ncbi_metadata <- function(ncbi_raw) {
+  if (is.null(ncbi_raw)) return(NULL)
+
+  ncbi_raw <- detect_and_rename_genome_size(ncbi_raw)
+  ncbi_raw <- detect_and_rename_n50(ncbi_raw)
+
+  ncbi_clean <- ncbi_raw %>%
+    dplyr::select(
+      dplyr::any_of(c(
+        "accession","completeness","contamination",
+        "genome_size","gc_percent","isolation_source","host",
+        "collection_date","geo_loc_name","N50","contigs","host_disease","host_age"
+      ))
+    ) %>%
+    dplyr::rename(
+      ID = accession,
+      country = geo_loc_name,
+      GC = gc_percent
+    ) %>%
+    dplyr::mutate(
+      source = "NCBI"
+    )
+
+  harmonize_schema(ncbi_clean)
+}
+```
+
+
+
+### Combine metadata sources into genome_metadata
+```{r merge metadata}
+# Combine EHI + GTDB(final) + NCBI into one unified table
+combine_metadata_sources <- function(ehi_clean,
+                                     gtdb_final_clean,
+                                     ncbi_clean) {
+  tables <- list(ehi_clean, gtdb_final_clean, ncbi_clean)
+  tables <- tables[!vapply(tables, is.null, logical(1))]
+
+  if (length(tables) == 0) {
+    # No sources available: return an empty tibble 
+    genome_metadata <- harmonize_schema(tibble::tibble())
+  } else {
+    # Ensure schema per table, then bind
+    tables <- lapply(tables, harmonize_schema)
+    genome_metadata <- dplyr::bind_rows(tables)
+    # One more pass to guarantee presence of all expected columns
+    genome_metadata <- harmonize_schema(genome_metadata)
+  }
+
+  # Safe numeric coercions in columns that exist
+  genome_metadata <- genome_metadata %>%
+  dplyr::mutate(
+    completeness  = if ("completeness"   %in% names(.)) suppressWarnings(as.numeric(completeness))  else NA_real_,
+    contamination = if ("contamination"  %in% names(.)) suppressWarnings(as.numeric(contamination)) else NA_real_,
+    GC            = if ("GC"             %in% names(.)) suppressWarnings(as.numeric(GC))            else NA_real_,
+    genome_size   = if ("genome_size"    %in% names(.)) suppressWarnings(as.numeric(genome_size))   else NA_real_,
+    N50           = if ("N50"            %in% names(.)) suppressWarnings(as.numeric(N50))           else NA_real_,
+    contigs       = if ("contigs"        %in% names(.)) suppressWarnings(as.numeric(contigs))       else NA_real_
+  )
+
+  # Reorder columns if present
+  front_cols <- c(
+    "ID","source","species","gtdb_taxonomy",
+    "host_species","host_order","host_class",
+    "isolation_source","host","host_summary",
+    "country","locality",
+    "completeness","contamination","genome_size","GC","N50","contigs",
+    "collection_date","ncbi_biosample","mag_name","eha_number",
+    "gtdb_representative","mimag_high_quality","mimag_medium_quality",
+    "common_name","sample_name","external_id","submitter_id",
+    "env_broad","env_medium","env_local","env_local_context"
+  )
+  front_cols <- intersect(front_cols, colnames(genome_metadata))
+  genome_metadata <- genome_metadata %>%
+    dplyr::relocate(dplyr::all_of(front_cols), .before = 1)
+
+  if (nrow(genome_metadata) > 0 && all(is.na(genome_metadata$genome_size))) {
+    warning("All genome_size values are NA after merging. Check size mapping.")
+  }
+
+  genome_metadata
+}
+```
+
+
+### Infer host metadata 
+```{r infer host species}
+normalize_species <- function(s) {
+  # Vectorized normalization of binomials
+  s <- as.character(s)
+  s[is.na(s) | s == ""] <- NA_character_
+
+  s_low <- stringr::str_to_lower(s)
+
+  # Canonicalize known synonyms/typos
+  out <- dplyr::case_when(
+    # Dog
+    stringr::str_detect(s_low, "^canis\\s+familiaris$") ~ "Canis lupus familiaris",
+    stringr::str_detect(s_low, "^canis\\s+lupus\\s+familiaris$") ~ "Canis lupus familiaris",
+    stringr::str_detect(s_low, "^mammuthus\\s+primi") ~ "Mammuthus primigenius",
+    TRUE ~ s
+  )
+
+  # Title-case genus, lower species where we have at least two tokens
+  reformat <- function(x) {
+    if (is.na(x) || x == "") return(NA_character_)
+    parts <- strsplit(x, "\\s+")[[1]]
+    if (length(parts) < 2) return(x)
+    paste0(stringr::str_to_title(parts[1]), " ", stringr::str_to_lower(parts[2]))
+  }
+  # Vectorize reformat over 'out'
+  out[] <- vapply(out, reformat, character(1))
+  out
+}
+#----------------------------------------------------------------------------------
+
+# Accept only true-looking Latin binomials and reject common non-species nouns
+is_latin_binomial_strict <- function(x) {
+  x <- as.character(x)
+  ok_shape <- grepl("^[A-Z][a-z]+\\s+[a-z]{3,}$", x)  # Genus species
+  if (!any(ok_shape, na.rm = TRUE)) return(rep(FALSE, length(x)))
+
+  bad_terms <- c(
+    "human","patient","infant","child","adult",
+    "feces","faeces","stool","urine","blood","saliva","swab","swabs",
+    "skin","gut","intestinal","rumen","content","contents",
+    "sample","metagenome","environment","environmental","tissue",
+    "rectal","oral","nasal","throat","vaginal","anal"
+  )
+
+  reject <- rep(FALSE, length(x))
+  ix <- which(ok_shape & !is.na(x))
+  if (length(ix) > 0) {
+    parts <- strsplit(x[ix], "\\s+")
+    for (i in seq_along(ix)) {
+      w <- tolower(parts[[i]])
+      reject[ix[i]] <- any(w %in% bad_terms)
+    }
+  }
+  ok_shape & !reject
+}
+
+
+#----------------------------------------------------------------
+infer_host_metadata <- function(genome_metadata) {
+
+  if (is.null(genome_metadata)) return(NULL)
+
+  # Utility
+  is_blank <- function(x) is.na(x) | x == ""
+  
+  tax_map <- tibble::tibble(
+  host_species = c(
+    # Humans / lab / livestock / pets
+    "Homo sapiens",
+    "Mus musculus",
+    "Rattus norvegicus",
+    "Sus scrofa",
+    "Bos taurus",
+    "Canis lupus familiaris",
+    "Equus caballus",
+    "Oryctolagus cuniculus",
+    "Capra hircus",
+
+    # Birds
+    "Gallus gallus",
+    "Cathartes aura",
+    "Columba livia",
+    "Spheniscus magellanicus",
+
+    # Insects
+    "Drosophila melanogaster",
+    "Bombyx mori",
+
+    # Fish
+    "Danio rerio",
+    "Oncorhynchus mykiss",
+    "Oreochromis niloticus",
+
+    # Marine mammals / pinnipeds
+    "Balaenoptera acutorostrata",
+    "Arctocephalus australis",
+
+    # Extinct
+    "Mammuthus primigenius",
+    
+    #More
+    "Loxodonta africana",
+    "Elephas maximus",
+    "Felis catus",
+    "Canis lupus",
+    "Phascolarctos cinereus",
+    
+    "Grasshopper",
+    "Termite",
+    "Macaca fascicularis",
+    "Rhinolophus capensis",
+    "Fish"
+
+  
+
+
+  ),
+  tax_host_order = c(
+    # Humans / lab / livestock / pets
+    "Primates",
+    "Rodentia",
+    "Rodentia",
+    "Artiodactyla",
+    "Artiodactyla",
+    "Carnivora",
+    "Perissodactyla",
+    "Lagomorpha",
+    "Artiodactyla",
+
+    # Birds
+    "Galliformes",
+    "Accipitriformes",
+    "Columbiformes",
+    "Sphenisciformes",
+
+    # Insects
+    "Diptera",
+    "Lepidoptera",
+
+    # Fish
+    "Cypriniformes",
+    "Salmoniformes",
+    "Cichliformes",
+
+    # Marine mammals / pinnipeds
+    "Artiodactyla",      # (Cetartiodactyla)
+    "Carnivora",
+
+    # Extinct
+    "Proboscidea",
+    
+    #More
+    "Proboscidea",
+    "Proboscidea",
+    "Carnivora",
+    "Carnivora",
+    "Diprotodontia",
+    
+    
+    "Orthoptera",     # Grasshopper
+    "Blattodea",      # Termite (termites now placed within Blattodea; Isoptera as infraorder)
+    "Primates",       # Macaca fascicularis
+    "Chiroptera",     # Rhinolophus capensis (horseshoe bat)
+    NA_character_     # Fish (no single order fits all fish)
+
+
+
+  ),
+  tax_host_class = c(
+    # Humans / lab / livestock / pets
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+
+    # Birds
+    "Aves",
+    "Aves",
+    "Aves",
+    "Aves",
+
+    # Insects
+    "Insecta",
+    "Insecta",
+
+    # Fish
+    "Actinopterygii",
+    "Actinopterygii",
+    "Actinopterygii",
+
+    # Marine mammals / pinnipeds
+    "Mammalia",
+    "Mammalia",
+
+    # Extinct and more
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    
+        
+    "Insecta",        # Grasshopper
+    "Insecta",        # Termite
+    "Mammalia",       # Macaca fascicularis
+    "Mammalia",       # Rhinolophus capensis
+    "Actinopterygii"  # Fish (bony fishes; safe default for generic "fish")
+
+
+
+  )
+)
+  
+
+  # --- 1) Unified host text for pattern matching ---
+  genome_metadata <- genome_metadata %>%
+    dplyr::mutate(
+      host_text = stringr::str_to_lower(
+        stringr::str_squish(
+          paste(
+            dplyr::coalesce(.data$host_species, ""),
+            dplyr::coalesce(.data$host, ""),
+            dplyr::coalesce(.data$isolation_source, ""),
+            dplyr::coalesce(.data$env_broad, ""),
+            dplyr::coalesce(.data$env_local_context, ""),
+            sep = " ; "
+          )
+        )
+      )
+    )
+
+  # --- 2) Common-name / phrase heuristics (vectorized) ---
+  guess_from_common <- function(txt) {
+    dplyr::case_when(
+      # Exact species mentions / synonyms
+      stringr::str_detect(txt, "\\barctocephalus australis\\b|\\bfur seal\\b|south american fur seal") ~ "Arctocephalus australis",
+      stringr::str_detect(txt, "\\bbalaenoptera acutorostrata\\b|\\bminke whale\\b") ~ "Balaenoptera acutorostrata",
+      stringr::str_detect(txt, "\\bspheniscus magellanicus\\b|\\bmagellanic penguin\\b|\\bpenguin\\b") ~ "Spheniscus magellanicus",
+
+      
+ #Elephants
+    stringr::str_detect(txt, "\\basian elephant\\b") ~ "Elephas maximus",
+    stringr::str_detect(txt, "\\bafrican elephant\\b") ~ "Loxodonta africana",
+    stringr::str_detect(txt, "\\belephants?\\b") ~ "Loxodonta africana",  # default choice
+    #cats
+    stringr::str_detect(txt, "\\b(cat|cats|kitten|kittens|feline|house\\s*cat)\\b") ~ "Felis catus",
+    stringr::str_detect(txt, "\\bfelis\\s+catus\\b") ~ "Felis catus",
+
+    # dogs 
+    stringr::str_detect(txt, "\\b(dog|dogs|puppy|puppies|canine|pet\\s*dog)\\b") ~ "Canis lupus familiaris",
+    stringr::str_detect(txt, "\\bcanis\\s+lupus\\s+familiaris\\b|\\bcanis\\s+familiaris\\b") ~ "Canis lupus familiaris",
+
+    # gray wolf (wild Canis lupus) ---
+    stringr::str_detect(txt, "\\bcanis\\s+lupus\\b|\\bgray\\s*wolf\\b|\\bgrey\\s*wolf\\b|\\bwolf\\b") ~ "Canis lupus",
+ 
+ #grasshopper
+   stringr::str_detect(txt, "\\bgrasshopper\\b|\\blocust\\b|\\blocusts\\b") ~ "Grasshopper",
+
+ 
+      stringr::str_detect(txt, "\\brabbit\\b|\\bbunny\\b|\\bbunnies\\b|\\blagomorph\\b") ~ "Oryctolagus cuniculus",
+      stringr::str_detect(txt, "\\bpigeon\\b|\\bdove\\b") ~ "Columba livia",
+      stringr::str_detect(txt, "\\bequine\\b|\\bhorse\\b|\\bfoal\\b") ~ "Equus caballus",
+      stringr::str_detect(txt, "\\bcattle\\b|\\bbovine\\b|\\bcow\\b|\\bcows\\b") ~ "Bos taurus",
+      stringr::str_detect(txt, "\\bgoat\\b|\\bcaprine\\b|\\bkid\\b") ~ "Capra hircus",
+      stringr::str_detect(txt, "\\bpiglet\\b|\\bpiglets\\b|\\bpig\\b|\\bswine\\b|\\bporcine\\b") ~ "Sus scrofa",
+      stringr::str_detect(txt, "\\bmammoth\\b|malolyakovskiy\\s+mammoth") ~ "Mammuthus primigenius",
+
+      # Existing helpful ones
+      stringr::str_detect(txt, "homo sapiens|\\bhuman\\b|patient|adult|child|infant") ~ "Homo sapiens",
+      stringr::str_detect(txt, "mus musculus|\\bmouse\\b|\\bmice\\b|murine") ~ "Mus musculus",
+      stringr::str_detect(txt, "\\brattus|\\brat\\b") ~ "Rattus norvegicus",
+      stringr::str_detect(txt, "sus scrofa|porcine|\\bpig\\b|swine") ~ "Sus scrofa",
+      stringr::str_detect(txt, "bos taurus|bovine|\\bcow\\b|cattle") ~ "Bos taurus",
+      stringr::str_detect(txt, "canis lupus familiaris|canis familiaris|\\bdog\\b|canine") ~ "Canis lupus familiaris",
+      stringr::str_detect(txt, "gallus gallus|\\bchicken\\b|poultry") ~ "Gallus gallus",
+      stringr::str_detect(txt, "bombyx mori|silkworm") ~ "Bombyx mori",
+      stringr::str_detect(txt, "drosophila|fruit fly") ~ "Drosophila melanogaster",
+      stringr::str_detect(txt, "danio rerio|zebrafish") ~ "Danio rerio",
+      stringr::str_detect(txt, "oncorhynchus mykiss") ~ "Oncorhynchus mykiss",
+      stringr::str_detect(txt, "oreochromis niloticus") ~ "Oreochromis niloticus",
+ 
+     stringr::str_detect(txt, "\\btermite(s)?\\b") ~ "Termite",
+    
+        # Macaca fascicularis (Latin or common names) ---
+        stringr::str_detect(txt, "\\bmacaca\\s+fascicularis\\b|\\bcynomolgus\\b|\\bcrab[-]eating\\s+macaque\\b|\\bmacaque\\b") ~ "Macaca fascicularis",
+    
+        # Rhinolophus capensis (Latin or common name) ---
+        stringr::str_detect(txt, "\\brhinolophus\\s+capensis\\b|\\brhinolopus\\s+capensis\\b|\\bcape\\s+horseshoe\\s+bat\\b|\\bhorseshoe\\s+bat\\b") ~ "Rhinolophus capensis",
+    
+        # Generic fish catch-all  ---
+        stringr::str_detect(txt, "\\bfish\\b|\\bfishes\\b") ~ "Fish",
+      TRUE ~ NA_character_
+    )
+  }
+
+  genome_metadata <- genome_metadata %>%
+    dplyr::mutate(.common_guess = guess_from_common(.data$host_text))
+
+  # --- 3) Extract explicit Latin binomial (strict) as a later fallback ---
+  extract_latin_binomial_strict <- function(x) {
+    x <- x[!is.na(x)]
+    if (length(x) == 0) return(NA_character_)
+    txt <- paste(x, collapse = " ; ")
+    txt <- stringr::str_replace_all(txt, "[^A-Za-z ]+", " ")
+    txt <- stringr::str_squish(txt)
+    matches <- unlist(stringr::str_extract_all(
+      txt, "\\b[A-Z][a-z]+\\s+[a-z]{3,}\\b"
+    ))
+    if (length(matches) == 0) return(NA_character_)
+    valid <- matches[is_latin_binomial_strict(matches)]
+    if (length(valid) == 0) return(NA_character_)
+    valid[1]
+  }
+
+  genome_metadata <- genome_metadata %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      .binom_guess = extract_latin_binomial_strict(c(
+        as.character(.data$host_species),
+        as.character(.data$host),
+        as.character(.data$isolation_source),
+        as.character(.data$env_broad),
+        as.character(.data$env_local_context)
+      ))
+    ) %>%
+    dplyr::ungroup()
+
+  # --- 4) Decide host_species (trust valid binomial, then common-name, then binomial guess) ---
+  bad_terms <- "(feces|faeces|stool|urine|blood|saliva|swab|swabs|skin|gut|intestinal|rumen|content|contents|sample|metagenome|environment|environmental|patient|infant|adult|child|rectal|oral|nasal|throat|vaginal|anal)"
+
+  genome_metadata <- genome_metadata %>%
+    dplyr::mutate(
+      host_species = dplyr::if_else(
+        is_latin_binomial_strict(.data$host_species) &
+          !stringr::str_detect(stringr::str_to_lower(.data$host_species), bad_terms),
+        normalize_species(.data$host_species),
+        NA_character_
+      ),
+      host_species = dplyr::case_when(
+        !is_blank(.data$host_species) ~ .data$host_species,
+        !is_blank(.data$.common_guess) ~ normalize_species(.data$.common_guess),  # PRIORITIZE common-name mapping
+        !is_blank(.data$.binom_guess)  ~ normalize_species(.data$.binom_guess),  # then extracted binomial
+        TRUE ~ .data$host_species
+      )
+    )
+
+  # --- 5) Join to fill order/class from dictionary ---
+  genome_metadata <- genome_metadata %>%
+    dplyr::left_join(tax_map, by = "host_species") %>%
+    dplyr::mutate(
+      host_order = dplyr::coalesce(.data$host_order, .data$tax_host_order),
+      host_class = dplyr::coalesce(.data$host_class, .data$tax_host_class)
+    ) %>%
+    dplyr::select(-dplyr::any_of(c("tax_host_order","tax_host_class")))
+
+  # --- 6) host_type ---
+  genome_metadata <- genome_metadata %>%
+    dplyr::mutate(
+      host_type = dplyr::case_when(
+        .data$host_species == "Homo sapiens" ~ "human",
+        !is_blank(.data$host_species) ~ "animal",
+        TRUE ~ NA_character_
+      )
+    )
+
+  # Cleanup helpers
+  genome_metadata <- genome_metadata %>%
+    dplyr::select(-dplyr::any_of(c(".common_guess",".binom_guess","host_text")))
+
+  return(genome_metadata)
+}
+```
+
+
+### Normalize country and infer continent
+```{r normalize_country}
+# Normalize country names and assign continents
+normalize_country_fields <- function(genome_metadata) {
+  if (is.null(genome_metadata)) return(NULL)
+
+  # Be explicit about packages used
+  # library(dplyr); library(stringr); library(countrycode)
+
+  # 1) Simplify country strings like "Country: region"
+  genome_metadata <- genome_metadata %>%
+    dplyr::mutate(
+      country_simple = stringr::str_trim(
+        stringr::str_split_fixed(dplyr::coalesce(.data$country, ""), ":", 2)[, 1]
+      ),
+      country_simple = dplyr::na_if(.data$country_simple, "")
+    )
+
+  # 2) Normalization map for common ENA/NCBI variants (patterns in lower-case)
+  country_map <- c(
+    "usa" = "United States", "u\\.s\\." = "United States",
+    "u\\.s\\.a\\." = "United States", "united states of america" = "United States",
+    "uk" = "United Kingdom", "u\\.k\\." = "United Kingdom",
+    "great britain" = "United Kingdom", "england" = "United Kingdom",
+    "scotland" = "United Kingdom", "wales" = "United Kingdom",
+    "northern ireland" = "United Kingdom",
+    "korea,? republic of" = "South Korea", "republic of korea" = "South Korea",
+    "south korea" = "South Korea", "korea,? \\(south\\)" = "South Korea",
+    "pr china" = "China", "p\\.r\\. china" = "China",
+    "russian federation" = "Russia", "czech republic" = "Czechia",
+    "swaziland" = "Eswatini", "cote d['’]ivoire" = "Côte d’Ivoire",
+    "democratic republic of the congo" = "DR Congo",
+    "viet nam" = "Vietnam", "myanmar \\(burma\\)" = "Myanmar",
+    "bolivia \\(plurinational state of\\)" = "Bolivia",
+    "iran,? islamic republic of" = "Iran",
+    "syrian arab republic" = "Syria",
+    "moldova,? republic of" = "Moldova",
+    "lao people'?s democratic republic" = "Laos",
+    "macedonia,? the former yugoslav republic of" = "North Macedonia",
+    "palestine,? state of" = "Palestine",
+    "hong kong" = "Hong Kong",
+    "macau|macao" = "Macau"
+  )
+
+  normalize_country <- function(x) {
+    # Always return character
+    y <- stringr::str_trim(tolower(dplyr::coalesce(as.character(x), "")))
+    y[y == ""] <- NA_character_
+
+    if (length(y)) {
+      for (pat in names(country_map)) {
+        repl <- country_map[[pat]]
+        # Use ^...$ to only replace whole-string matches after lowercasing
+        y <- ifelse(!is.na(y),
+                    stringr::str_replace_all(y, paste0("^", pat, "$"), repl),
+                    y)
+      }
+      # Minor tidy-ups
+      y <- ifelse(!is.na(y), stringr::str_replace_all(y, "\\s+", " "), y)
+      y <- ifelse(y == "people's republic of china", "China", y)
+
+      # Title-case anything still not mapped
+      y <- ifelse(!is.na(y), stringr::str_to_title(y), y)
+    }
+    return(as.character(y))
+  }
+
+  # 3) Produce normalized country + continent (force character vector into countrycode)
+  genome_metadata <- genome_metadata %>%
+    dplyr::mutate(
+      country_normalized = normalize_country(.data$country_simple),
+      continent = countrycode::countrycode(
+        sourcevar    = as.character(.data$country_normalized),
+        origin       = "country.name",
+        destination  = "continent",
+        warn         = FALSE
+      )
+    )
+
+  return(genome_metadata)
+}
+```
+
+
+### Filter species that don't belong and remove duplicate MAGs
+```{r filtering_deduplication}
+# Remove non-species MAGs and deduplicate genomes by quality,
+#  merge GCA/GCF duplicates (keep GCF; merge metadata).
+
+filter_species_MAGs <- function(genome_metadata,
+                                genome_annotations,
+                                mags_to_remove,
+                                match_on_version = TRUE) {
+  if (is.null(genome_metadata) || is.null(genome_annotations)) {
+    stop("Both genome_metadata and genome_annotations must be provided.")
+  }
+
+  # ---------------------------
+  # Helpers
+  # ---------------------------
+
+  # Remove extensions and directories
+  clean_label <- function(x) {
+    x <- basename(x)
+    sub("\\.(fna|fa|fasta)(\\.gz)?$", "", x, ignore.case = TRUE)
+  }
+
+  # Extract (GCA|GCF) and numeric core (e.g., 015667075.1) from an ID
+  # Handles optional GB_/RS_ prefixes; returns NA when not matching.
+  extract_accession_fields <- function(id_vec, match_on_version = TRUE) {
+    id_vec <- clean_label(id_vec)
+    core_re <- if (match_on_version) "(\\d+(?:\\.\\d+)?)" else "(\\d+)"
+    pat <- paste0("^(?:GB_|RS_)?(GC[AF])_", core_re, "$")
+
+    matched <- grepl(pat, id_vec, perl = TRUE)
+    acc_type <- ifelse(matched, sub(pat, "\\1", id_vec, perl = TRUE), NA_character_)
+    acc_core <- ifelse(matched, sub(pat, "\\2", id_vec, perl = TRUE), NA_character_)
+
+    data.frame(acc_type = acc_type, acc_core = acc_core, stringsAsFactors = FALSE)
+  }
+
+  # First non-NA helper (after we normalize empty "" to NA for characters)
+  first_non_na <- function(x) {
+    idx <- which(!is.na(x))
+    if (length(idx)) x[idx[1]] else NA
+  }
+
+  # Normalize empty strings to NA for character columns
+  na_if_empty_chars <- function(df) {
+    df %>%
+      mutate(across(where(is.character), ~ na_if(., "")))
+  }
+
+  # ---------------------------
+  # Standardize removal list
+  # ---------------------------
+  mags_to_remove_clean <- clean_label(mags_to_remove)
+
+  # ---------------------------
+  # 1) Preprocess genome_metadata
+  # ---------------------------
+  has_comp    <- "completeness"  %in% names(genome_metadata)
+  has_cont    <- "contamination" %in% names(genome_metadata)
+  has_contigs <- "contigs"       %in% names(genome_metadata)
+
+  gm0 <- genome_metadata %>%
+    mutate(ID_clean = clean_label(ID)) %>%
+    # Make factors safe to merge
+    mutate(across(where(is.factor), as.character)) %>%
+    na_if_empty_chars()
+
+  # Remove wrong-species MAGs
+  gm0 <- gm0 %>%
+    filter(!ID_clean %in% mags_to_remove_clean)
+
+  # Add accession parse fields
+  acc <- extract_accession_fields(gm0$ID_clean, match_on_version = match_on_version)
+  gm1 <- gm0 %>%
+    mutate(acc_type = acc$acc_type,
+           acc_core = acc$acc_core)
+
+  # Split into accessioned (GCA/GCF) and other IDs
+  gm_acc  <- gm1 %>% filter(!is.na(acc_core))
+  gm_other <- gm1 %>% filter(is.na(acc_core))
+
+  # For ordering by quality
+  gm_acc <- gm_acc %>%
+    mutate(
+      completeness  = if (has_comp)    suppressWarnings(as.numeric(completeness))  else NA_real_,
+      contamination = if (has_cont)    suppressWarnings(as.numeric(contamination)) else NA_real_,
+      contigs       = if (has_contigs) suppressWarnings(as.numeric(contigs))       else NA_real_
+    )
+
+  # Collapse GCA/GCF duplicates by acc_core:
+  # - Prefer GCF over GCA if present
+  # - Within type, prefer higher completeness, lower contamination, fewer contigs
+  # - Per column, take first non-NA after ordering (merges metadata)
+  gm_acc_collapsed <- gm_acc %>%
+    group_by(acc_core) %>%
+    group_modify(function(df, key) {
+      # Prefer GCF if present
+      prefer_gcf <- any(df$acc_type == "GCF")
+      pref_rank <- if (prefer_gcf) ifelse(df$acc_type == "GCF", 0L, 1L) else 0L
+
+      # Order rows by (preference, quality)
+      ord <- order(
+        pref_rank,
+        -ifelse(is.na(df$completeness), -Inf, df$completeness),
+        ifelse(is.na(df$contamination), Inf, df$contamination),
+        ifelse(is.na(df$contigs), Inf, df$contigs),
+        na.last = TRUE
+      )
+      dfo <- df[ord, , drop = FALSE]
+
+      # Summarize to one row by taking first non-NA per column
+      # (ID will become the preferred row's ID; metadata merged)
+      out <- dfo %>%
+        summarise(across(everything(), first_non_na), .groups = "drop")
+
+      out
+    }) %>%
+    ungroup()
+
+  # For non-accessioned rows: fall back to your quality-based dedup by ID_clean
+  if (nrow(gm_other) > 0) {
+    gm_other <- gm_other %>%
+      mutate(
+        completeness  = if (has_comp)    suppressWarnings(as.numeric(completeness))  else NA_real_,
+        contamination = if (has_cont)    suppressWarnings(as.numeric(contamination)) else NA_real_,
+        contigs       = if (has_contigs) suppressWarnings(as.numeric(contigs))       else NA_real_
+      ) %>%
+      arrange(
+        ID_clean,
+        desc(if (has_comp) completeness else 0),
+        (if (has_cont) contamination else 0),
+        (if (has_contigs) contigs else Inf)
+      ) %>%
+      distinct(ID_clean, .keep_all = TRUE)
+  }
+
+  # Combine collapsed accessioned rows and deduped others
+  genome_metadata_dedup <- bind_rows(gm_acc_collapsed, gm_other) %>%
+    # Drop temp fields
+    dplyr::select(-ID_clean, -acc_type, -acc_core)
+
+  # ---------------------------
+  # 2) Filter genome_annotations to match remaining genomes
+  # ---------------------------
+
+  ga0 <- genome_annotations %>%
+    mutate(genome_clean = clean_label(genome))
+
+  # Remove wrong-species MAGs
+  genome_annotations_filtered <- ga0 %>%
+    filter(!genome_clean %in% mags_to_remove_clean)
+
+  # Keep only genomes still present in metadata (after GCF/GCA merge)
+  valid_genomes <- clean_label(genome_metadata_dedup$ID)
+
+  genome_annotations_filtered <- genome_annotations_filtered %>%
+    filter(genome_clean %in% valid_genomes) %>%
+    dplyr::select(-genome_clean)
+
+  # ---------------------------
+  # 3) Return cleaned objects
+  # ---------------------------
+  list(
+    metadata    = genome_metadata_dedup,
+    annotations = genome_annotations_filtered
+  )
+}
+```
+
+
+### Process one species
+```{r process_one_species}
+process_one_species <- function(species, mags_to_remove = character(0)) {
+  files <- load_species_files(species)
+
+  ehi  <- prep_ehi_metadata(files$ehi_metadata)
+  gtdb <- prep_gtdb_final(files$gtdb_final)
+  ncbi <- prep_ncbi_metadata(files$ncbi_metadata)
+
+  meta <- combine_metadata_sources(ehi, gtdb, ncbi) %>%
+    infer_host_metadata() %>%
+    normalize_country_fields()   
+
+  if (is.null(files$contig_map) || is.null(files$gene_annotations)) {
+    warning(sprintf(
+      "[%s] Missing %s; returning metadata only.",
+      species,
+      if (is.null(files$contig_map) && is.null(files$gene_annotations)) "contig_map and gene_annotations"
+      else if (is.null(files$contig_map)) "contig_map"
+      else "gene_annotations"
+    ))
+    return(list(metadata = meta, annotations = NULL))
+  }
+
+  ann <- prep_gene_annotations_with_genome(
+    ann_raw        = files$gene_annotations,
+    contig_map_raw = files$contig_map
+  )
+
+  cleaned <- filter_species_MAGs(
+    genome_metadata    = meta,
+    genome_annotations = ann,
+    mags_to_remove     = mags_to_remove
+  )
+
+  cleaned
+}
+  
+```
+
+```{r COME BACK}
+# sp <- "lactococcus_lactis"
+# res <- process_one_species(sp)
+# 
+# genome_metadata <- res$metadata
+# 
+# write_tsv(genome_metadata, "data/mags_metadata/lactococcus_lactis_FINAL_metadata.tsv")
+```
+
+
+
+## DREP ANALYSIS
+
+### Recreating the drep tree
+Checking for outliers 
+
+```{r recreate_drep_tree}
+## Function to recreate the drep tree from the secondary alignment (FASTANI)
+
+recreate_drep_tree <- function(ndb){
+  genomes <- unique(c(ndb$reference, ndb$querry))
+
+# Create empty matrix
+ani_matrix <- matrix(0, nrow = length(genomes), ncol = length(genomes))
+rownames(ani_matrix) <- genomes
+colnames(ani_matrix) <- genomes
+
+# Fill the matrix
+for(i in 1:nrow(ndb)) {
+  ref <- ndb$reference[i]
+  qry <- ndb$querry[i]
+  ani_val <- ndb$ani[i]
+  
+  ani_matrix[ref, qry] <- ani_val
+  ani_matrix[qry, ref] <- ani_val  # Make symmetric
+}
+
+# Set diagonal to 100
+diag(ani_matrix) <- 100
+
+# Convert to distance matrix (for tree building)
+dist_matrix <- as.dist(1 - ani_matrix)
+
+# Build tree
+hc <- hclust(dist_matrix, method = "average") #drep uses hierarchical clustering
+tree <- as.phylo(hc)
+
+ggtree(tree) + 
+  geom_tiplab(size = 2) +
+  theme_tree2()
+  
+}
+  
+  
+
+```
+
+
+```{r drep_tree_test, fig.height = 10, fig.width = 12}
+ndb <- read_csv("data/mags_metadata/phocaeicola_vulgatus_Ndb.csv") 
+recreate_drep_tree(ndb)
+```
+
+
+### Drep final tree, matrix and plots
+```{r drep_tree_metadata}
+# helper: strip file extensions so IDs match metadata
+clean_label <- function(x) {
+  x <- basename(x)
+  sub("\\.(fna|fa|fasta)(\\.gz)?$", "", x, ignore.case = TRUE)
+}
+
+
+##### Drep tree metadata ---------------------------------------------------------------------------------
+drep_tree_metadata <- function(genome_metadata = genome_metadata, ndb =ndb, drop_ids = character(0)){
+  metadata <- genome_metadata
+  id_col   <- "ID" 
+  
+  fastani <- ndb %>%
+  dplyr::select(reference, querry, ani) %>%
+  dplyr::filter(!is.na(reference), !is.na(querry), reference != querry)
+
+  # Clean IDs to remove extensions
+  fastani <- fastani %>%
+    dplyr::mutate(
+      reference = clean_label(reference),
+      querry     = clean_label(querry)
+    ) %>%
+    dplyr::filter(reference != querry)
+  
+  # Remove duplicate pairs (keep the max ANI per pair)
+  fastani <- fastani %>%
+    dplyr::group_by(reference, querry) %>%
+    dplyr::summarise(ani = max(ani), .groups = "drop")
+
+  # Optionally drop genomes (IDs without suffix)
+  if (length(drop_ids) > 0) {
+    fastani <- fastani %>%
+      dplyr::filter(!reference %in% drop_ids, !querry %in% drop_ids)
+  }
+  
+  # Build a symmetric ANI matrix with diag = 1 (dedup-safe)
+    genomes <- sort(unique(c(fastani$reference, fastani$querry)))
+  
+    both <- dplyr::bind_rows(
+      fastani %>% dplyr::transmute(reference, querry, ani),
+      fastani %>% dplyr::transmute(reference = querry, querry = reference, ani)
+    ) %>%
+      dplyr::distinct(reference, querry, .keep_all = TRUE)
+  
+    ani_mat <- both %>%
+      tidyr::complete(reference = genomes, querry = genomes) %>%
+      tidyr::pivot_wider(
+        names_from  = querry,
+        values_from = ani,
+        values_fn   = max  # <-- ensure no duplicate cells cause errors
+      ) %>%
+      tibble::column_to_rownames("reference") %>%
+      as.matrix()
+  
+    diag(ani_mat) <- 1
+
+    
+    # Build the tree (UPGMA/average as in dRep)
+      dist_mat <- 1 - ani_mat
+      hc <- hclust(as.dist(dist_mat), method = "average")
+      tree <- ape::as.phylo(hc)
+
+    # De-duplicate metadata by ID and clean ID if needed
+      metadata_dedup <- metadata %>%
+      dplyr::mutate(!!id_col := clean_label(.data[[id_col]])) %>%  # safe if already clean
+      dplyr::distinct(.data[[id_col]], .keep_all = TRUE)
+    
+    # Add metadata to tips (tree labels are already clean IDs)
+       stopifnot(id_col %in% names(metadata_dedup))
+      
+        tip_df <- tibble::tibble(label = tree$tip.label) %>%
+        dplyr::left_join(metadata_dedup, by = setNames(id_col, "label")) %>%
+        dplyr::mutate(label_clean = label) 
+        
+        
+       return(list(
+      tree = tree,
+      tip_df = tip_df,
+      ani_matrix = ani_mat
+    ))
+  
+}
+
+  
+
+####-----------------------------------------------------------------------------------------
+
+# Helper for ANI axis labels (unchanged)
+ani_axis <- function(p, tree, show_threshold = NULL) {
+  df <- ggtree::fortify(tree)
+  max_x <- max(df$x[df$isTip])
+  p <- p +
+    scale_x_continuous(
+      labels = function(x) round(100 * (1 - (max_x - x)), 1)
+    ) +
+    coord_cartesian(xlim = c(0, max_x + 0.005)) +
+    labs(x = "Average Nucleotide Identity (ANI, %)") +
+    theme_tree2()
+  if (!is.null(show_threshold)) {
+    thr_delta <- 1 - (show_threshold / 100)
+    p <- p + geom_vline(xintercept = max_x - thr_delta,
+                        linetype = "dashed", color = "red", size = 0.8)
+  }
+  p
+}
+
+
+### --------------PLOTS ----------------------------------------
+# - BASIC PLOT --
+plot_tree_basic <- function(tree, tip_df, color_by = NULL, label_tips = TRUE,
+                            point_size = 2.5, show_threshold = NULL) {
+  # ensure completeness numeric for continuous gradients
+  if ("completeness" %in% names(tip_df)) {
+    tip_df <- tip_df %>% dplyr::mutate(completeness = as.numeric(completeness))
+  }
+
+  p <- ggtree(tree, size = 0.8)
+  p <- p %<+% tip_df
+
+  if (!is.null(color_by) && color_by %in% names(tip_df)) {
+    p <- p + geom_tippoint(aes(color = !!rlang::sym(color_by)), size = point_size)
+
+    # Palette/scale logic
+    if (identical(color_by, "source") && exists("source_colors")) {
+      p <- p + scale_color_manual(values = source_colors, name = "Source", drop = FALSE)
+    } else if (identical(color_by, "host_order") && exists("host_order_colors")) {
+      p <- p + scale_color_manual(values = host_order_colors, name = "Host order", drop = FALSE)
+    } else if (is.numeric(tip_df[[color_by]])) {
+      p <- p + scale_color_gradient(low = "white", high = "#08306B",
+                                    name = paste0(color_by, " (%)"))
+    }
+  } else {
+    p <- p + geom_tippoint(size = point_size)
+  }
+
+  if (label_tips) {
+    lab_col <- if ("label_clean" %in% names(tip_df)) "label_clean" else "label"
+    p <- p + geom_tiplab(size = 3, hjust = -0.1, aes(label = .data[[lab_col]]))
+  }
+
+  ani_axis(p, tree, show_threshold = show_threshold)
+}
+
+```
+
+
+```{r checking tree}
+sp <- "phocaeicola_vulgatus"
+res <- process_one_species(sp)
+
+genome_metadata <- res$metadata
+```
+```{r testing phocaeicola, fig.height= 30, fig.width = 10}
+phocaeicola_results <- drep_tree_metadata(genome_metadata, ndb, drop_ids = c("GCA_040912025.1", "GCF_048453085.1", "GCA_048453085.1"))
+
+tree <- phocaeicola_results$tree
+tip_df <- phocaeicola_results$tip_df
+ani_matrix <- phocaeicola_results$ani_matrix
+
+
+p_host_order <- plot_tree_basic(tree, tip_df, color_by = "host_order",
+                          label_tips = TRUE, show_threshold = 99.5)
+p_host_order
+
+```
+
+### PERMANOVA, PcoA
+
+```{r functions for drep analysis}
+#-------------1) Filter out unkown host type ------------------
+filter_metadata <- function(tip_df) {
+  tip_df %>%
+    dplyr::filter(!is.na(host_type) & host_type != "")
+}
+
+#-------------2) Subset and align (same order) ------------------
+subset_and_align_ani <- function(ani_matrix, meta_df) {
+  keep_ids <- intersect(rownames(ani_matrix), meta_df$label)
+  
+  ani_mat_f <- ani_matrix[keep_ids, keep_ids, drop = FALSE]
+  
+  meta_f <- meta_df %>%
+    dplyr::filter(label %in% keep_ids) %>%
+    dplyr::arrange(match(label, rownames(ani_mat_f)))
+  
+  stopifnot(identical(meta_f$label, rownames(ani_mat_f)))
+  
+  list(ani = ani_mat_f, meta = meta_f)
+}
+
+#-------------3) Run PERMANOVA ------------------
+run_permanova <- function(dist_mat, meta_f) {
+  set.seed(1)
+  ad <- vegan::adonis2(dist_mat ~ host_type, data = meta_f, permutations = 999)
+  bd <- vegan::betadisper(dist_mat, meta_f$host_type)
+  list(adonis = ad, dispersion = anova(bd))
+}
+
+#-------------4) Run PCOA ------------------
+run_pcoa <- function(dist_mat, meta_f) {
+  pcoa_res <- ape::pcoa(dist_mat)
+  data.frame(
+    PC1 = pcoa_res$vectors[, 1],
+    PC2 = pcoa_res$vectors[, 2],
+    host_type = meta_f$host_type,
+    host_order = meta_f$host_order
+  )
+}
+
+#-------------5) Plots PCOA ------------------
+plot_pcoa_host_type <- function(pcoa_df, host_type_colors) {
+  ggplot2::ggplot(pcoa_df, ggplot2::aes(PC1, PC2, color = host_type)) +
+    ggplot2::geom_point(size = 2, alpha = 0.9) +
+    ggplot2::scale_color_manual(values = host_type_colors, name = "Host type") +
+    ggplot2::theme_minimal(base_size = 12) +
+    ggplot2::labs(title = "PCoA of ANI distances (filtered to known host_type)")
+}
+
+plot_pcoa_host_order <- function(pcoa_df, host_order_colors) {
+  ggplot2::ggplot(pcoa_df, ggplot2::aes(PC1, PC2, color = host_order)) +
+    ggplot2::geom_point(size = 2, alpha = 0.9) +
+    ggplot2::scale_color_manual(values = host_order_colors, name = "Host order") +
+    ggplot2::theme_minimal(base_size = 12) +
+    ggplot2::labs(title = "PCoA of ANI distances")
+}
+
+#-------------5) Pairwise ANI ------------------
+pairwise_ani <- function(ani_mat_f, meta_f) {
+  ani_mat_f %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column("ref") %>%
+    tidyr::pivot_longer(-ref, names_to = "qry", values_to = "ani") %>%
+    dplyr::filter(ref < qry) %>%  # unique pairs
+    dplyr::mutate(
+      ref_host = meta_f$host_type[match(ref, meta_f$label)],
+      qry_host = meta_f$host_type[match(qry, meta_f$label)],
+      pair_type = dplyr::case_when(
+        ref_host == "human"  & qry_host == "human"  ~ "human–human",
+        ref_host == "animal" & qry_host == "animal" ~ "animal–animal",
+        TRUE ~ "animal–human"
+      )
+    )
+}
+
+
+#-------------6) Plot pairwise ANI boxplot ------------------
+plot_pairwise_boxplot <- function(ani_long_f) {
+  ggplot2::ggplot(ani_long_f, ggplot2::aes(pair_type, ani, fill = pair_type)) +
+    ggplot2::geom_boxplot(outlier_size = 0.5, width = 0.7) +
+    ggplot2::scale_fill_viridis_d(guide = "none") +
+    ggplot2::theme_minimal(base_size = 12) +
+    ggplot2::labs(x = NULL, y = "ANI", title = "Within- and between-group ANI (known host_type only)")
+}
+
+
+#-------------7) Wilcoxon tests ------------------
+wilcox_within <- function(ani_long_f) {
+  subset_within <- ani_long_f %>%
+    dplyr::filter(pair_type %in% c("animal–animal", "human–human"))
+
+  wt <- stats::wilcox.test(ani ~ pair_type, data = subset_within, exact = FALSE)
+
+  summary_df <- subset_within %>%
+    dplyr::group_by(pair_type) %>%
+    dplyr::summarise(n = dplyr::n(), median_ani = stats::median(ani), .groups = "drop")
+
+  list(test = wt, summary = summary_df)
+}
+
+wilcox_cross_vs_within <- function(ani_long_f) {
+  # Compare cross-host to pooled within (animal–animal + human–human)
+  df <- ani_long_f %>%
+    dplyr::mutate(is_cross = ifelse(pair_type == "animal–human", "cross", "within"))
+
+  wt <- stats::wilcox.test(ani ~ is_cross, data = df, exact = FALSE, alternative = "less")
+  # 'less' tests if cross < within (lower ANI between hosts)
+
+  summary_df <- df %>%
+    dplyr::group_by(is_cross) %>%
+    dplyr::summarise(n = dplyr::n(), median_ani = stats::median(ani), .groups = "drop")
+
+  list(test = wt, summary = summary_df)
+}
+
+
+
+#----------------------------------------------------#
+
+#-------------- DREP STATS ANALYSIS ------------------
+# combines the functions above into a big one
+
+
+drep_stat_analysis <- function(tip_df, ani_matrix, host_type_colors, host_order_colors) {
+  tip_df_f <- tip_df %>%
+    dplyr::filter(!is.na(host_type) & host_type != "")
+
+  aligned <- subset_and_align_ani(ani_matrix, tip_df_f)
+  ani_mat_f <- aligned$ani
+  meta_f <- aligned$meta
+
+  if (is.factor(meta_f$host_type)) meta_f$host_type <- droplevels(meta_f$host_type)
+
+  dist_mat_f <- stats::as.dist(1 - ani_mat_f)
+
+  permanova_results <- run_permanova(dist_mat_f, meta_f)
+
+  pcoa_df <- run_pcoa(dist_mat_f, meta_f)
+  pcoa_host_type_plot <- plot_pcoa_host_type(pcoa_df, host_type_colors)
+  pcoa_host_order_plot <- plot_pcoa_host_order(pcoa_df, host_order_colors)
+
+  ani_long_f <- pairwise_ani(ani_mat_f, meta_f)
+  boxplot_pairs <- plot_pairwise_boxplot(ani_long_f)
+
+  w_within <- wilcox_within(ani_long_f)
+  w_cross  <- wilcox_cross_vs_within(ani_long_f)
+
+  list(
+    filtered_metadata = meta_f,
+    ani = ani_mat_f,
+    dist = dist_mat_f,
+    permanova = permanova_results,
+    pcoa = list(data = pcoa_df,
+                by_host_type = pcoa_host_type_plot,
+                by_host_order = pcoa_host_order_plot),
+    pairwise = list(data = ani_long_f,
+                    boxplot = boxplot_pairs,
+                    wilcox_within = w_within,
+                    wilcox_cross_vs_within = w_cross)
+  )
+}
+```
+
+
+```{r testing drep_stat_analysis function}
+res <- drep_stat_analysis(
+  tip_df = tip_df,
+  ani_matrix = ani_matrix,
+  host_type_colors = host_type_colors,
+  host_order_colors = host_order_colors
+)
+
+# Print stats
+res$permanova$adonis
+res$permanova$dispersion
+res$pairwise$wilcox_within$test
+res$pairwise$wilcox_cross_vs_within$test
+
+# Plot
+print(res$pcoa$by_host_type)
+print(res$pcoa$by_host_order)
+print(res$pairwise$boxplot)
+
+# Save plots:
+# ggplot2::ggsave("pcoa_host_type.png", res$pcoa$by_host_type, width = 6, height = 5, dpi = 300)
+
+
+```
+
+## FUNCTIONAL ANALYSIS: KEGG, AMR, VF, CAZY, DEFENSE, GIFTS
+### Create annotation matrices
+```{r make_annotation_matrices}
+#testing with hafnia
+sp <- "citrobacter_braakii"
+res <- process_one_species(sp)
+
+hp <- res$metadata
+genome_annotations <- res$annotations
+genome_metadata <- hp
+
+
+
+make_annotation_matrix <- function(genome_annotations, column) {
+  genome_annotations %>%
+    filter(!is.na(.data[[column]])) %>%
+    count(genome, annotation = .data[[column]]) %>%
+    tidyr::pivot_wider(
+      names_from = annotation,
+      values_from = n,
+      values_fill = 0
+    )
+}
+
+
+#testing
+kegg_mat <- make_annotation_matrix(genome_annotations, "kegg")
+amr_mat  <- make_annotation_matrix(genome_annotations, "resistance_target")
+vf_mat   <- make_annotation_matrix(genome_annotations, "vf")
+```
+
+### Run Fisher tests on proportions
+```{r fisher}
+run_fisher_tests <- function(mat, metadata, annotation_name = "feature") {
+  # mat: wide matrix with columns: genome, <annotation columns...>
+  # metadata: data frame with columns ID, host_type
+  # annotation_name: name for the long column (e.g., "kegg", "amr")
+
+  # checks
+  if (!"genome" %in% names(mat)) {
+    stop("Input 'mat' must contain a 'genome' column.")
+  }
+  if (!all(c("ID", "host_type") %in% names(metadata))) {
+    stop("Input 'metadata' must contain columns 'ID' and 'host_type'.")
+  }
+
+  # Presence/absence conversion (keep genome as-is; non-NA and non-zero -> 1 else 0)
+  pa <- mat %>%
+    dplyr::mutate(
+      dplyr::across(
+        -genome,
+        ~ as.integer(!is.na(.) & . != 0)
+      )
+    )
+
+  # Wide -> long
+  pa_long <- pa %>%
+    tidyr::pivot_longer(
+      cols = -genome,
+      names_to = annotation_name,   # creates a column with this exact name
+      values_to = "present"
+    ) %>%
+    dplyr::filter(present == 1L) %>%
+    dplyr::select(genome, dplyr::all_of(annotation_name)) %>%  # keep genome + annotation
+    dplyr::distinct()
+
+  # Attach host_type
+  pa_with_host <- pa_long %>%
+    dplyr::left_join(
+      metadata %>% dplyr::select(ID, host_type),
+      by = c("genome" = "ID")
+    )
+
+  # Count how many MAGs present in each annotation by host_type
+  pa_mag_counts <- pa_with_host %>%
+    dplyr::group_by(host_type, .data[[annotation_name]]) %>%
+    dplyr::summarise(n_mags = dplyr::n(), .groups = "drop")
+
+  # Totals per host_type (denominator)
+  total_mags_per_host_type <- metadata %>%
+    dplyr::group_by(host_type) %>%
+    dplyr::summarise(total_mags = dplyr::n_distinct(ID), .groups = "drop")
+
+  # Proportions + absences
+  pa_mag_proportions <- pa_mag_counts %>%
+    dplyr::left_join(total_mags_per_host_type, by = "host_type") %>%
+    dplyr::mutate(
+      proportion = n_mags / total_mags,
+      absent     = total_mags - n_mags
+    )
+
+  # Build the wide counts matrix (animal vs human)
+  pa_matrix <- pa_mag_proportions %>%
+    dplyr::select(dplyr::all_of(annotation_name), host_type, n_mags, absent) %>%
+    tidyr::pivot_wider(
+      names_from  = host_type,
+      values_from = c(n_mags, absent),
+      values_fill = 0
+    )
+
+  # Sanity check for expected host groups (animal/human)
+  required_cols <- c(
+    annotation_name,
+    "n_mags_animal", "absent_animal",
+    "n_mags_human",  "absent_human"
+  )
+  if (!all(required_cols %in% names(pa_matrix))) {
+    stop(
+      "Expected columns missing in pa_matrix: ",
+      paste(setdiff(required_cols, names(pa_matrix)), collapse = ", "),
+      "\nCheck that metadata$host_type contains 'animal' and 'human' and that both have genomes."
+    )
+  }
+
+  # Fisher exact test per row (2x2)
+  results <- pa_matrix %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      ft = list(stats::fisher.test(
+        matrix(
+          c(n_mags_animal, absent_animal,
+            n_mags_human,  absent_human),
+          nrow = 2, byrow = TRUE
+        )
+      )),
+      p_value    = ft$p.value,
+      odds_ratio = unname(ft$estimate),
+      log2_or = log2(odds_ratio),
+      conf_low   = ft$conf.int[1],
+      conf_high  = ft$conf.int[2]
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(-ft) %>%
+    dplyr::mutate(
+      p_adj       = stats::p.adjust(p_value, method = "BH"),
+      prop_animal = n_mags_animal / (n_mags_animal + absent_animal),
+      prop_human  = n_mags_human  / (n_mags_human  + absent_human),
+      diff_prop   = prop_human - prop_animal
+    )
+
+  return(results)
+}
+```
+
+
+```{r testing running fisher tests}
+kegg_fisher <- run_fisher_tests(kegg_mat, genome_metadata, annotation_name="kegg")
+amr_fisher <- run_fisher_tests(amr_mat, genome_metadata, annotation_name="amr")
+```
+
+### Volcano plot
+```{r plotting volcano plot}
+plot_volcano <- function(df, feature_col) {
+  df %>%
+    mutate(
+      p_adj_capped = pmax(p_adj, 1e-300),
+      nl10 = -log10(p_adj_capped),
+      sig = p_adj < 0.05
+    ) %>%
+    ggplot(aes(x = log2_or, y = nl10)) +
+    geom_point(aes(color = sig), size = 2) +
+    scale_color_manual(values = c("grey70", "blue")) +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed") +
+    ggrepel::geom_text_repel(
+      data = . %>% filter(sig) %>% slice_max(nl10, n = 10),
+      aes(label = .data[[feature_col]])
+    ) +
+    theme_minimal()
+}
+
+plot_volcano(kegg_fisher, "kegg")
+plot_volcano(amr_fisher, "amr")
+
+```
+```{r pca_test}
+
+run_pca <- function(mat) {
+  m <- mat %>% column_to_rownames("genome")
+  m <- m / rowSums(m)
+  m <- m[, apply(m, 2, sd) > 0]
+  
+  prcomp(m, scale. = TRUE)
+}
+
+pca_kegg <- run_pca(kegg_mat)
+pca_amr  <- run_pca(amr_mat)
+
+```
+
+### PERMANOVA on presence/absence matrix´
+To check if the groups (animal vs human-sourced MAGs) have differences overall.
+
+```{r permanova functional matrix}
+pa_permanova <- function(mat, metadata) {
+  mat <- mat %>%
+  column_to_rownames("genome")
+
+  pa <- (mat > 0) * 1
+
+  
+  # remove zero-variance KOs
+  pa_nz <- pa[, colSums(pa) > 0 & colSums(pa) < nrow(pa)]
+  
+  # Determine the common genomes
+  common_ids <- base::intersect(rownames(pa_nz), metadata$ID)
+  
+  # Report what will be kept/dropped
+  message("# common: ", length(common_ids))
+  message("# in KEGG only: ", length(setdiff(rownames(pa_nz), metadata$ID)))
+  message("# in metadata only: ", length(setdiff(metadata$ID, rownames(pa_nz))))
+  
+  # Subset to the intersection (and keep order identical)
+  pa_nz <- pa_nz[common_ids, , drop = FALSE]
+  
+  meta <- metadata %>%
+    dplyr::filter(ID %in% common_ids) %>%
+    dplyr::distinct(ID, .keep_all = TRUE) %>%
+    tibble::column_to_rownames("ID") %>%
+    .[common_ids, , drop = FALSE]
+  
+  stopifnot(identical(rownames(meta), rownames(pa_nz)))
+  
+  # Prepare variables for PERMANOVA
+  required_vars <- c("genome_size", "completeness", "host_type")
+  
+  # Coerce types as needed
+  meta <- meta %>%
+    dplyr::mutate(
+      genome_size  = as.numeric(genome_size),
+      completeness = as.numeric(completeness),
+      host_type    = as.factor(host_type)
+    )
+  
+  # Align on complete cases (adonis2 drops NAs otherwise)
+  ok <- stats::complete.cases(meta[, required_vars, drop = FALSE])
+  pa_nz <- pa_nz[ok, , drop = FALSE]
+  meta       <- meta[ok, , drop = FALSE]
+  stopifnot(identical(rownames(meta), rownames(pa_nz)))
+  
+  # Distance, dispersion, PERMANOVA
+  dist_pa <- vegan::vegdist(pa_nz, method = "jaccard", binary = TRUE)
+  
+  betadisp_results <- vegan::betadisper(dist_pa, meta$host_type)
+  
+  
+ permanova_results <- vegan::adonis2(
+    dist_pa ~ genome_size + completeness + host_type,
+    data = meta,
+    permutations = 999,
+    by = "margin"
+  )
+ 
+ results <- list(
+    dist           = dist_pa,
+    betadisper     = betadisp_results,
+    permanova      = permanova_results,
+    pa_nz = pa_nz)
+ 
+  return(results)
+}
+
+results <-pa_permanova(kegg_mat, genome_metadata)
+results$permanova
+
+```
+
+
+
+

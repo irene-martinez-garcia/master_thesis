@@ -7,6 +7,7 @@ load("data/data.Rdata")
 
 
 ```{r load ehi mags}
+library(tidyverse)
 ehi_mags <- read_csv("data/ehi_metadata_location.csv")
 colnames(ehi_mags)
 ```
@@ -198,7 +199,7 @@ ggplot(best_mag_per_species, aes(x= species, y = best_genome_size, fill = best_p
 
 
 Filtering for Parabacteroides distasonis (make into a loop for all the relevant species later)
-```{r pdist}
+```{r pdist, eval = FALSE}
 p_dist <- ehi_mags %>%
   filter(completeness >90,
          contamination < 2.5,
@@ -215,36 +216,60 @@ write_tsv(p_dist_index, "data/mags_metadata/parabacteroides_distasonis_index.tsv
 
 
 
-```{r loop for all species}
-#Loop through each species in species_selection list
-for (i in 1:nrow(species_selection_f)) {
-  current_species <- species_selection_f$species[i]
+```{r loop for all species, eval = FALSE}
+species_selection_f <- c(
+  "lactococcus_lactis",
+  "hafnia_paralvei",
+  "enterococcus_faecalis",
+  "enterococcus_hirae",
+  "bacteroides_uniformis",
+  "phocaeicola_vulgatus",
+  "parabacteroides_goldsteinii",
+  "akkermansia_muciniphila",
+  "bacteroides_fragilis",
+  "providencia_rettgeri",
+  "citrobacter_braakii"
+)
 
-  #Filter for completeness and contamination
-  #get metadata
-  species_data <- ehi_mags %>%
-    filter(completeness > 90,
-           contamination < 2.5,
-           species == current_species)
-  
-  #get index
-  species_index <- species_data  %>%
-  dplyr::select(ID, MAG_url)
 
-  #Filename from species name
+ehi_mags_clean <- ehi_mags %>%
+  mutate(
+    species_clean = species %>% 
+      str_replace("^s__", "") %>% 
+      str_to_lower() %>% 
+      str_replace_all(" ", "_")
+  )
+
+
+for (current_species in species_selection_f) {
+
+  message("Processing ", current_species)
+
+  species_data <- ehi_mags_clean %>%
+    filter(
+      completeness > 90,
+      contamination < 2.5,
+      species_clean == current_species
+    )
+
+  species_index <- species_data %>%
+    dplyr::select(ID, MAG_url)
+
   filename <- current_species %>%
     str_replace("s__", "") %>%
     str_replace_all(" ", "_") %>%
     tolower()
 
-  #export to tsv
-  write_tsv(species_data,
-            paste0("data/mags_metadata/", filename, "_metadata.tsv"))
-  
-  write_tsv(species_index,
-            paste0("data/mags_metadata/", filename, "_index.tsv"))
-}
+  write_tsv(
+    species_data,
+    paste0("data/mags_metadata/", filename, "_metadata.tsv")
+  )
 
+  write_tsv(
+    species_index,
+    paste0("data/mags_metadata/", filename, "_index.tsv")
+  )
+}
 ```
 
 ```{r make index with all MAGs, eval = FALSE}

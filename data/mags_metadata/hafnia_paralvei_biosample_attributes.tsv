@@ -1,0 +1,1454 @@
+GCF_020150375.1	99.59		4945534	48	strain	AVS0177
+GCF_020150375.1	99.59		4945534	48	isolation_source	lake water
+GCF_020150375.1	99.59		4945534	48	collection_date	2020-09
+GCF_020150375.1	99.59		4945534	48	geo_loc_name	Switzerland: Lake Zug
+GCF_020150375.1	99.59		4945534	48	sample_type	whole organism
+GCF_001061055.1	99.59	0.28	4745830	48	isolation_source	missing
+GCF_001061055.1	99.59	0.28	4745830	48	lat_lon	missing
+GCF_001061055.1	99.59	0.28	4745830	48	collected_by	UW clinical laboratory
+GCF_001061055.1	99.59	0.28	4745830	48	strain	1133_RAQU
+GCF_001061055.1	99.59	0.28	4745830	48	host_disease	missing
+GCF_001061055.1	99.59	0.28	4745830	48	collection_date	Unknown
+GCF_001061055.1	99.59	0.28	4745830	48	host	Homo sapiens
+GCF_001061055.1	99.59	0.28	4745830	48	geo_loc_name	USA: WA
+GCF_001061055.1	99.59	0.28	4745830	48	note	Originally submitted as Rahnella aquatilis but changed in July 2016 as a result of ANI analysis to Hafnia paralvei
+GCF_001559255.2	99.59		4513714	48	geo_loc_name	USA:DC
+GCF_001559255.2	99.59		4513714	48	collected_by	Children's National Hospital
+GCF_001559255.2	99.59		4513714	48	isolation_source	stool
+GCF_001559255.2	99.59		4513714	48	collection_date	2014-05-12
+GCF_001559255.2	99.59		4513714	48	strain	FDAARGOS_158
+GCF_001559255.2	99.59		4513714	48	lat_lon	Not Applicable
+GCF_001559255.2	99.59		4513714	48	isolate_name_alias	FDAARGOS_158
+GCF_001559255.2	99.59		4513714	48	identification method	phenotypic identification
+GCF_001559255.2	99.59		4513714	48	host_sex	male
+GCF_001559255.2	99.59		4513714	48	host_disease	Colonization/Enteritis
+GCF_001559255.2	99.59		4513714	48	host_age	6M
+GCF_001559255.2	99.59		4513714	48	host	Homo sapiens
+GCF_001559255.2	99.59		4513714	48	culture_collection	FDA:FDAARGOS_158
+GCF_001559255.2	99.59		4513714	48	isolate	Not Applicable
+GCF_001559255.2	99.59		4513714	48	host_disease_outcome	Missing
+GCF_001559255.2	99.59		4513714	48	host_health_state	Missing
+GCF_001559255.2	99.59		4513714	48	host_description	Missing
+GCF_001559255.2	99.59		4513714	48	host_disease_stage	Missing
+GCF_002287565.1	99.59	0.28	4938675	48	strain	CITHA-6
+GCF_002287565.1	99.59	0.28	4938675	48	collected_by	Cork Institute of Technology
+GCF_002287565.1	99.59	0.28	4938675	48	collection_date	2015-11
+GCF_002287565.1	99.59	0.28	4938675	48	geo_loc_name	Ireland: Cork
+GCF_002287565.1	99.59	0.28	4938675	48	isolation_source	Raw bovine milk
+GCF_002287565.1	99.59	0.28	4938675	48	lat_lon	51.8855 N 8.5341 W
+GCF_002313145.2	99.59	0.55	4914494	48	geo_loc_name	USA:DC
+GCF_002313145.2	99.59	0.55	4914494	48	collected_by	Children's National Hospital
+GCF_002313145.2	99.59	0.55	4914494	48	isolation_source	endotracheal aspirate
+GCF_002313145.2	99.59	0.55	4914494	48	collection_date	2014-07-09
+GCF_002313145.2	99.59	0.55	4914494	48	strain	FDAARGOS_230
+GCF_002313145.2	99.59	0.55	4914494	48	lat_lon	Not Applicable
+GCF_002313145.2	99.59	0.55	4914494	48	isolate_name_alias	FDAARGOS_230
+GCF_002313145.2	99.59	0.55	4914494	48	identification method	Phenotypic identification
+GCF_002313145.2	99.59	0.55	4914494	48	host_sex	female
+GCF_002313145.2	99.59	0.55	4914494	48	host_disease	Colonization
+GCF_002313145.2	99.59	0.55	4914494	48	host_age	9M
+GCF_002313145.2	99.59	0.55	4914494	48	host	Homo sapiens
+GCF_002313145.2	99.59	0.55	4914494	48	culture_collection	FDA:FDAARGOS_230
+GCF_002313145.2	99.59	0.55	4914494	48	isolate	Not Applicable
+GCF_002313145.2	99.59	0.55	4914494	48	host_disease_outcome	Missing
+GCF_002313145.2	99.59	0.55	4914494	48	host_health_state	Missing
+GCF_002313145.2	99.59	0.55	4914494	48	host_description	Missing
+GCF_002313145.2	99.59	0.55	4914494	48	host_disease_stage	Missing
+GCF_002379545.1	98		4570305	48	isolation_source	epidermal mucus of Anguilla anguilla fishes in Ebro delta
+GCF_002379545.1	98		4570305	48	geo_loc_name	Spain: Alfacada pond, Ebro delta, Tarragona
+GCF_002379545.1	98		4570305	48	collection_date	not applicable
+GCF_002379545.1	98		4570305	48	sample_type	metagenomic assembly
+GCF_002379545.1	98		4570305	48	subsrc_note	Genome binned from sequencing reads available in SRX703649 metagenome
+GCF_002379545.1	98		4570305	48	isolate	UBA4198
+GCF_002379545.1	98		4570305	48	assembly_method	CLC de novo assembler
+GCF_002379545.1	98		4570305	48	assembly_method_version	4.4.1
+GCF_002379545.1	98		4570305	48	completeness_estimated	99.34%
+GCF_002379545.1	98		4570305	48	contamination_estimated	0.45%
+GCF_002379545.1	98		4570305	48	environmental_sample	true
+GCF_002379545.1	98		4570305	48	genome_coverage	26.06
+GCF_002379545.1	98		4570305	48	mapping_method	BWA (BWA-MEM)
+GCF_002379545.1	98		4570305	48	mapping_method_version	0.7.12-r1039
+GCF_002379545.1	98		4570305	48	metagenome_source	fish metagenome
+GCF_002379545.1	98		4570305	48	metagenomic	true
+GCF_002379545.1	98		4570305	48	quality_assessment_method	CheckM
+GCF_002379545.1	98		4570305	48	quality_assessment_method_version	1.0.6
+GCF_002379545.1	98		4570305	48	value	This BioSample is a metagenomic assembly obtained from the fish metagenome reads: SRR1578068.
+GCF_002379545.1	98		4570305	48	note	Originally submitted as Hafnia alvei but changed in October 2018 because of ANI results to Hafnia paralvei
+GCF_003339035.1	98.76		4722064	48	strain	C2
+GCF_003339035.1	98.76		4722064	48	isolation_source	pitcher plants
+GCF_003339035.1	98.76		4722064	48	host	Sarracenia
+GCF_003339035.1	98.76		4722064	48	collection_date	2010-11-06
+GCF_003339035.1	98.76		4722064	48	geo_loc_name	USA
+GCF_003339035.1	98.76		4722064	48	sample_type	whole organism
+GCF_003339055.1	98.76		4709191	48	strain	C3
+GCF_003339055.1	98.76		4709191	48	isolation_source	pitcher plants
+GCF_003339055.1	98.76		4709191	48	host	Sarracenia
+GCF_003339055.1	98.76		4709191	48	collection_date	2010-11-06
+GCF_003339055.1	98.76		4709191	48	geo_loc_name	USA
+GCF_003339055.1	98.76		4709191	48	sample_type	whole organism
+GCF_003339065.1	98.76		4694262	48	strain	C5
+GCF_003339065.1	98.76		4694262	48	isolation_source	pitcher plants
+GCF_003339065.1	98.76		4694262	48	host	Sarracenia
+GCF_003339065.1	98.76		4694262	48	collection_date	2010-11-06
+GCF_003339065.1	98.76		4694262	48	geo_loc_name	USA
+GCF_003339065.1	98.76		4694262	48	sample_type	whole organism
+GCF_003339105.1	98.76		4696175	48	strain	C9
+GCF_003339105.1	98.76		4696175	48	isolation_source	pitcher plants
+GCF_003339105.1	98.76		4696175	48	host	Sarracenia
+GCF_003339105.1	98.76		4696175	48	collection_date	2010-11-06
+GCF_003339105.1	98.76		4696175	48	geo_loc_name	USA
+GCF_003339105.1	98.76		4696175	48	sample_type	whole organism
+GCF_003339115.1	98.76		4695249	48	strain	C8
+GCF_003339115.1	98.76		4695249	48	isolation_source	pitcher plants
+GCF_003339115.1	98.76		4695249	48	host	Sarracenia
+GCF_003339115.1	98.76		4695249	48	collection_date	2010-11-06
+GCF_003339115.1	98.76		4695249	48	geo_loc_name	USA
+GCF_003339115.1	98.76		4695249	48	sample_type	whole organism
+GCF_003362795.1	98.76		4710920	48	strain	C10
+GCF_003362795.1	98.76		4710920	48	isolation_source	pitcher plants
+GCF_003362795.1	98.76		4710920	48	host	Sarracenia
+GCF_003362795.1	98.76		4710920	48	collection_date	2010-11-06
+GCF_003362795.1	98.76		4710920	48	geo_loc_name	USA
+GCF_003362795.1	98.76		4710920	48	sample_type	whole organism
+GCF_003542895.1	97.93	1.24	4519989	48	isolate	UBA11299
+GCF_003542895.1	97.93	1.24	4519989	48	isolation_source	metagenome
+GCF_003542895.1	97.93	1.24	4519989	48	collection_date	not applicable
+GCF_003542895.1	97.93	1.24	4519989	48	geo_loc_name	not applicable
+GCF_003542895.1	97.93	1.24	4519989	48	sample_type	metagenomic assembly
+GCF_003542895.1	97.93	1.24	4519989	48	assembly_method	CLC de novo assembler
+GCF_003542895.1	97.93	1.24	4519989	48	assembly_method_version	4.4.1
+GCF_003542895.1	97.93	1.24	4519989	48	mapping_method	BWA (BWA-MEM)
+GCF_003542895.1	97.93	1.24	4519989	48	mapping_method_version	0.7.12-r1039
+GCF_003542895.1	97.93	1.24	4519989	48	genome_coverage	108.10x
+GCF_003542895.1	97.93	1.24	4519989	48	quality_assessment_method	CheckM
+GCF_003542895.1	97.93	1.24	4519989	48	quality_assessment_method_version	1.0.6
+GCF_003542895.1	97.93	1.24	4519989	48	completeness_estimated	100.00%
+GCF_003542895.1	97.93	1.24	4519989	48	contamination_estimated	14.01%
+GCF_003542895.1	97.93	1.24	4519989	48	metagenome_source	metagenome
+GCF_003542895.1	97.93	1.24	4519989	48	environmental_sample	true
+GCF_003542895.1	97.93	1.24	4519989	48	metagenomic	true
+GCF_003542895.1	97.93	1.24	4519989	48	note	metagenome
+GCF_003542895.1	97.93	1.24	4519989	48	value	This BioSample is a metagenomic assembly obtained from the metagenome reads: ERR699787.
+GCF_004307975.1	98.76		4941683	47.5	strain	PCM_1211
+GCF_004307975.1	98.76		4941683	47.5	isolate_name_alias	G5915
+GCF_004307975.1	98.76		4941683	47.5	isolation_source	missing
+GCF_004307975.1	98.76		4941683	47.5	collection_date	missing
+GCF_004307975.1	98.76		4941683	47.5	geo_loc_name	Poland
+GCF_004307975.1	98.76		4941683	47.5	sample_type	not applicable
+GCF_004308105.1	99.59		4696354	48	strain	PCM_1218
+GCF_004308105.1	99.59		4696354	48	isolate_name_alias	G5922
+GCF_004308105.1	99.59		4696354	48	isolation_source	missing
+GCF_004308105.1	99.59		4696354	48	collection_date	missing
+GCF_004308105.1	99.59		4696354	48	geo_loc_name	Poland
+GCF_004308105.1	99.59		4696354	48	sample_type	not applicable
+GCF_004309775.1	98.76		4810955	48	strain	PCM_1194
+GCF_004309775.1	98.76		4810955	48	isolate_name_alias	G5904
+GCF_004309775.1	98.76		4810955	48	isolation_source	missing
+GCF_004309775.1	98.76		4810955	48	collection_date	missing
+GCF_004309775.1	98.76		4810955	48	geo_loc_name	Poland
+GCF_004309775.1	98.76		4810955	48	sample_type	not applicable
+GCF_004309835.1	98.76	0.28	4852239	48	strain	PCM_1192
+GCF_004309835.1	98.76	0.28	4852239	48	isolate_name_alias	G5903
+GCF_004309835.1	98.76	0.28	4852239	48	isolation_source	missing
+GCF_004309835.1	98.76	0.28	4852239	48	collection_date	missing
+GCF_004309835.1	98.76	0.28	4852239	48	geo_loc_name	Poland
+GCF_004309835.1	98.76	0.28	4852239	48	sample_type	not applicable
+GCF_004309865.1	97.93		4812462	48	strain	PCM_1188
+GCF_004309865.1	97.93		4812462	48	isolate_name_alias	G5899
+GCF_004309865.1	97.93		4812462	48	isolation_source	missing
+GCF_004309865.1	97.93		4812462	48	collection_date	missing
+GCF_004309865.1	97.93		4812462	48	geo_loc_name	Poland
+GCF_004309865.1	97.93		4812462	48	sample_type	not applicable
+GCF_004309945.1	97.93		4870292	48	strain	PCM_1223
+GCF_004309945.1	97.93		4870292	48	isolate_name_alias	G5897
+GCF_004309945.1	97.93		4870292	48	isolation_source	missing
+GCF_004309945.1	97.93		4870292	48	collection_date	missing
+GCF_004309945.1	97.93		4870292	48	geo_loc_name	Poland
+GCF_004309945.1	97.93		4870292	48	sample_type	not applicable
+GCF_004309975.1	98.76		4837582	48	strain	PCM_1198
+GCF_004309975.1	98.76		4837582	48	isolate_name_alias	G5907
+GCF_004309975.1	98.76		4837582	48	isolation_source	missing
+GCF_004309975.1	98.76		4837582	48	collection_date	missing
+GCF_004309975.1	98.76		4837582	48	geo_loc_name	Poland
+GCF_004309975.1	98.76		4837582	48	sample_type	not applicable
+GCF_011754525.1	99.59		4625103	48	strain	H.a110
+GCF_011754525.1	99.59		4625103	48	collection_date	missing
+GCF_011754525.1	99.59		4625103	48	env_broad_scale	missing
+GCF_011754525.1	99.59		4625103	48	env_local_scale	missing
+GCF_011754525.1	99.59		4625103	48	env_medium	missing
+GCF_011754525.1	99.59		4625103	48	geo_loc_name	missing
+GCF_011754525.1	99.59		4625103	48	isol_growth_condt	missing
+GCF_011754525.1	99.59		4625103	48	lat_lon	missing
+GCF_011754525.1	99.59		4625103	48	num_replicons	missing
+GCF_011754525.1	99.59		4625103	48	ref_biomaterial	missing
+GCF_013360205.1	99.59		4635035	48	strain	E14
+GCF_013360205.1	99.59		4635035	48	host	Gallus gallus
+GCF_013360205.1	99.59		4635035	48	collection_date	2016-12-02
+GCF_013360205.1	99.59		4635035	48	geo_loc_name	Australia: Victoria
+GCF_013360205.1	99.59		4635035	48	sample_type	Pure culture
+GCF_013360205.1	99.59		4635035	48	collected_by	Sarah Bean
+GCF_016456295.2	99.59	1.86	4760653	48	strain	LY-23
+GCF_016456295.2	99.59	1.86	4760653	48	host	Scophthalmus maximus
+GCF_016456295.2	99.59	1.86	4760653	48	collection_date	2017
+GCF_016456295.2	99.59	1.86	4760653	48	geo_loc_name	China: Liaoning
+GCF_016456295.2	99.59	1.86	4760653	48	sample_type	mixed culture
+GCF_018606925.1	93.96		4291982	48	isolate	1_9
+GCF_018606925.1	93.96		4291982	48	host	Homo sapiens
+GCF_018606925.1	93.96		4291982	48	isolation_source	urine
+GCF_018606925.1	93.96		4291982	48	collection_date	2017-11
+GCF_018606925.1	93.96		4291982	48	geo_loc_name	USA: Cleveland
+GCF_018606925.1	93.96		4291982	48	metagenomic	1
+GCF_018606925.1	93.96		4291982	48	environmental-sample	1
+GCF_018606925.1	93.96		4291982	48	sample_type	metagenomic assembly
+GCF_018606925.1	93.96		4291982	48	metagenome_source	human urinary tract metagenome
+GCF_018606925.1	93.96		4291982	48	derived_from	This BioSample is a metagenomic assembly obtained from the human urinary tract metagenome BioSamples: SAMN18524249, SAMN18524250, SAMN18524251, SAMN18524252, SAMN18524253, SAMN18524254, SAMN18524255, SAMN18524256, SAMN18524257, and SAMN18524258
+GCF_018831105.1	99.59		4885914	48	strain	VBC_1714
+GCF_018831105.1	99.59		4885914	48	collected_by	Julia E. Storesund
+GCF_018831105.1	99.59		4885914	48	collection_date	2020-09
+GCF_018831105.1	99.59		4885914	48	geo_loc_name	not applicable
+GCF_018831105.1	99.59		4885914	48	isolation_source	Frozen cod fillet
+GCF_018831105.1	99.59		4885914	48	lat_lon	69.6 N 30.2 E
+GCF_020450285.1	99.59		4836935	48	strain	FDAARGOS_1502
+GCF_020450285.1	99.59		4836935	48	isolate	Not applicable
+GCF_020450285.1	99.59		4836935	48	collected_by	DSMZ
+GCF_020450285.1	99.59		4836935	48	collection_date	Unknown
+GCF_020450285.1	99.59		4836935	48	geo_loc_name	Germany: Braunschweig
+GCF_020450285.1	99.59		4836935	48	isolation_source	missing
+GCF_020450285.1	99.59		4836935	48	lat_lon	Not applicable
+GCF_020450285.1	99.59		4836935	48	culture_collection	DSM:24119
+GCF_020450285.1	99.59		4836935	48	host	missing
+GCF_020450285.1	99.59		4836935	48	host_age	Unknown
+GCF_020450285.1	99.59		4836935	48	host_description	Not applicable
+GCF_020450285.1	99.59		4836935	48	host_disease	Unknown
+GCF_020450285.1	99.59		4836935	48	host_disease_outcome	Unknown
+GCF_020450285.1	99.59		4836935	48	host_disease_stage	Unknown
+GCF_020450285.1	99.59		4836935	48	host_health_state	Unknown
+GCF_020450285.1	99.59		4836935	48	host_sex	Unknown
+GCF_020450285.1	99.59		4836935	48	identification method	Phenotypic and Molecular Methods
+GCF_021440185.1	98.76		4687594	48	strain	INSAq191
+GCF_021440185.1	98.76		4687594	48	collected_by	INSA
+GCF_021440185.1	98.76		4687594	48	collection_date	2019-01-14
+GCF_021440185.1	98.76		4687594	48	geo_loc_name	Portugal
+GCF_021440185.1	98.76		4687594	48	isolation_source	fish
+GCF_021440185.1	98.76		4687594	48	lat_lon	Unknown
+GCF_021440365.1	93.97	0.41	4403630	48	strain	INSAq225
+GCF_021440365.1	93.97	0.41	4403630	48	collected_by	INSA
+GCF_021440365.1	93.97	0.41	4403630	48	collection_date	2019-01-14
+GCF_021440365.1	93.97	0.41	4403630	48	geo_loc_name	Portugal
+GCF_021440365.1	93.97	0.41	4403630	48	isolation_source	fish
+GCF_021440365.1	93.97	0.41	4403630	48	lat_lon	Unknown
+GCF_021440445.1	99.59	0.41	4690013	48	strain	INSAq217
+GCF_021440445.1	99.59	0.41	4690013	48	collected_by	INSA
+GCF_021440445.1	99.59	0.41	4690013	48	collection_date	2019-01-14
+GCF_021440445.1	99.59	0.41	4690013	48	geo_loc_name	Portugal
+GCF_021440445.1	99.59	0.41	4690013	48	isolation_source	fish
+GCF_021440445.1	99.59	0.41	4690013	48	lat_lon	Unknown
+GCF_021440495.1	93.53	2.27	4657376	48.5	strain	INSAq219
+GCF_021440495.1	93.53	2.27	4657376	48.5	collected_by	INSA
+GCF_021440495.1	93.53	2.27	4657376	48.5	collection_date	2019-01-14
+GCF_021440495.1	93.53	2.27	4657376	48.5	geo_loc_name	Portugal
+GCF_021440495.1	93.53	2.27	4657376	48.5	isolation_source	fish
+GCF_021440495.1	93.53	2.27	4657376	48.5	lat_lon	Unknown
+GCF_021441105.1	98.76		4677522	48	strain	INSAq204
+GCF_021441105.1	98.76		4677522	48	collected_by	INSA
+GCF_021441105.1	98.76		4677522	48	collection_date	2019-01-14
+GCF_021441105.1	98.76		4677522	48	geo_loc_name	Portugal
+GCF_021441105.1	98.76		4677522	48	isolation_source	fish
+GCF_021441105.1	98.76		4677522	48	lat_lon	Unknown
+GCF_023096345.1	99.59		4718603	48.5	strain	Mf1-1
+GCF_023096345.1	99.59		4718603	48.5	collected_by	Goncharov A.
+GCF_023096345.1	99.59		4718603	48.5	collection_date	2021-07-07
+GCF_023096345.1	99.59		4718603	48.5	geo_loc_name	Russia: Yakutia
+GCF_023096345.1	99.59		4718603	48.5	isolation_source	feces
+GCF_023096345.1	99.59		4718603	48.5	lat_lon	67.500000 N 135.716667 E
+GCF_023096345.1	99.59		4718603	48.5	host	Mammuthus primigenius
+GCF_023698525.1	97.8		4909819	48	strain	Stebra 1
+GCF_023698525.1	97.8		4909819	48	collection_date	2021-08-18
+GCF_023698525.1	97.8		4909819	48	env_broad_scale	Homo sapiens
+GCF_023698525.1	97.8		4909819	48	env_local_scale	clinical sample
+GCF_023698525.1	97.8		4909819	48	env_medium	not collected
+GCF_023698525.1	97.8		4909819	48	geo_loc_name	Germany
+GCF_023698525.1	97.8		4909819	48	host	Homo sapiens
+GCF_023698525.1	97.8		4909819	48	isol_growth_condt	not collected
+GCF_023698525.1	97.8		4909819	48	lat_lon	50.92 N 11.58 E
+GCF_023698525.1	97.8		4909819	48	num_replicons	not collected
+GCF_023698525.1	97.8		4909819	48	ref_biomaterial	not collected
+GCF_023698525.1	97.8		4909819	48	isolation_source	urine
+GCF_024437935.1	99.59	0.83	4765723	48	strain	Z11
+GCF_024437935.1	99.59	0.83	4765723	48	isolation_source	fish meat
+GCF_024437935.1	99.59	0.83	4765723	48	collection_date	2019-10-20
+GCF_024437935.1	99.59	0.83	4765723	48	geo_loc_name	China: Xinxiang
+GCF_024437935.1	99.59	0.83	4765723	48	sample_type	pure culture
+GCF_030843585.1	97.79	0.41	4800421	48	host	Homo sapiens
+GCF_030843585.1	97.79	0.41	4800421	48	isolation_source	feces
+GCF_030843585.1	97.79	0.41	4800421	48	collection_date	missing
+GCF_030843585.1	97.79	0.41	4800421	48	geo_loc_name	USA
+GCF_030843585.1	97.79	0.41	4800421	48	lat_lon	missing
+GCF_030843585.1	97.79	0.41	4800421	48	isolate	N1164.7
+GCF_030843585.1	97.79	0.41	4800421	48	env_broad_scale	Human Biome
+GCF_030843585.1	97.79	0.41	4800421	48	env_local_scale	Gut Microbiome
+GCF_030843585.1	97.79	0.41	4800421	48	env_medium	Gut
+GCF_030843585.1	97.79	0.41	4800421	48	metagenomic	1
+GCF_030843585.1	97.79	0.41	4800421	48	environmental-sample	1
+GCF_030843585.1	97.79	0.41	4800421	48	sample_type	metagenomic assembly
+GCF_030843585.1	97.79	0.41	4800421	48	metagenome_source	human gut metagenome
+GCF_030843585.1	97.79	0.41	4800421	48	derived_from	SAMN35085370
+GCF_033899045.1	99.59		4815612	48	strain	CIM-Cont-035
+GCF_033899045.1	99.59		4815612	48	collected_by	Hamprecht group, University Hospital Cologne
+GCF_033899045.1	99.59		4815612	48	collection_date	unknown
+GCF_033899045.1	99.59		4815612	48	geo_loc_name	Germany
+GCF_033899045.1	99.59		4815612	48	host	Homo sapiens
+GCF_033899045.1	99.59		4815612	48	host_disease	unknown
+GCF_033899045.1	99.59		4815612	48	isolation_source	not applicable
+GCF_033899045.1	99.59		4815612	48	lat_lon	50.91705971 N 6.90202729 E
+GCF_033899085.1	99.59	0.21	4878683	48	strain	CIM-Cont-033
+GCF_033899085.1	99.59	0.21	4878683	48	collected_by	Hamprecht group, University Hospital Cologne
+GCF_033899085.1	99.59	0.21	4878683	48	collection_date	unknown
+GCF_033899085.1	99.59	0.21	4878683	48	geo_loc_name	Germany
+GCF_033899085.1	99.59	0.21	4878683	48	host	Homo sapiens
+GCF_033899085.1	99.59	0.21	4878683	48	host_disease	unknown
+GCF_033899085.1	99.59	0.21	4878683	48	isolation_source	not applicable
+GCF_033899085.1	99.59	0.21	4878683	48	lat_lon	50.91705971 N 6.90202729 E
+GCF_036813125.1	99.59		4915179	48	strain	T10-Ana-9
+GCF_036813125.1	99.59		4915179	48	isolation_source	Cheese after GESM assay
+GCF_036813125.1	99.59		4915179	48	collection_date	2023-06-02
+GCF_036813125.1	99.59		4915179	48	geo_loc_name	Italy: Parma
+GCF_036813125.1	99.59		4915179	48	sample_type	Mixed culture
+GCF_037052705.1	99.59		5122762	48	strain	P40
+GCF_037052705.1	99.59		5122762	48	isolation_source	Phyllosphere
+GCF_037052705.1	99.59		5122762	48	collection_date	2022-01-01
+GCF_037052705.1	99.59		5122762	48	geo_loc_name	China: Guangdong
+GCF_037052705.1	99.59		5122762	48	sample_type	cell culture
+GCF_037052805.1	99.59		5012225	48	strain	P84
+GCF_037052805.1	99.59		5012225	48	isolation_source	Phyllosphere
+GCF_037052805.1	99.59		5012225	48	collection_date	2022-01-01
+GCF_037052805.1	99.59		5012225	48	geo_loc_name	China: Guangdong
+GCF_037052805.1	99.59		5012225	48	sample_type	cell culture
+GCF_043828565.1	99.59	0.28	5055248	48	strain	KE9839
+GCF_043828565.1	99.59	0.28	5055248	48	host	Homo sapiens
+GCF_043828565.1	99.59	0.28	5055248	48	collection_date	2020
+GCF_043828565.1	99.59	0.28	5055248	48	geo_loc_name	Germany
+GCF_043828565.1	99.59	0.28	5055248	48	sample_type	isolated colonies
+GCF_044358125.1	99.59		4513814	48.5	collected_by	Department of Disease Control, Ministry of Public Health
+GCF_044358125.1	99.59		4513814	48.5	collection_date	2019-10-07
+GCF_044358125.1	99.59		4513814	48.5	geo_loc_name	Thailand: Uttaradit
+GCF_044358125.1	99.59		4513814	48.5	lat_lon	Not applicable
+GCF_044358125.1	99.59		4513814	48.5	isolation_source	food
+GCF_044358125.1	99.59		4513814	48.5	strain	Colony230
+GCF_046082725.1	99.59	0.03	4960149	48	strain	UUNT_MP29
+GCF_046082725.1	99.59	0.03	4960149	48	isolation_source	gastrointestinal tract
+GCF_046082725.1	99.59	0.03	4960149	48	host	Cyprinus carpio
+GCF_046082725.1	99.59	0.03	4960149	48	collection_date	2024-02-18
+GCF_046082725.1	99.59	0.03	4960149	48	geo_loc_name	Serbia: Backi Jarak.
+GCF_046082725.1	99.59	0.03	4960149	48	lat_lon	45.370000 N 19.891389 E
+GCF_046082725.1	99.59	0.03	4960149	48	env_broad_scale	Isolated from the gastrointestinal tract of Cyprinus carpio
+GCF_046082725.1	99.59	0.03	4960149	48	env_local_scale	Cyprinus carpio
+GCF_046082725.1	99.59	0.03	4960149	48	env_medium	gastrointestinal tract
+GCF_046082725.1	99.59	0.03	4960149	48	isol_growth_condt	internal laboratory protocol
+GCF_046082725.1	99.59	0.03	4960149	48	num_replicons	1
+GCF_046082725.1	99.59	0.03	4960149	48	ref_biomaterial	https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=info&id=7962
+GCF_047786445.1	99.59		4800043	48	collected_by	University of Veterinary Sciences Brno
+GCF_047786445.1	99.59		4800043	48	collection_date	2020
+GCF_047786445.1	99.59		4800043	48	geo_loc_name	Czech Republic
+GCF_047786445.1	99.59		4800043	48	host	wild bird
+GCF_047786445.1	99.59		4800043	48	purpose_of_sampling	Research
+GCF_047786445.1	99.59		4800043	48	source_type	animal
+GCF_047786445.1	99.59		4800043	48	strain	BP70e
+GCF_047786445.1	99.59		4800043	48	isolation_source	missing
+GCF_047829645.1	99.59		4969161	48	isolate	UW_FK_HAF1_1
+GCF_047829645.1	99.59		4969161	48	collection_date	2023-09-04
+GCF_047829645.1	99.59		4969161	48	env_broad_scale	bioreactor [ENVO:00002123]
+GCF_047829645.1	99.59		4969161	48	env_local_scale	membrane bioreactor [ENVO:03600010]
+GCF_047829645.1	99.59		4969161	48	env_medium	dairy food product [FOODON:00001256]
+GCF_047829645.1	99.59		4969161	48	geo_loc_name	USA: Wisconsin, Madison
+GCF_047829645.1	99.59		4969161	48	isolation_source	anaerobic bioreactor effluent
+GCF_047829645.1	99.59		4969161	48	lat_lon	43.033933 N 89.356452 W
+GCF_047829645.1	99.59		4969161	48	altitude	268 m
+GCF_047829645.1	99.59		4969161	48	ph	5.5
+GCF_047829645.1	99.59		4969161	48	samp_collect_device	Syringe
+GCF_047829645.1	99.59		4969161	48	samp_mat_process	Biomass centrifuged 10 min 10,000xg, aliquot frozen for DNA extraction
+GCF_047829645.1	99.59		4969161	48	samp_size	2 milliliter
+GCF_047829645.1	99.59		4969161	48	samp_store_loc	Freezer
+GCF_047829645.1	99.59		4969161	48	samp_store_temp	-80 degree Celcius
+GCF_047829645.1	99.59		4969161	48	temp	50 degree Celcius
+GCF_047829645.1	99.59		4969161	48	metagenomic	1
+GCF_047829645.1	99.59		4969161	48	environmental-sample	1
+GCF_047829645.1	99.59		4969161	48	sample_type	metagenomic assembly
+GCF_047829645.1	99.59		4969161	48	metagenome_source	bioreactor metagenome
+GCF_047829645.1	99.59		4969161	48	derived-from-SRA	SRR31045104
+GCF_049544905.1	99.59		4804139	48.5	strain	CRS2402
+GCF_049544905.1	99.59		4804139	48.5	collected_by	Bundang CHA medical center
+GCF_049544905.1	99.59		4804139	48.5	collection_date	2024-04-29
+GCF_049544905.1	99.59		4804139	48.5	geo_loc_name	South Korea: Seongnam city
+GCF_049544905.1	99.59		4804139	48.5	host	Homo sapiens
+GCF_049544905.1	99.59		4804139	48.5	host_disease	Hilar cholangiocarcinoma
+GCF_049544905.1	99.59		4804139	48.5	isolation_source	bile
+GCF_049544905.1	99.59		4804139	48.5	lat_lon	37.410390 N 127.125427 E
+GCF_049629525.1	99.59	0.28	4958689	48	strain	IPLA15029
+GCF_049629525.1	99.59	0.28	4958689	48	isolate_name_alias	7LBE7
+GCF_049629525.1	99.59	0.28	4958689	48	isolation_source	curd
+GCF_049629525.1	99.59	0.28	4958689	48	collection_date	2022
+GCF_049629525.1	99.59	0.28	4958689	48	geo_loc_name	Spain: Asturias
+GCF_049629525.1	99.59	0.28	4958689	48	sample_type	Food
+GCF_049891675.1	99.59		4976612	48.5	strain	P47
+GCF_049891675.1	99.59		4976612	48.5	host	Brassica rapa var. parachinensis
+GCF_049891675.1	99.59		4976612	48.5	isolation_source	Leaf endosphere
+GCF_049891675.1	99.59		4976612	48.5	collection_date	2022-01-01
+GCF_049891675.1	99.59		4976612	48.5	geo_loc_name	China: Guangdong
+GCF_049891675.1	99.59		4976612	48.5	sample_type	cell culture
+GCF_050040235.1	99.59		4894359	48	strain	11A-LG1
+GCF_050040235.1	99.59		4894359	48	collected_by	Issmat Kassem
+GCF_050040235.1	99.59		4894359	48	collection_date	missing
+GCF_050040235.1	99.59		4894359	48	geo_loc_name	missing
+GCF_050040235.1	99.59		4894359	48	isolation_source	missing
+GCF_050040235.1	99.59		4894359	48	lat_lon	missing
+GCF_051590585.1	99.59	0.28	4848607	48	strain	FUA 1455
+GCF_051590585.1	99.59	0.28	4848607	48	isolation_source	Ground beef
+GCF_051590585.1	99.59	0.28	4848607	48	collection_date	2025-01
+GCF_051590585.1	99.59	0.28	4848607	48	geo_loc_name	Canada: Alberta
+GCF_051590585.1	99.59	0.28	4848607	48	sample_type	Cell culture
+GCF_054482955.1	99.59		4693416	48.5	strain	MB58v2b
+GCF_054482955.1	99.59		4693416	48.5	host	Homo sapiens
+GCF_054482955.1	99.59		4693416	48.5	isolation_source	urine
+GCF_054482955.1	99.59		4693416	48.5	collection_date	2024-11
+GCF_054482955.1	99.59		4693416	48.5	geo_loc_name	USA: Nashville, TN
+GCF_054482955.1	99.59		4693416	48.5	sample_type	bacterial strain
+GCF_054482955.1	99.59		4693416	48.5	timepoint	2
+GCF_054482955.1	99.59		4693416	48.5	age	38
+GCF_054482955.1	99.59		4693416	48.5	host_disease	interstitial cystitis
+GCF_054482955.1	99.59		4693416	48.5	host_sex	female
+GCF_900603095.1	99.59		5122454	48	ENA-CHECKLIST	ERC000011
+GCF_900603095.1	99.59		5122454	48	ENA-FIRST-PUBLIC	2019-12-03T04:05:38Z
+GCF_900603095.1	99.59		5122454	48	ENA-LAST-UPDATE	2020-07-31T00:54:31Z
+GCF_900603095.1	99.59		5122454	48	External Id	SAMEA4976262
+GCF_900603095.1	99.59		5122454	48	INSDC center name	WAGENINGEN UR
+GCF_900603095.1	99.59		5122454	48	INSDC first public	2019-12-03T04:05:38Z
+GCF_900603095.1	99.59		5122454	48	INSDC last update	2020-07-31T00:54:31Z
+GCF_900603095.1	99.59		5122454	48	INSDC status	public
+GCF_900603095.1	99.59		5122454	48	Submitter Id	341
+GCF_900603095.1	99.59		5122454	48	collection_date	2018
+GCF_900603095.1	99.59		5122454	48	geo_loc_name	Netherlands
+GCF_900603095.1	99.59		5122454	48	host	Bovine
+GCF_900603095.1	99.59		5122454	48	sample_name	341
+GCF_900603095.1	99.59		5122454	48	scientific_name	Hafnia paralvei
+GCF_937943035.1	99.59	0.28	5148807	48	ENA-CHECKLIST	ERC000047
+GCF_937943035.1	99.59	0.28	5148807	48	ENA-FIRST-PUBLIC	2023-01-03
+GCF_937943035.1	99.59	0.28	5148807	48	ENA-LAST-UPDATE	2023-01-03
+GCF_937943035.1	99.59	0.28	5148807	48	External Id	SAMEA14085349
+GCF_937943035.1	99.59	0.28	5148807	48	INSDC center alias	EBI
+GCF_937943035.1	99.59	0.28	5148807	48	INSDC center name	European Bioinformatics Institute
+GCF_937943035.1	99.59	0.28	5148807	48	INSDC first public	2023-01-03T00:33:08Z
+GCF_937943035.1	99.59	0.28	5148807	48	INSDC last update	2023-01-03T00:33:08Z
+GCF_937943035.1	99.59	0.28	5148807	48	INSDC status	public
+GCF_937943035.1	99.59	0.28	5148807	48	Submitter Id	ERR912132_bin.122_CONCOCT_v1.1_MAG
+GCF_937943035.1	99.59	0.28	5148807	48	assembly quality	Many fragments with little to no review of assembly other than reporting of standard assembly statistics
+GCF_937943035.1	99.59	0.28	5148807	48	assembly software	spadesv3.11.1
+GCF_937943035.1	99.59	0.28	5148807	48	binning parameters	Default
+GCF_937943035.1	99.59	0.28	5148807	48	binning software	CONCOCT v1.1
+GCF_937943035.1	99.59	0.28	5148807	48	broker name	EMG broker account, EMBL-EBI
+GCF_937943035.1	99.59	0.28	5148807	48	collection_date	2010-01-01
+GCF_937943035.1	99.59	0.28	5148807	48	completeness score	99.86
+GCF_937943035.1	99.59	0.28	5148807	48	completeness software	CheckM
+GCF_937943035.1	99.59	0.28	5148807	48	contamination score	0.49
+GCF_937943035.1	99.59	0.28	5148807	48	env_broad_scale	Host-associated
+GCF_937943035.1	99.59	0.28	5148807	48	env_local_scale	Human
+GCF_937943035.1	99.59	0.28	5148807	48	env_medium	Digestive system
+GCF_937943035.1	99.59	0.28	5148807	48	geo_loc_name	United Kingdom
+GCF_937943035.1	99.59	0.28	5148807	48	geographic location (latitude)	51.5
+GCF_937943035.1	99.59	0.28	5148807	48	geographic location (longitude)	-0.12
+GCF_937943035.1	99.59	0.28	5148807	48	investigation_type	metagenome-assembled genome
+GCF_937943035.1	99.59	0.28	5148807	48	isolation_source	human gut metagenome
+GCF_937943035.1	99.59	0.28	5148807	48	metagenomic source	human gut metagenome
+GCF_937943035.1	99.59	0.28	5148807	48	project_name	The gut microbiota has been typically viewed as an environmental factor for human health. Twins are well suited for investigating the concordance of their gut microbiomes and decomposing genetic and environmental influences. However, existing twin studies utilizing metagenomic shotgun sequencing have included only a few samples. Here, we sequenced fecal samples from 250 adult twins in the TwinsUK registry and constructed a comprehensive gut microbial reference gene catalog. We demonstrate heritability of many microbial taxa and functional modules in the gut microbiome, including those associated with diseases. Moreover, we identified 8 million SNPs in the gut microbiome and observe a high similarity in microbiome SNPs between twins that slowly decreases after decades of living apart. The results shed new light on the genetic and environmental influences on the composition and function of the gut microbiome that could relate to risk of complex diseases.
+GCF_937943035.1	99.59	0.28	5148807	48	sample derived from	SAMEA3449327
+GCF_937943035.1	99.59	0.28	5148807	48	sample_name	ERR912132_bin.122_CONCOCT_v1.1_MAG
+GCF_937943035.1	99.59	0.28	5148807	48	scientific_name	Hafnia paralvei
+GCF_937943035.1	99.59	0.28	5148807	48	sequencing method	Illumina HiSeq 2000
+GCF_937943035.1	99.59	0.28	5148807	48	taxonomic identity marker	multi-marker approach
+GCF_949789945.1	99.59		4970885	48	ENA-CHECKLIST	ERC000011
+GCF_949789945.1	99.59		4970885	48	ENA-FIRST-PUBLIC	2023-04-14
+GCF_949789945.1	99.59		4970885	48	ENA-LAST-UPDATE	2023-04-14
+GCF_949789945.1	99.59		4970885	48	External Id	SAMEA112774572
+GCF_949789945.1	99.59		4970885	48	INSDC center alias	Ifremer
+GCF_949789945.1	99.59		4970885	48	INSDC center name	Ifremer
+GCF_949789945.1	99.59		4970885	48	INSDC first public	2023-04-14T00:46:14Z
+GCF_949789945.1	99.59		4970885	48	INSDC last update	2023-04-14T00:46:14Z
+GCF_949789945.1	99.59		4970885	48	INSDC status	public
+GCF_949789945.1	99.59		4970885	48	Submitter Id	sam_MIP2461_TAG
+GCF_949789945.1	99.59		4970885	48	broker name	Bioinformatics Core Facility of Ifremer (French Research Institute for Exploitation of the Sea)
+GCF_949789945.1	99.59		4970885	48	collecting institution	Ifremer, France
+GCF_949789945.1	99.59		4970885	48	collection_date	2009-01-01
+GCF_949789945.1	99.59		4970885	48	common name	Hafnia paralvei
+GCF_949789945.1	99.59		4970885	48	environmental_sample	No
+GCF_949789945.1	99.59		4970885	48	experimental_factor	not collected
+GCF_949789945.1	99.59		4970885	48	geo_loc_name	France
+GCF_949789945.1	99.59		4970885	48	geographic location (latitude)	not collected
+GCF_949789945.1	99.59		4970885	48	geographic location (longitude)	not collected
+GCF_949789945.1	99.59		4970885	48	geographic location (region and locality)	Nantes
+GCF_949789945.1	99.59		4970885	48	investigation_type	bacteria_archaea
+GCF_949789945.1	99.59		4970885	48	isolate	MIP2461
+GCF_949789945.1	99.59		4970885	48	isolation_source	bacterial strain isolated from fresh salmon
+GCF_949789945.1	99.59		4970885	48	project_name	SEABIOMIC
+GCF_949789945.1	99.59		4970885	48	sample_name	sam_MIP2461_TAG
+GCF_949789945.1	99.59		4970885	48	description	Raw data were obtained by sequencing on a MinIOn MK1C DNA extracts from bacterial isolates. Library was prepared using Rapid Barcoding sequencing kit.Demultiplexing of the fast5 files was conducted with Guppy v6.1.1.
+GCF_949789945.1	99.59		4970885	48	sample_name	MIP2461_TAG
+GCF_949789945.1	99.59		4970885	48	scientific_name	Hafnia paralvei
+GCF_949789945.1	99.59		4970885	48	sequencing method	Nanopore Sequencing
+GCF_949789945.1	99.59		4970885	48	strain	MIP2461
+GCF_958410475.1	99.59		4579278	48	ENA-CHECKLIST	ERC000047
+GCF_958410475.1	99.59		4579278	48	ENA-FIRST-PUBLIC	2023-07-13T16:22:50Z
+GCF_958410475.1	99.59		4579278	48	ENA-LAST-UPDATE	2023-07-13T16:22:50Z
+GCF_958410475.1	99.59		4579278	48	External Id	SAMEA114060886
+GCF_958410475.1	99.59		4579278	48	INSDC center alias	EMG
+GCF_958410475.1	99.59		4579278	48	INSDC center name	EMG
+GCF_958410475.1	99.59		4579278	48	INSDC first public	2023-07-13T16:22:50Z
+GCF_958410475.1	99.59		4579278	48	INSDC last update	2023-07-13T16:22:50Z
+GCF_958410475.1	99.59		4579278	48	INSDC status	public
+GCF_958410475.1	99.59		4579278	48	Submitter Id	ERR9322425_bin.23_MetaWRAP_v1.3_MAG
+GCF_958410475.1	99.59		4579278	48	assembly quality	Many fragments with little to no review of assembly other than reporting of standard assembly statistics
+GCF_958410475.1	99.59		4579278	48	assembly software	metaspades v3.15.3
+GCF_958410475.1	99.59		4579278	48	binning parameters	MaxBin2, MetaBat2, Concoct with default parameter of the metaWRAP pipeline. Bin refinement module used from metaWRAP with default parameters.
+GCF_958410475.1	99.59		4579278	48	binning software	MetaWRAP v1.3
+GCF_958410475.1	99.59		4579278	48	env_broad_scale	Human digestive system
+GCF_958410475.1	99.59		4579278	48	broker name	EMG broker account, EMBL-EBI
+GCF_958410475.1	99.59		4579278	48	collection_date	not provided
+GCF_958410475.1	99.59		4579278	48	completeness score	99.86
+GCF_958410475.1	99.59		4579278	48	completeness software	CheckM
+GCF_958410475.1	99.59		4579278	48	contamination score	0.61
+GCF_958410475.1	99.59		4579278	48	env_medium	faeces
+GCF_958410475.1	99.59		4579278	48	geo_loc_name	not provided
+GCF_958410475.1	99.59		4579278	48	geographic location (latitude)	not provided
+GCF_958410475.1	99.59		4579278	48	geographic location (longitude)	not provided
+GCF_958410475.1	99.59		4579278	48	investigation_type	metagenome-assembled genome
+GCF_958410475.1	99.59		4579278	48	isolation_source	human feces metagenome
+GCF_958410475.1	99.59		4579278	48	local environmental context	colon
+GCF_958410475.1	99.59		4579278	48	metagenomic source	human feces metagenome
+GCF_958410475.1	99.59		4579278	48	project_name	INSPIRE is a study of duodenal mucosal resurfacing, through intestinal ablation, to investigate its potential for treatment of type 2 diabetes mellitus. In this study, the microbiome before and after intestinal ablation was studied in combination with a range of clinical markers.
+GCF_958410475.1	99.59		4579278	48	sample derived from	SAMEA13060057
+GCF_958410475.1	99.59		4579278	48	sample_name	ERR9322425_bin.23_MetaWRAP_v1.3_MAG
+GCF_958410475.1	99.59		4579278	48	scientific_name	Hafnia paralvei
+GCF_958410475.1	99.59		4579278	48	sequencing method	unspecified
+GCF_958410475.1	99.59		4579278	48	taxonomic classification	The taxonomy of this Metagenome-Assembled Genome was originally computed with GTDBtk, which assigned the following taxonomic annotation: d__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Enterobacterales;f__Hafniaceae;g__Hafnia;s__Hafnia paralvei
+GCF_958410475.1	99.59		4579278	48	taxonomic identity marker	multi-marker approach
+GCF_959018365.1	96.61	0.09	4404199	48	ENA-CHECKLIST	ERC000047
+GCF_959018365.1	96.61	0.09	4404199	48	ENA-FIRST-PUBLIC	2023-07-18T16:27:40Z
+GCF_959018365.1	96.61	0.09	4404199	48	ENA-LAST-UPDATE	2023-07-18T16:27:40Z
+GCF_959018365.1	96.61	0.09	4404199	48	External Id	SAMEA114096560
+GCF_959018365.1	96.61	0.09	4404199	48	INSDC center alias	EMG
+GCF_959018365.1	96.61	0.09	4404199	48	INSDC center name	EMG
+GCF_959018365.1	96.61	0.09	4404199	48	INSDC first public	2023-07-18T16:27:40Z
+GCF_959018365.1	96.61	0.09	4404199	48	INSDC last update	2023-07-18T16:27:40Z
+GCF_959018365.1	96.61	0.09	4404199	48	INSDC status	public
+GCF_959018365.1	96.61	0.09	4404199	48	Submitter Id	SRR13494483_bin.8_MetaWRAP_v1.3_MAG
+GCF_959018365.1	96.61	0.09	4404199	48	assembly quality	Many fragments with little to no review of assembly other than reporting of standard assembly statistics
+GCF_959018365.1	96.61	0.09	4404199	48	assembly software	metaspades v3.15.3
+GCF_959018365.1	96.61	0.09	4404199	48	binning parameters	MaxBin2, MetaBat2, Concoct with default parameter of the metaWRAP pipeline. Bin refinement module used from metaWRAP with default parameters.
+GCF_959018365.1	96.61	0.09	4404199	48	binning software	MetaWRAP v1.3
+GCF_959018365.1	96.61	0.09	4404199	48	env_broad_scale	Human digestive system
+GCF_959018365.1	96.61	0.09	4404199	48	broker name	EMG broker account, EMBL-EBI
+GCF_959018365.1	96.61	0.09	4404199	48	collection_date	2018-01-17
+GCF_959018365.1	96.61	0.09	4404199	48	completeness score	98.77
+GCF_959018365.1	96.61	0.09	4404199	48	completeness software	CheckM
+GCF_959018365.1	96.61	0.09	4404199	48	contamination score	0.47
+GCF_959018365.1	96.61	0.09	4404199	48	env_medium	faeces
+GCF_959018365.1	96.61	0.09	4404199	48	geo_loc_name	USA
+GCF_959018365.1	96.61	0.09	4404199	48	geographic location (latitude)	42.2
+GCF_959018365.1	96.61	0.09	4404199	48	geographic location (longitude)	-71.06
+GCF_959018365.1	96.61	0.09	4404199	48	investigation_type	metagenome-assembled genome
+GCF_959018365.1	96.61	0.09	4404199	48	isolation_source	human feces metagenome
+GCF_959018365.1	96.61	0.09	4404199	48	local environmental context	colon
+GCF_959018365.1	96.61	0.09	4404199	48	metagenomic source	human feces metagenome
+GCF_959018365.1	96.61	0.09	4404199	48	project_name	Fecal microbiota transplantation (FMT) is an effective therapy for recurrent Clostridioides difficile infection (CDI). However, the overall mechanisms of FMT have not been comprehensively elucidated, and the safety of FMT has recently become a serious concern because of the occurrence of drug-resistant bacteremia transmitted by FMT. We investigated whether the functional restoration of the bacteriomes and viromes by FMT could be an indicator of successful FMT.
+GCF_959018365.1	96.61	0.09	4404199	48	sample derived from	SAMN17393296
+GCF_959018365.1	96.61	0.09	4404199	48	sample_name	SRR13494483_bin.8_MetaWRAP_v1.3_MAG
+GCF_959018365.1	96.61	0.09	4404199	48	scientific_name	Hafnia paralvei
+GCF_959018365.1	96.61	0.09	4404199	48	sequencing method	Illumina HiSeq 2500
+GCF_959018365.1	96.61	0.09	4404199	48	taxonomic classification	The taxonomy of this Metagenome-Assembled Genome was originally computed with GTDBtk, which assigned the following taxonomic annotation: d__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Enterobacterales;f__Hafniaceae;g__Hafnia;s__Hafnia paralvei
+GCF_959018365.1	96.61	0.09	4404199	48	taxonomic identity marker	multi-marker approach
+GCF_959028575.1	99.59		4677881	48	ENA-CHECKLIST	ERC000047
+GCF_959028575.1	99.59		4677881	48	ENA-FIRST-PUBLIC	2023-07-18T16:27:41Z
+GCF_959028575.1	99.59		4677881	48	ENA-LAST-UPDATE	2023-07-18T16:27:41Z
+GCF_959028575.1	99.59		4677881	48	External Id	SAMEA114096220
+GCF_959028575.1	99.59		4677881	48	INSDC center alias	EMG
+GCF_959028575.1	99.59		4677881	48	INSDC center name	EMG
+GCF_959028575.1	99.59		4677881	48	INSDC first public	2023-07-18T16:27:41Z
+GCF_959028575.1	99.59		4677881	48	INSDC last update	2023-07-18T16:27:41Z
+GCF_959028575.1	99.59		4677881	48	INSDC status	public
+GCF_959028575.1	99.59		4677881	48	Submitter Id	ERR10149246_bin.14_MetaWRAP_v1.3_MAG
+GCF_959028575.1	99.59		4677881	48	assembly quality	Many fragments with little to no review of assembly other than reporting of standard assembly statistics
+GCF_959028575.1	99.59		4677881	48	assembly software	metaspades v3.15.3
+GCF_959028575.1	99.59		4677881	48	binning parameters	MaxBin2, MetaBat2, Concoct with default parameter of the metaWRAP pipeline. Bin refinement module used from metaWRAP with default parameters.
+GCF_959028575.1	99.59		4677881	48	binning software	MetaWRAP v1.3
+GCF_959028575.1	99.59		4677881	48	env_broad_scale	Human digestive system
+GCF_959028575.1	99.59		4677881	48	broker name	EMG broker account, EMBL-EBI
+GCF_959028575.1	99.59		4677881	48	collection_date	2020-04-03
+GCF_959028575.1	99.59		4677881	48	completeness score	99.86
+GCF_959028575.1	99.59		4677881	48	completeness software	CheckM
+GCF_959028575.1	99.59		4677881	48	contamination score	0.45
+GCF_959028575.1	99.59		4677881	48	env_medium	faeces
+GCF_959028575.1	99.59		4677881	48	geo_loc_name	South Korea
+GCF_959028575.1	99.59		4677881	48	geographic location (latitude)	0.0
+GCF_959028575.1	99.59		4677881	48	geographic location (longitude)	0.0
+GCF_959028575.1	99.59		4677881	48	investigation_type	metagenome-assembled genome
+GCF_959028575.1	99.59		4677881	48	isolation_source	human feces metagenome
+GCF_959028575.1	99.59		4677881	48	local environmental context	colon
+GCF_959028575.1	99.59		4677881	48	metagenomic source	human feces metagenome
+GCF_959028575.1	99.59		4677881	48	project_name	whole metagenomic sequencing for child gut microbiome
+GCF_959028575.1	99.59		4677881	48	sample derived from	SAMEA111279321
+GCF_959028575.1	99.59		4677881	48	sample_name	ERR10149246_bin.14_MetaWRAP_v1.3_MAG
+GCF_959028575.1	99.59		4677881	48	scientific_name	Hafnia paralvei
+GCF_959028575.1	99.59		4677881	48	sequencing method	Illumina HiSeq 4000
+GCF_959028575.1	99.59		4677881	48	taxonomic classification	The taxonomy of this Metagenome-Assembled Genome was originally computed with GTDBtk, which assigned the following taxonomic annotation: d__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Enterobacterales;f__Hafniaceae;g__Hafnia;s__Hafnia paralvei
+GCF_959028575.1	99.59		4677881	48	taxonomic identity marker	multi-marker approach
+GCF_959599705.1	99.59		4535434	48	ENA-CHECKLIST	ERC000047
+GCF_959599705.1	99.59		4535434	48	ENA-FIRST-PUBLIC	2023-07-20T12:20:56Z
+GCF_959599705.1	99.59		4535434	48	ENA-LAST-UPDATE	2023-07-20T12:20:56Z
+GCF_959599705.1	99.59		4535434	48	External Id	SAMEA114122469
+GCF_959599705.1	99.59		4535434	48	INSDC center alias	EMG
+GCF_959599705.1	99.59		4535434	48	INSDC center name	EMG
+GCF_959599705.1	99.59		4535434	48	INSDC first public	2023-07-20T12:20:56Z
+GCF_959599705.1	99.59		4535434	48	INSDC last update	2023-07-20T12:20:56Z
+GCF_959599705.1	99.59		4535434	48	INSDC status	public
+GCF_959599705.1	99.59		4535434	48	Submitter Id	SRR16280048_bin.43_MetaWRAP_v1.3_MAG
+GCF_959599705.1	99.59		4535434	48	assembly quality	Many fragments with little to no review of assembly other than reporting of standard assembly statistics
+GCF_959599705.1	99.59		4535434	48	assembly software	metaspades v3.15.3
+GCF_959599705.1	99.59		4535434	48	binning parameters	MaxBin2, MetaBat2, Concoct with default parameter of the metaWRAP pipeline. Bin refinement module used from metaWRAP with default parameters.
+GCF_959599705.1	99.59		4535434	48	binning software	MetaWRAP v1.3
+GCF_959599705.1	99.59		4535434	48	env_broad_scale	Human digestive system
+GCF_959599705.1	99.59		4535434	48	broker name	EMG broker account, EMBL-EBI
+GCF_959599705.1	99.59		4535434	48	collection_date	2019-05-01/2020-10-30
+GCF_959599705.1	99.59		4535434	48	completeness score	99.86
+GCF_959599705.1	99.59		4535434	48	completeness software	CheckM
+GCF_959599705.1	99.59		4535434	48	contamination score	0.67
+GCF_959599705.1	99.59		4535434	48	env_medium	faeces
+GCF_959599705.1	99.59		4535434	48	geo_loc_name	China
+GCF_959599705.1	99.59		4535434	48	geographic location (latitude)	37.51
+GCF_959599705.1	99.59		4535434	48	geographic location (longitude)	122.12
+GCF_959599705.1	99.59		4535434	48	investigation_type	metagenome-assembled genome
+GCF_959599705.1	99.59		4535434	48	isolation_source	human feces metagenome
+GCF_959599705.1	99.59		4535434	48	local environmental context	colon
+GCF_959599705.1	99.59		4535434	48	metagenomic source	human feces metagenome
+GCF_959599705.1	99.59		4535434	48	project_name	Parkinson's disease has been improved to association with gastrointestinal symptoms and gut microbiota disorders, probiotics is considered as a technique for GI symptoms, while the regulative effect of probiotics on Parkinson's disease is limited. The supplementary treatment of Probio-M8 on Parkinson has been investigation.
+GCF_959599705.1	99.59		4535434	48	sample derived from	SAMN22185211
+GCF_959599705.1	99.59		4535434	48	sample_name	SRR16280048_bin.43_MetaWRAP_v1.3_MAG
+GCF_959599705.1	99.59		4535434	48	scientific_name	Hafnia paralvei
+GCF_959599705.1	99.59		4535434	48	sequencing method	Illumina HiSeq 2500
+GCF_959599705.1	99.59		4535434	48	taxonomic classification	The taxonomy of this Metagenome-Assembled Genome was originally computed with GTDBtk, which assigned the following taxonomic annotation: d__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Enterobacterales;f__Hafniaceae;g__Hafnia;s__Hafnia paralvei
+GCF_959599705.1	99.59		4535434	48	taxonomic identity marker	multi-marker approach
+GCF_963528525.1	92.03	0.14	4395450	48	ENA-CHECKLIST	ERC000047
+GCF_963528525.1	92.03	0.14	4395450	48	INSDC center name	EMG
+GCF_963528525.1	92.03	0.14	4395450	48	Submitter Id	ERR9969167_bin.16_MetaWRAP_v1.3_MAG
+GCF_963528525.1	92.03	0.14	4395450	48	assembly quality	Many fragments with little to no review of assembly other than reporting of standard assembly statistics
+GCF_963528525.1	92.03	0.14	4395450	48	assembly software	metaspades v3.15.3
+GCF_963528525.1	92.03	0.14	4395450	48	binning parameters	MaxBin2, MetaBat2, Concoct with default parameter of the metaWRAP pipeline. Bin refinement module used from metaWRAP with default parameters.
+GCF_963528525.1	92.03	0.14	4395450	48	binning software	MetaWRAP v1.3
+GCF_963528525.1	92.03	0.14	4395450	48	env_broad_scale	human digestive system
+GCF_963528525.1	92.03	0.14	4395450	48	broker name	EBI-EMG
+GCF_963528525.1	92.03	0.14	4395450	48	collection_date	2010-03-22
+GCF_963528525.1	92.03	0.14	4395450	48	completeness score	97.35
+GCF_963528525.1	92.03	0.14	4395450	48	completeness software	CheckM
+GCF_963528525.1	92.03	0.14	4395450	48	contamination score	0.65
+GCF_963528525.1	92.03	0.14	4395450	48	env_medium	plaque biofilm
+GCF_963528525.1	92.03	0.14	4395450	48	geo_loc_name	Australia
+GCF_963528525.1	92.03	0.14	4395450	48	geographic location (latitude)	33.8688
+GCF_963528525.1	92.03	0.14	4395450	48	geographic location (longitude)	151.2093
+GCF_963528525.1	92.03	0.14	4395450	48	investigation_type	metagenome-assembled genome
+GCF_963528525.1	92.03	0.14	4395450	48	isolation_source	oral metagenome
+GCF_963528525.1	92.03	0.14	4395450	48	local environmental context	oral cavity
+GCF_963528525.1	92.03	0.14	4395450	48	metagenomic source	oral metagenome
+GCF_963528525.1	92.03	0.14	4395450	48	project_name	Antibiotic overuse has promoted the spread of antimicrobial resistance (AMR) with significant health and economic consequences. Surveillance of resistance reservoirs, like the rarely explored oral microbiome, is necessary to combat AMR. We characterised the development of the paediatric oral resistome and investigated its role in dental caries in 221 twin children sampled over the first decade of life. From 535 oral metagenomes, we identified 309 antimicrobial resistance genes (ARGs), which significantly clustered by age, with the influence of host genetics on antimicrobial resistance increasing over time. Our results suggest the mobilisation potential of ARGs increased with age as Tn916 transposase was co-located with more species and ARGs as children grew. Dental caries compared to health was associated with a depletion of ARGs and species, which was reversed when restored. Our results highlight the dynamic nature of the paediatric oral resistome, and its potential role in transmission of AMR and dysbiosis.
+GCF_963528525.1	92.03	0.14	4395450	48	sample derived from	SAMEA110373919
+GCF_963528525.1	92.03	0.14	4395450	48	sample_name	ERR9969167_bin.16_MetaWRAP_v1.3_MAG
+GCF_963528525.1	92.03	0.14	4395450	48	scientific_name	Hafnia paralvei
+GCF_963528525.1	92.03	0.14	4395450	48	sequencing method	Illumina NovaSeq 6000
+GCF_963528525.1	92.03	0.14	4395450	48	taxonomic classification	The taxonomy of this Metagenome-Assembled Genome was originally computed with GTDBtk, which assigned the following taxonomic annotation: d__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Enterobacterales;f__Hafniaceae;g__Hafnia;s__Hafnia paralvei
+GCF_963528525.1	92.03	0.14	4395450	48	taxonomic identity marker	multi-marker approach
+GCF_965118295.1	99.24		4989386	48	ENA first public	2025-01-24
+GCF_965118295.1	99.24		4989386	48	ENA-CHECKLIST	ERC000011
+GCF_965118295.1	99.24		4989386	48	INSDC center name	Ifremer
+GCF_965118295.1	99.24		4989386	48	INSDC status	public
+GCF_965118295.1	99.24		4989386	48	Submitter Id	sam_MIP2438_draft genome
+GCF_965118295.1	99.24		4989386	48	broker name	SeBiMER
+GCF_965118295.1	99.24		4989386	48	collecting institution	Ifremer, France
+GCF_965118295.1	99.24		4989386	48	collection_date	2009-01-01
+GCF_965118295.1	99.24		4989386	48	common name	Hafnia paralvei
+GCF_965118295.1	99.24		4989386	48	env_package	none
+GCF_965118295.1	99.24		4989386	48	environmental_sample	No
+GCF_965118295.1	99.24		4989386	48	geo_loc_name	France
+GCF_965118295.1	99.24		4989386	48	geographic location (depth)	not collected
+GCF_965118295.1	99.24		4989386	48	geographic location (elevation)	not collected
+GCF_965118295.1	99.24		4989386	48	geographic location (latitude)	not collected
+GCF_965118295.1	99.24		4989386	48	geographic location (longitude)	not collected
+GCF_965118295.1	99.24		4989386	48	geographic location (region and locality)	Nantes
+GCF_965118295.1	99.24		4989386	48	investigation_type	bacteria_archaea
+GCF_965118295.1	99.24		4989386	48	isolate	MIP2438
+GCF_965118295.1	99.24		4989386	48	isolation_source	bacterial strain isolated from fresh salmon
+GCF_965118295.1	99.24		4989386	48	project_name	SEABIOMIC
+GCF_965118295.1	99.24		4989386	48	sample_name	sam_MIP2438_draft genome
+GCF_965118295.1	99.24		4989386	48	description	Genome sequences were obtained from DNA extracts of bacterial isolates. illumina raw data were assembled using CELIA workflow (Ifremer).
+GCF_965118295.1	99.24		4989386	48	sample_name	MIP2438_draft genome
+GCF_965118295.1	99.24		4989386	48	scientific_name	Hafnia paralvei
+GCF_965118295.1	99.24		4989386	48	sequencing method	Sequencing by synthesis (Illumina)
+GCF_965118295.1	99.24		4989386	48	strain	MIP2438
+GCF_965118475.1	99.24		4887245	48	ENA first public	2025-01-24
+GCF_965118475.1	99.24		4887245	48	ENA-CHECKLIST	ERC000011
+GCF_965118475.1	99.24		4887245	48	INSDC center name	Ifremer
+GCF_965118475.1	99.24		4887245	48	INSDC status	public
+GCF_965118475.1	99.24		4887245	48	Submitter Id	sam_MIP2468_draft genome
+GCF_965118475.1	99.24		4887245	48	broker name	SeBiMER
+GCF_965118475.1	99.24		4887245	48	collecting institution	Ifremer, France
+GCF_965118475.1	99.24		4887245	48	collection_date	2009-01-01
+GCF_965118475.1	99.24		4887245	48	common name	Hafnia paralvei
+GCF_965118475.1	99.24		4887245	48	env_package	none
+GCF_965118475.1	99.24		4887245	48	environmental_sample	No
+GCF_965118475.1	99.24		4887245	48	geo_loc_name	France
+GCF_965118475.1	99.24		4887245	48	geographic location (depth)	not collected
+GCF_965118475.1	99.24		4887245	48	geographic location (elevation)	not collected
+GCF_965118475.1	99.24		4887245	48	geographic location (latitude)	not collected
+GCF_965118475.1	99.24		4887245	48	geographic location (longitude)	not collected
+GCF_965118475.1	99.24		4887245	48	geographic location (region and locality)	Nantes
+GCF_965118475.1	99.24		4887245	48	investigation_type	bacteria_archaea
+GCF_965118475.1	99.24		4887245	48	isolate	MIP2468
+GCF_965118475.1	99.24		4887245	48	isolation_source	bacterial strain isolated from fresh salmon
+GCF_965118475.1	99.24		4887245	48	project_name	SEABIOMIC
+GCF_965118475.1	99.24		4887245	48	sample_name	sam_MIP2468_draft genome
+GCF_965118475.1	99.24		4887245	48	description	Genome sequences were obtained from DNA extracts of bacterial isolates. illumina raw data were assembled using CELIA workflow (Ifremer).
+GCF_965118475.1	99.24		4887245	48	sample_name	MIP2468_draft genome
+GCF_965118475.1	99.24		4887245	48	scientific_name	Hafnia paralvei
+GCF_965118475.1	99.24		4887245	48	sequencing method	Sequencing by synthesis (Illumina)
+GCF_965118475.1	99.24		4887245	48	strain	MIP2468
+GCA_001061055.1	99.59	0.28	4745830	48	isolation_source	missing
+GCA_001061055.1	99.59	0.28	4745830	48	lat_lon	missing
+GCA_001061055.1	99.59	0.28	4745830	48	collected_by	UW clinical laboratory
+GCA_001061055.1	99.59	0.28	4745830	48	strain	1133_RAQU
+GCA_001061055.1	99.59	0.28	4745830	48	host_disease	missing
+GCA_001061055.1	99.59	0.28	4745830	48	collection_date	Unknown
+GCA_001061055.1	99.59	0.28	4745830	48	host	Homo sapiens
+GCA_001061055.1	99.59	0.28	4745830	48	geo_loc_name	USA: WA
+GCA_001061055.1	99.59	0.28	4745830	48	note	Originally submitted as Rahnella aquatilis but changed in July 2016 as a result of ANI analysis to Hafnia paralvei
+GCA_001559255.2	99.59		4513714	48	geo_loc_name	USA:DC
+GCA_001559255.2	99.59		4513714	48	collected_by	Children's National Hospital
+GCA_001559255.2	99.59		4513714	48	isolation_source	stool
+GCA_001559255.2	99.59		4513714	48	collection_date	2014-05-12
+GCA_001559255.2	99.59		4513714	48	strain	FDAARGOS_158
+GCA_001559255.2	99.59		4513714	48	lat_lon	Not Applicable
+GCA_001559255.2	99.59		4513714	48	isolate_name_alias	FDAARGOS_158
+GCA_001559255.2	99.59		4513714	48	identification method	phenotypic identification
+GCA_001559255.2	99.59		4513714	48	host_sex	male
+GCA_001559255.2	99.59		4513714	48	host_disease	Colonization/Enteritis
+GCA_001559255.2	99.59		4513714	48	host_age	6M
+GCA_001559255.2	99.59		4513714	48	host	Homo sapiens
+GCA_001559255.2	99.59		4513714	48	culture_collection	FDA:FDAARGOS_158
+GCA_001559255.2	99.59		4513714	48	isolate	Not Applicable
+GCA_001559255.2	99.59		4513714	48	host_disease_outcome	Missing
+GCA_001559255.2	99.59		4513714	48	host_health_state	Missing
+GCA_001559255.2	99.59		4513714	48	host_description	Missing
+GCA_001559255.2	99.59		4513714	48	host_disease_stage	Missing
+GCA_002287565.1	99.59	0.28	4938675	48	strain	CITHA-6
+GCA_002287565.1	99.59	0.28	4938675	48	collected_by	Cork Institute of Technology
+GCA_002287565.1	99.59	0.28	4938675	48	collection_date	2015-11
+GCA_002287565.1	99.59	0.28	4938675	48	geo_loc_name	Ireland: Cork
+GCA_002287565.1	99.59	0.28	4938675	48	isolation_source	Raw bovine milk
+GCA_002287565.1	99.59	0.28	4938675	48	lat_lon	51.8855 N 8.5341 W
+GCA_002313145.2	99.59	0.55	4914494	48	geo_loc_name	USA:DC
+GCA_002313145.2	99.59	0.55	4914494	48	collected_by	Children's National Hospital
+GCA_002313145.2	99.59	0.55	4914494	48	isolation_source	endotracheal aspirate
+GCA_002313145.2	99.59	0.55	4914494	48	collection_date	2014-07-09
+GCA_002313145.2	99.59	0.55	4914494	48	strain	FDAARGOS_230
+GCA_002313145.2	99.59	0.55	4914494	48	lat_lon	Not Applicable
+GCA_002313145.2	99.59	0.55	4914494	48	isolate_name_alias	FDAARGOS_230
+GCA_002313145.2	99.59	0.55	4914494	48	identification method	Phenotypic identification
+GCA_002313145.2	99.59	0.55	4914494	48	host_sex	female
+GCA_002313145.2	99.59	0.55	4914494	48	host_disease	Colonization
+GCA_002313145.2	99.59	0.55	4914494	48	host_age	9M
+GCA_002313145.2	99.59	0.55	4914494	48	host	Homo sapiens
+GCA_002313145.2	99.59	0.55	4914494	48	culture_collection	FDA:FDAARGOS_230
+GCA_002313145.2	99.59	0.55	4914494	48	isolate	Not Applicable
+GCA_002313145.2	99.59	0.55	4914494	48	host_disease_outcome	Missing
+GCA_002313145.2	99.59	0.55	4914494	48	host_health_state	Missing
+GCA_002313145.2	99.59	0.55	4914494	48	host_description	Missing
+GCA_002313145.2	99.59	0.55	4914494	48	host_disease_stage	Missing
+GCA_002379545.1	98		4570305	48	isolation_source	epidermal mucus of Anguilla anguilla fishes in Ebro delta
+GCA_002379545.1	98		4570305	48	geo_loc_name	Spain: Alfacada pond, Ebro delta, Tarragona
+GCA_002379545.1	98		4570305	48	collection_date	not applicable
+GCA_002379545.1	98		4570305	48	sample_type	metagenomic assembly
+GCA_002379545.1	98		4570305	48	subsrc_note	Genome binned from sequencing reads available in SRX703649 metagenome
+GCA_002379545.1	98		4570305	48	isolate	UBA4198
+GCA_002379545.1	98		4570305	48	assembly_method	CLC de novo assembler
+GCA_002379545.1	98		4570305	48	assembly_method_version	4.4.1
+GCA_002379545.1	98		4570305	48	completeness_estimated	99.34%
+GCA_002379545.1	98		4570305	48	contamination_estimated	0.45%
+GCA_002379545.1	98		4570305	48	environmental_sample	true
+GCA_002379545.1	98		4570305	48	genome_coverage	26.06
+GCA_002379545.1	98		4570305	48	mapping_method	BWA (BWA-MEM)
+GCA_002379545.1	98		4570305	48	mapping_method_version	0.7.12-r1039
+GCA_002379545.1	98		4570305	48	metagenome_source	fish metagenome
+GCA_002379545.1	98		4570305	48	metagenomic	true
+GCA_002379545.1	98		4570305	48	quality_assessment_method	CheckM
+GCA_002379545.1	98		4570305	48	quality_assessment_method_version	1.0.6
+GCA_002379545.1	98		4570305	48	value	This BioSample is a metagenomic assembly obtained from the fish metagenome reads: SRR1578068.
+GCA_002379545.1	98		4570305	48	note	Originally submitted as Hafnia alvei but changed in October 2018 because of ANI results to Hafnia paralvei
+GCA_003339035.1	98.76		4722064	48	strain	C2
+GCA_003339035.1	98.76		4722064	48	isolation_source	pitcher plants
+GCA_003339035.1	98.76		4722064	48	host	Sarracenia
+GCA_003339035.1	98.76		4722064	48	collection_date	2010-11-06
+GCA_003339035.1	98.76		4722064	48	geo_loc_name	USA
+GCA_003339035.1	98.76		4722064	48	sample_type	whole organism
+GCA_003339055.1	98.76		4709191	48	strain	C3
+GCA_003339055.1	98.76		4709191	48	isolation_source	pitcher plants
+GCA_003339055.1	98.76		4709191	48	host	Sarracenia
+GCA_003339055.1	98.76		4709191	48	collection_date	2010-11-06
+GCA_003339055.1	98.76		4709191	48	geo_loc_name	USA
+GCA_003339055.1	98.76		4709191	48	sample_type	whole organism
+GCA_003339065.1	98.76		4694262	48	strain	C5
+GCA_003339065.1	98.76		4694262	48	isolation_source	pitcher plants
+GCA_003339065.1	98.76		4694262	48	host	Sarracenia
+GCA_003339065.1	98.76		4694262	48	collection_date	2010-11-06
+GCA_003339065.1	98.76		4694262	48	geo_loc_name	USA
+GCA_003339065.1	98.76		4694262	48	sample_type	whole organism
+GCA_003339105.1	98.76		4696175	48	strain	C9
+GCA_003339105.1	98.76		4696175	48	isolation_source	pitcher plants
+GCA_003339105.1	98.76		4696175	48	host	Sarracenia
+GCA_003339105.1	98.76		4696175	48	collection_date	2010-11-06
+GCA_003339105.1	98.76		4696175	48	geo_loc_name	USA
+GCA_003339105.1	98.76		4696175	48	sample_type	whole organism
+GCA_003339115.1	98.76		4695249	48	strain	C8
+GCA_003339115.1	98.76		4695249	48	isolation_source	pitcher plants
+GCA_003339115.1	98.76		4695249	48	host	Sarracenia
+GCA_003339115.1	98.76		4695249	48	collection_date	2010-11-06
+GCA_003339115.1	98.76		4695249	48	geo_loc_name	USA
+GCA_003339115.1	98.76		4695249	48	sample_type	whole organism
+GCA_003362795.2	98.76		4710920	48	strain	C10
+GCA_003362795.2	98.76		4710920	48	isolation_source	pitcher plants
+GCA_003362795.2	98.76		4710920	48	host	Sarracenia
+GCA_003362795.2	98.76		4710920	48	collection_date	2010-11-06
+GCA_003362795.2	98.76		4710920	48	geo_loc_name	USA
+GCA_003362795.2	98.76		4710920	48	sample_type	whole organism
+GCA_003542895.1	97.93	1.24	4519989	48	isolate	UBA11299
+GCA_003542895.1	97.93	1.24	4519989	48	isolation_source	metagenome
+GCA_003542895.1	97.93	1.24	4519989	48	collection_date	not applicable
+GCA_003542895.1	97.93	1.24	4519989	48	geo_loc_name	not applicable
+GCA_003542895.1	97.93	1.24	4519989	48	sample_type	metagenomic assembly
+GCA_003542895.1	97.93	1.24	4519989	48	assembly_method	CLC de novo assembler
+GCA_003542895.1	97.93	1.24	4519989	48	assembly_method_version	4.4.1
+GCA_003542895.1	97.93	1.24	4519989	48	mapping_method	BWA (BWA-MEM)
+GCA_003542895.1	97.93	1.24	4519989	48	mapping_method_version	0.7.12-r1039
+GCA_003542895.1	97.93	1.24	4519989	48	genome_coverage	108.10x
+GCA_003542895.1	97.93	1.24	4519989	48	quality_assessment_method	CheckM
+GCA_003542895.1	97.93	1.24	4519989	48	quality_assessment_method_version	1.0.6
+GCA_003542895.1	97.93	1.24	4519989	48	completeness_estimated	100.00%
+GCA_003542895.1	97.93	1.24	4519989	48	contamination_estimated	14.01%
+GCA_003542895.1	97.93	1.24	4519989	48	metagenome_source	metagenome
+GCA_003542895.1	97.93	1.24	4519989	48	environmental_sample	true
+GCA_003542895.1	97.93	1.24	4519989	48	metagenomic	true
+GCA_003542895.1	97.93	1.24	4519989	48	note	metagenome
+GCA_003542895.1	97.93	1.24	4519989	48	value	This BioSample is a metagenomic assembly obtained from the metagenome reads: ERR699787.
+GCA_004307975.1	98.76		4941683	47.5	strain	PCM_1211
+GCA_004307975.1	98.76		4941683	47.5	isolate_name_alias	G5915
+GCA_004307975.1	98.76		4941683	47.5	isolation_source	missing
+GCA_004307975.1	98.76		4941683	47.5	collection_date	missing
+GCA_004307975.1	98.76		4941683	47.5	geo_loc_name	Poland
+GCA_004307975.1	98.76		4941683	47.5	sample_type	not applicable
+GCA_004308105.1	99.59		4696354	48	strain	PCM_1218
+GCA_004308105.1	99.59		4696354	48	isolate_name_alias	G5922
+GCA_004308105.1	99.59		4696354	48	isolation_source	missing
+GCA_004308105.1	99.59		4696354	48	collection_date	missing
+GCA_004308105.1	99.59		4696354	48	geo_loc_name	Poland
+GCA_004308105.1	99.59		4696354	48	sample_type	not applicable
+GCA_004309775.1	98.76		4810955	48	strain	PCM_1194
+GCA_004309775.1	98.76		4810955	48	isolate_name_alias	G5904
+GCA_004309775.1	98.76		4810955	48	isolation_source	missing
+GCA_004309775.1	98.76		4810955	48	collection_date	missing
+GCA_004309775.1	98.76		4810955	48	geo_loc_name	Poland
+GCA_004309775.1	98.76		4810955	48	sample_type	not applicable
+GCA_004309835.1	98.76	0.28	4852239	48	strain	PCM_1192
+GCA_004309835.1	98.76	0.28	4852239	48	isolate_name_alias	G5903
+GCA_004309835.1	98.76	0.28	4852239	48	isolation_source	missing
+GCA_004309835.1	98.76	0.28	4852239	48	collection_date	missing
+GCA_004309835.1	98.76	0.28	4852239	48	geo_loc_name	Poland
+GCA_004309835.1	98.76	0.28	4852239	48	sample_type	not applicable
+GCA_004309865.1	97.93		4812462	48	strain	PCM_1188
+GCA_004309865.1	97.93		4812462	48	isolate_name_alias	G5899
+GCA_004309865.1	97.93		4812462	48	isolation_source	missing
+GCA_004309865.1	97.93		4812462	48	collection_date	missing
+GCA_004309865.1	97.93		4812462	48	geo_loc_name	Poland
+GCA_004309865.1	97.93		4812462	48	sample_type	not applicable
+GCA_004309945.1	97.93		4870292	48	strain	PCM_1223
+GCA_004309945.1	97.93		4870292	48	isolate_name_alias	G5897
+GCA_004309945.1	97.93		4870292	48	isolation_source	missing
+GCA_004309945.1	97.93		4870292	48	collection_date	missing
+GCA_004309945.1	97.93		4870292	48	geo_loc_name	Poland
+GCA_004309945.1	97.93		4870292	48	sample_type	not applicable
+GCA_004309975.1	98.76		4837582	48	strain	PCM_1198
+GCA_004309975.1	98.76		4837582	48	isolate_name_alias	G5907
+GCA_004309975.1	98.76		4837582	48	isolation_source	missing
+GCA_004309975.1	98.76		4837582	48	collection_date	missing
+GCA_004309975.1	98.76		4837582	48	geo_loc_name	Poland
+GCA_004309975.1	98.76		4837582	48	sample_type	not applicable
+GCA_011754525.1	99.59		4625103	48	strain	H.a110
+GCA_011754525.1	99.59		4625103	48	collection_date	missing
+GCA_011754525.1	99.59		4625103	48	env_broad_scale	missing
+GCA_011754525.1	99.59		4625103	48	env_local_scale	missing
+GCA_011754525.1	99.59		4625103	48	env_medium	missing
+GCA_011754525.1	99.59		4625103	48	geo_loc_name	missing
+GCA_011754525.1	99.59		4625103	48	isol_growth_condt	missing
+GCA_011754525.1	99.59		4625103	48	lat_lon	missing
+GCA_011754525.1	99.59		4625103	48	num_replicons	missing
+GCA_011754525.1	99.59		4625103	48	ref_biomaterial	missing
+GCA_013360205.1	99.59		4635035	48	strain	E14
+GCA_013360205.1	99.59		4635035	48	host	Gallus gallus
+GCA_013360205.1	99.59		4635035	48	collection_date	2016-12-02
+GCA_013360205.1	99.59		4635035	48	geo_loc_name	Australia: Victoria
+GCA_013360205.1	99.59		4635035	48	sample_type	Pure culture
+GCA_013360205.1	99.59		4635035	48	collected_by	Sarah Bean
+GCA_016456295.2	99.59	1.86	4760653	48	strain	LY-23
+GCA_016456295.2	99.59	1.86	4760653	48	host	Scophthalmus maximus
+GCA_016456295.2	99.59	1.86	4760653	48	collection_date	2017
+GCA_016456295.2	99.59	1.86	4760653	48	geo_loc_name	China: Liaoning
+GCA_016456295.2	99.59	1.86	4760653	48	sample_type	mixed culture
+GCA_018606925.1	93.96		4291982	48	isolate	1_9
+GCA_018606925.1	93.96		4291982	48	host	Homo sapiens
+GCA_018606925.1	93.96		4291982	48	isolation_source	urine
+GCA_018606925.1	93.96		4291982	48	collection_date	2017-11
+GCA_018606925.1	93.96		4291982	48	geo_loc_name	USA: Cleveland
+GCA_018606925.1	93.96		4291982	48	metagenomic	1
+GCA_018606925.1	93.96		4291982	48	environmental-sample	1
+GCA_018606925.1	93.96		4291982	48	sample_type	metagenomic assembly
+GCA_018606925.1	93.96		4291982	48	metagenome_source	human urinary tract metagenome
+GCA_018606925.1	93.96		4291982	48	derived_from	This BioSample is a metagenomic assembly obtained from the human urinary tract metagenome BioSamples: SAMN18524249, SAMN18524250, SAMN18524251, SAMN18524252, SAMN18524253, SAMN18524254, SAMN18524255, SAMN18524256, SAMN18524257, and SAMN18524258
+GCA_018831105.1	99.59		4885914	48	strain	VBC_1714
+GCA_018831105.1	99.59		4885914	48	collected_by	Julia E. Storesund
+GCA_018831105.1	99.59		4885914	48	collection_date	2020-09
+GCA_018831105.1	99.59		4885914	48	geo_loc_name	not applicable
+GCA_018831105.1	99.59		4885914	48	isolation_source	Frozen cod fillet
+GCA_018831105.1	99.59		4885914	48	lat_lon	69.6 N 30.2 E
+GCA_020150375.1	99.59		4945534	48	strain	AVS0177
+GCA_020150375.1	99.59		4945534	48	isolation_source	lake water
+GCA_020150375.1	99.59		4945534	48	collection_date	2020-09
+GCA_020150375.1	99.59		4945534	48	geo_loc_name	Switzerland: Lake Zug
+GCA_020150375.1	99.59		4945534	48	sample_type	whole organism
+GCA_020450285.1	99.59		4836935	48	strain	FDAARGOS_1502
+GCA_020450285.1	99.59		4836935	48	isolate	Not applicable
+GCA_020450285.1	99.59		4836935	48	collected_by	DSMZ
+GCA_020450285.1	99.59		4836935	48	collection_date	Unknown
+GCA_020450285.1	99.59		4836935	48	geo_loc_name	Germany: Braunschweig
+GCA_020450285.1	99.59		4836935	48	isolation_source	missing
+GCA_020450285.1	99.59		4836935	48	lat_lon	Not applicable
+GCA_020450285.1	99.59		4836935	48	culture_collection	DSM:24119
+GCA_020450285.1	99.59		4836935	48	host	missing
+GCA_020450285.1	99.59		4836935	48	host_age	Unknown
+GCA_020450285.1	99.59		4836935	48	host_description	Not applicable
+GCA_020450285.1	99.59		4836935	48	host_disease	Unknown
+GCA_020450285.1	99.59		4836935	48	host_disease_outcome	Unknown
+GCA_020450285.1	99.59		4836935	48	host_disease_stage	Unknown
+GCA_020450285.1	99.59		4836935	48	host_health_state	Unknown
+GCA_020450285.1	99.59		4836935	48	host_sex	Unknown
+GCA_020450285.1	99.59		4836935	48	identification method	Phenotypic and Molecular Methods
+GCA_021440185.1	98.76		4687594	48	strain	INSAq191
+GCA_021440185.1	98.76		4687594	48	collected_by	INSA
+GCA_021440185.1	98.76		4687594	48	collection_date	2019-01-14
+GCA_021440185.1	98.76		4687594	48	geo_loc_name	Portugal
+GCA_021440185.1	98.76		4687594	48	isolation_source	fish
+GCA_021440185.1	98.76		4687594	48	lat_lon	Unknown
+GCA_021440365.1	93.97	0.41	4403630	48	strain	INSAq225
+GCA_021440365.1	93.97	0.41	4403630	48	collected_by	INSA
+GCA_021440365.1	93.97	0.41	4403630	48	collection_date	2019-01-14
+GCA_021440365.1	93.97	0.41	4403630	48	geo_loc_name	Portugal
+GCA_021440365.1	93.97	0.41	4403630	48	isolation_source	fish
+GCA_021440365.1	93.97	0.41	4403630	48	lat_lon	Unknown
+GCA_021440445.1	99.59	0.41	4690013	48	strain	INSAq217
+GCA_021440445.1	99.59	0.41	4690013	48	collected_by	INSA
+GCA_021440445.1	99.59	0.41	4690013	48	collection_date	2019-01-14
+GCA_021440445.1	99.59	0.41	4690013	48	geo_loc_name	Portugal
+GCA_021440445.1	99.59	0.41	4690013	48	isolation_source	fish
+GCA_021440445.1	99.59	0.41	4690013	48	lat_lon	Unknown
+GCA_021440495.1	93.53	2.27	4657376	48.5	strain	INSAq219
+GCA_021440495.1	93.53	2.27	4657376	48.5	collected_by	INSA
+GCA_021440495.1	93.53	2.27	4657376	48.5	collection_date	2019-01-14
+GCA_021440495.1	93.53	2.27	4657376	48.5	geo_loc_name	Portugal
+GCA_021440495.1	93.53	2.27	4657376	48.5	isolation_source	fish
+GCA_021440495.1	93.53	2.27	4657376	48.5	lat_lon	Unknown
+GCA_021441105.1	98.76		4677522	48	strain	INSAq204
+GCA_021441105.1	98.76		4677522	48	collected_by	INSA
+GCA_021441105.1	98.76		4677522	48	collection_date	2019-01-14
+GCA_021441105.1	98.76		4677522	48	geo_loc_name	Portugal
+GCA_021441105.1	98.76		4677522	48	isolation_source	fish
+GCA_021441105.1	98.76		4677522	48	lat_lon	Unknown
+GCA_023096345.1	99.59		4718603	48.5	strain	Mf1-1
+GCA_023096345.1	99.59		4718603	48.5	collected_by	Goncharov A.
+GCA_023096345.1	99.59		4718603	48.5	collection_date	2021-07-07
+GCA_023096345.1	99.59		4718603	48.5	geo_loc_name	Russia: Yakutia
+GCA_023096345.1	99.59		4718603	48.5	isolation_source	feces
+GCA_023096345.1	99.59		4718603	48.5	lat_lon	67.500000 N 135.716667 E
+GCA_023096345.1	99.59		4718603	48.5	host	Mammuthus primigenius
+GCA_023698525.1	97.8		4909819	48	strain	Stebra 1
+GCA_023698525.1	97.8		4909819	48	collection_date	2021-08-18
+GCA_023698525.1	97.8		4909819	48	env_broad_scale	Homo sapiens
+GCA_023698525.1	97.8		4909819	48	env_local_scale	clinical sample
+GCA_023698525.1	97.8		4909819	48	env_medium	not collected
+GCA_023698525.1	97.8		4909819	48	geo_loc_name	Germany
+GCA_023698525.1	97.8		4909819	48	host	Homo sapiens
+GCA_023698525.1	97.8		4909819	48	isol_growth_condt	not collected
+GCA_023698525.1	97.8		4909819	48	lat_lon	50.92 N 11.58 E
+GCA_023698525.1	97.8		4909819	48	num_replicons	not collected
+GCA_023698525.1	97.8		4909819	48	ref_biomaterial	not collected
+GCA_023698525.1	97.8		4909819	48	isolation_source	urine
+GCA_024437935.1	99.59	0.83	4765723	48	strain	Z11
+GCA_024437935.1	99.59	0.83	4765723	48	isolation_source	fish meat
+GCA_024437935.1	99.59	0.83	4765723	48	collection_date	2019-10-20
+GCA_024437935.1	99.59	0.83	4765723	48	geo_loc_name	China: Xinxiang
+GCA_024437935.1	99.59	0.83	4765723	48	sample_type	pure culture
+GCA_030843585.1	97.79	0.41	4800421	48	host	Homo sapiens
+GCA_030843585.1	97.79	0.41	4800421	48	isolation_source	feces
+GCA_030843585.1	97.79	0.41	4800421	48	collection_date	missing
+GCA_030843585.1	97.79	0.41	4800421	48	geo_loc_name	USA
+GCA_030843585.1	97.79	0.41	4800421	48	lat_lon	missing
+GCA_030843585.1	97.79	0.41	4800421	48	isolate	N1164.7
+GCA_030843585.1	97.79	0.41	4800421	48	env_broad_scale	Human Biome
+GCA_030843585.1	97.79	0.41	4800421	48	env_local_scale	Gut Microbiome
+GCA_030843585.1	97.79	0.41	4800421	48	env_medium	Gut
+GCA_030843585.1	97.79	0.41	4800421	48	metagenomic	1
+GCA_030843585.1	97.79	0.41	4800421	48	environmental-sample	1
+GCA_030843585.1	97.79	0.41	4800421	48	sample_type	metagenomic assembly
+GCA_030843585.1	97.79	0.41	4800421	48	metagenome_source	human gut metagenome
+GCA_030843585.1	97.79	0.41	4800421	48	derived_from	SAMN35085370
+GCA_033899045.1	99.59		4815612	48	strain	CIM-Cont-035
+GCA_033899045.1	99.59		4815612	48	collected_by	Hamprecht group, University Hospital Cologne
+GCA_033899045.1	99.59		4815612	48	collection_date	unknown
+GCA_033899045.1	99.59		4815612	48	geo_loc_name	Germany
+GCA_033899045.1	99.59		4815612	48	host	Homo sapiens
+GCA_033899045.1	99.59		4815612	48	host_disease	unknown
+GCA_033899045.1	99.59		4815612	48	isolation_source	not applicable
+GCA_033899045.1	99.59		4815612	48	lat_lon	50.91705971 N 6.90202729 E
+GCA_033899085.1	99.59	0.21	4878683	48	strain	CIM-Cont-033
+GCA_033899085.1	99.59	0.21	4878683	48	collected_by	Hamprecht group, University Hospital Cologne
+GCA_033899085.1	99.59	0.21	4878683	48	collection_date	unknown
+GCA_033899085.1	99.59	0.21	4878683	48	geo_loc_name	Germany
+GCA_033899085.1	99.59	0.21	4878683	48	host	Homo sapiens
+GCA_033899085.1	99.59	0.21	4878683	48	host_disease	unknown
+GCA_033899085.1	99.59	0.21	4878683	48	isolation_source	not applicable
+GCA_033899085.1	99.59	0.21	4878683	48	lat_lon	50.91705971 N 6.90202729 E
+GCA_036813125.1	99.59		4915179	48	strain	T10-Ana-9
+GCA_036813125.1	99.59		4915179	48	isolation_source	Cheese after GESM assay
+GCA_036813125.1	99.59		4915179	48	collection_date	2023-06-02
+GCA_036813125.1	99.59		4915179	48	geo_loc_name	Italy: Parma
+GCA_036813125.1	99.59		4915179	48	sample_type	Mixed culture
+GCA_037052705.1	99.59		5122762	48	strain	P40
+GCA_037052705.1	99.59		5122762	48	isolation_source	Phyllosphere
+GCA_037052705.1	99.59		5122762	48	collection_date	2022-01-01
+GCA_037052705.1	99.59		5122762	48	geo_loc_name	China: Guangdong
+GCA_037052705.1	99.59		5122762	48	sample_type	cell culture
+GCA_037052805.1	99.59		5012225	48	strain	P84
+GCA_037052805.1	99.59		5012225	48	isolation_source	Phyllosphere
+GCA_037052805.1	99.59		5012225	48	collection_date	2022-01-01
+GCA_037052805.1	99.59		5012225	48	geo_loc_name	China: Guangdong
+GCA_037052805.1	99.59		5012225	48	sample_type	cell culture
+GCA_043828565.1	99.59	0.28	5055248	48	strain	KE9839
+GCA_043828565.1	99.59	0.28	5055248	48	host	Homo sapiens
+GCA_043828565.1	99.59	0.28	5055248	48	collection_date	2020
+GCA_043828565.1	99.59	0.28	5055248	48	geo_loc_name	Germany
+GCA_043828565.1	99.59	0.28	5055248	48	sample_type	isolated colonies
+GCA_044358125.1	99.59		4513814	48.5	collected_by	Department of Disease Control, Ministry of Public Health
+GCA_044358125.1	99.59		4513814	48.5	collection_date	2019-10-07
+GCA_044358125.1	99.59		4513814	48.5	geo_loc_name	Thailand: Uttaradit
+GCA_044358125.1	99.59		4513814	48.5	lat_lon	Not applicable
+GCA_044358125.1	99.59		4513814	48.5	isolation_source	food
+GCA_044358125.1	99.59		4513814	48.5	strain	Colony230
+GCA_046082725.1	99.59	0.03	4960149	48	strain	UUNT_MP29
+GCA_046082725.1	99.59	0.03	4960149	48	isolation_source	gastrointestinal tract
+GCA_046082725.1	99.59	0.03	4960149	48	host	Cyprinus carpio
+GCA_046082725.1	99.59	0.03	4960149	48	collection_date	2024-02-18
+GCA_046082725.1	99.59	0.03	4960149	48	geo_loc_name	Serbia: Backi Jarak.
+GCA_046082725.1	99.59	0.03	4960149	48	lat_lon	45.370000 N 19.891389 E
+GCA_046082725.1	99.59	0.03	4960149	48	env_broad_scale	Isolated from the gastrointestinal tract of Cyprinus carpio
+GCA_046082725.1	99.59	0.03	4960149	48	env_local_scale	Cyprinus carpio
+GCA_046082725.1	99.59	0.03	4960149	48	env_medium	gastrointestinal tract
+GCA_046082725.1	99.59	0.03	4960149	48	isol_growth_condt	internal laboratory protocol
+GCA_046082725.1	99.59	0.03	4960149	48	num_replicons	1
+GCA_046082725.1	99.59	0.03	4960149	48	ref_biomaterial	https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=info&id=7962
+GCA_047786445.1	99.59		4800043	48	collected_by	University of Veterinary Sciences Brno
+GCA_047786445.1	99.59		4800043	48	collection_date	2020
+GCA_047786445.1	99.59		4800043	48	geo_loc_name	Czech Republic
+GCA_047786445.1	99.59		4800043	48	host	wild bird
+GCA_047786445.1	99.59		4800043	48	purpose_of_sampling	Research
+GCA_047786445.1	99.59		4800043	48	source_type	animal
+GCA_047786445.1	99.59		4800043	48	strain	BP70e
+GCA_047786445.1	99.59		4800043	48	isolation_source	missing
+GCA_047829645.1	99.59		4969161	48	isolate	UW_FK_HAF1_1
+GCA_047829645.1	99.59		4969161	48	collection_date	2023-09-04
+GCA_047829645.1	99.59		4969161	48	env_broad_scale	bioreactor [ENVO:00002123]
+GCA_047829645.1	99.59		4969161	48	env_local_scale	membrane bioreactor [ENVO:03600010]
+GCA_047829645.1	99.59		4969161	48	env_medium	dairy food product [FOODON:00001256]
+GCA_047829645.1	99.59		4969161	48	geo_loc_name	USA: Wisconsin, Madison
+GCA_047829645.1	99.59		4969161	48	isolation_source	anaerobic bioreactor effluent
+GCA_047829645.1	99.59		4969161	48	lat_lon	43.033933 N 89.356452 W
+GCA_047829645.1	99.59		4969161	48	altitude	268 m
+GCA_047829645.1	99.59		4969161	48	ph	5.5
+GCA_047829645.1	99.59		4969161	48	samp_collect_device	Syringe
+GCA_047829645.1	99.59		4969161	48	samp_mat_process	Biomass centrifuged 10 min 10,000xg, aliquot frozen for DNA extraction
+GCA_047829645.1	99.59		4969161	48	samp_size	2 milliliter
+GCA_047829645.1	99.59		4969161	48	samp_store_loc	Freezer
+GCA_047829645.1	99.59		4969161	48	samp_store_temp	-80 degree Celcius
+GCA_047829645.1	99.59		4969161	48	temp	50 degree Celcius
+GCA_047829645.1	99.59		4969161	48	metagenomic	1
+GCA_047829645.1	99.59		4969161	48	environmental-sample	1
+GCA_047829645.1	99.59		4969161	48	sample_type	metagenomic assembly
+GCA_047829645.1	99.59		4969161	48	metagenome_source	bioreactor metagenome
+GCA_047829645.1	99.59		4969161	48	derived-from-SRA	SRR31045104
+GCA_049544905.1	99.59		4804139	48.5	strain	CRS2402
+GCA_049544905.1	99.59		4804139	48.5	collected_by	Bundang CHA medical center
+GCA_049544905.1	99.59		4804139	48.5	collection_date	2024-04-29
+GCA_049544905.1	99.59		4804139	48.5	geo_loc_name	South Korea: Seongnam city
+GCA_049544905.1	99.59		4804139	48.5	host	Homo sapiens
+GCA_049544905.1	99.59		4804139	48.5	host_disease	Hilar cholangiocarcinoma
+GCA_049544905.1	99.59		4804139	48.5	isolation_source	bile
+GCA_049544905.1	99.59		4804139	48.5	lat_lon	37.410390 N 127.125427 E
+GCA_049629525.1	99.59	0.28	4958689	48	strain	IPLA15029
+GCA_049629525.1	99.59	0.28	4958689	48	isolate_name_alias	7LBE7
+GCA_049629525.1	99.59	0.28	4958689	48	isolation_source	curd
+GCA_049629525.1	99.59	0.28	4958689	48	collection_date	2022
+GCA_049629525.1	99.59	0.28	4958689	48	geo_loc_name	Spain: Asturias
+GCA_049629525.1	99.59	0.28	4958689	48	sample_type	Food
+GCA_049891675.1	99.59		4976612	48.5	strain	P47
+GCA_049891675.1	99.59		4976612	48.5	host	Brassica rapa var. parachinensis
+GCA_049891675.1	99.59		4976612	48.5	isolation_source	Leaf endosphere
+GCA_049891675.1	99.59		4976612	48.5	collection_date	2022-01-01
+GCA_049891675.1	99.59		4976612	48.5	geo_loc_name	China: Guangdong
+GCA_049891675.1	99.59		4976612	48.5	sample_type	cell culture
+GCA_050040235.1	99.59		4894359	48	strain	11A-LG1
+GCA_050040235.1	99.59		4894359	48	collected_by	Issmat Kassem
+GCA_050040235.1	99.59		4894359	48	collection_date	missing
+GCA_050040235.1	99.59		4894359	48	geo_loc_name	missing
+GCA_050040235.1	99.59		4894359	48	isolation_source	missing
+GCA_050040235.1	99.59		4894359	48	lat_lon	missing
+GCA_051590585.1	99.59	0.28	4848607	48	strain	FUA 1455
+GCA_051590585.1	99.59	0.28	4848607	48	isolation_source	Ground beef
+GCA_051590585.1	99.59	0.28	4848607	48	collection_date	2025-01
+GCA_051590585.1	99.59	0.28	4848607	48	geo_loc_name	Canada: Alberta
+GCA_051590585.1	99.59	0.28	4848607	48	sample_type	Cell culture
+GCA_054482955.1	99.59		4693416	48.5	strain	MB58v2b
+GCA_054482955.1	99.59		4693416	48.5	host	Homo sapiens
+GCA_054482955.1	99.59		4693416	48.5	isolation_source	urine
+GCA_054482955.1	99.59		4693416	48.5	collection_date	2024-11
+GCA_054482955.1	99.59		4693416	48.5	geo_loc_name	USA: Nashville, TN
+GCA_054482955.1	99.59		4693416	48.5	sample_type	bacterial strain
+GCA_054482955.1	99.59		4693416	48.5	timepoint	2
+GCA_054482955.1	99.59		4693416	48.5	age	38
+GCA_054482955.1	99.59		4693416	48.5	host_disease	interstitial cystitis
+GCA_054482955.1	99.59		4693416	48.5	host_sex	female
+GCA_900603095.1	99.59		5122454	48	ENA-CHECKLIST	ERC000011
+GCA_900603095.1	99.59		5122454	48	ENA-FIRST-PUBLIC	2019-12-03T04:05:38Z
+GCA_900603095.1	99.59		5122454	48	ENA-LAST-UPDATE	2020-07-31T00:54:31Z
+GCA_900603095.1	99.59		5122454	48	External Id	SAMEA4976262
+GCA_900603095.1	99.59		5122454	48	INSDC center name	WAGENINGEN UR
+GCA_900603095.1	99.59		5122454	48	INSDC first public	2019-12-03T04:05:38Z
+GCA_900603095.1	99.59		5122454	48	INSDC last update	2020-07-31T00:54:31Z
+GCA_900603095.1	99.59		5122454	48	INSDC status	public
+GCA_900603095.1	99.59		5122454	48	Submitter Id	341
+GCA_900603095.1	99.59		5122454	48	collection_date	2018
+GCA_900603095.1	99.59		5122454	48	geo_loc_name	Netherlands
+GCA_900603095.1	99.59		5122454	48	host	Bovine
+GCA_900603095.1	99.59		5122454	48	sample_name	341
+GCA_900603095.1	99.59		5122454	48	scientific_name	Hafnia paralvei
+GCA_937943035.1	99.59	0.28	5148807	48	ENA-CHECKLIST	ERC000047
+GCA_937943035.1	99.59	0.28	5148807	48	ENA-FIRST-PUBLIC	2023-01-03
+GCA_937943035.1	99.59	0.28	5148807	48	ENA-LAST-UPDATE	2023-01-03
+GCA_937943035.1	99.59	0.28	5148807	48	External Id	SAMEA14085349
+GCA_937943035.1	99.59	0.28	5148807	48	INSDC center alias	EBI
+GCA_937943035.1	99.59	0.28	5148807	48	INSDC center name	European Bioinformatics Institute
+GCA_937943035.1	99.59	0.28	5148807	48	INSDC first public	2023-01-03T00:33:08Z
+GCA_937943035.1	99.59	0.28	5148807	48	INSDC last update	2023-01-03T00:33:08Z
+GCA_937943035.1	99.59	0.28	5148807	48	INSDC status	public
+GCA_937943035.1	99.59	0.28	5148807	48	Submitter Id	ERR912132_bin.122_CONCOCT_v1.1_MAG
+GCA_937943035.1	99.59	0.28	5148807	48	assembly quality	Many fragments with little to no review of assembly other than reporting of standard assembly statistics
+GCA_937943035.1	99.59	0.28	5148807	48	assembly software	spadesv3.11.1
+GCA_937943035.1	99.59	0.28	5148807	48	binning parameters	Default
+GCA_937943035.1	99.59	0.28	5148807	48	binning software	CONCOCT v1.1
+GCA_937943035.1	99.59	0.28	5148807	48	broker name	EMG broker account, EMBL-EBI
+GCA_937943035.1	99.59	0.28	5148807	48	collection_date	2010-01-01
+GCA_937943035.1	99.59	0.28	5148807	48	completeness score	99.86
+GCA_937943035.1	99.59	0.28	5148807	48	completeness software	CheckM
+GCA_937943035.1	99.59	0.28	5148807	48	contamination score	0.49
+GCA_937943035.1	99.59	0.28	5148807	48	env_broad_scale	Host-associated
+GCA_937943035.1	99.59	0.28	5148807	48	env_local_scale	Human
+GCA_937943035.1	99.59	0.28	5148807	48	env_medium	Digestive system
+GCA_937943035.1	99.59	0.28	5148807	48	geo_loc_name	United Kingdom
+GCA_937943035.1	99.59	0.28	5148807	48	geographic location (latitude)	51.5
+GCA_937943035.1	99.59	0.28	5148807	48	geographic location (longitude)	-0.12
+GCA_937943035.1	99.59	0.28	5148807	48	investigation_type	metagenome-assembled genome
+GCA_937943035.1	99.59	0.28	5148807	48	isolation_source	human gut metagenome
+GCA_937943035.1	99.59	0.28	5148807	48	metagenomic source	human gut metagenome
+GCA_937943035.1	99.59	0.28	5148807	48	project_name	The gut microbiota has been typically viewed as an environmental factor for human health. Twins are well suited for investigating the concordance of their gut microbiomes and decomposing genetic and environmental influences. However, existing twin studies utilizing metagenomic shotgun sequencing have included only a few samples. Here, we sequenced fecal samples from 250 adult twins in the TwinsUK registry and constructed a comprehensive gut microbial reference gene catalog. We demonstrate heritability of many microbial taxa and functional modules in the gut microbiome, including those associated with diseases. Moreover, we identified 8 million SNPs in the gut microbiome and observe a high similarity in microbiome SNPs between twins that slowly decreases after decades of living apart. The results shed new light on the genetic and environmental influences on the composition and function of the gut microbiome that could relate to risk of complex diseases.
+GCA_937943035.1	99.59	0.28	5148807	48	sample derived from	SAMEA3449327
+GCA_937943035.1	99.59	0.28	5148807	48	sample_name	ERR912132_bin.122_CONCOCT_v1.1_MAG
+GCA_937943035.1	99.59	0.28	5148807	48	scientific_name	Hafnia paralvei
+GCA_937943035.1	99.59	0.28	5148807	48	sequencing method	Illumina HiSeq 2000
+GCA_937943035.1	99.59	0.28	5148807	48	taxonomic identity marker	multi-marker approach
+GCA_949789945.1	99.59		4970885	48	ENA-CHECKLIST	ERC000011
+GCA_949789945.1	99.59		4970885	48	ENA-FIRST-PUBLIC	2023-04-14
+GCA_949789945.1	99.59		4970885	48	ENA-LAST-UPDATE	2023-04-14
+GCA_949789945.1	99.59		4970885	48	External Id	SAMEA112774572
+GCA_949789945.1	99.59		4970885	48	INSDC center alias	Ifremer
+GCA_949789945.1	99.59		4970885	48	INSDC center name	Ifremer
+GCA_949789945.1	99.59		4970885	48	INSDC first public	2023-04-14T00:46:14Z
+GCA_949789945.1	99.59		4970885	48	INSDC last update	2023-04-14T00:46:14Z
+GCA_949789945.1	99.59		4970885	48	INSDC status	public
+GCA_949789945.1	99.59		4970885	48	Submitter Id	sam_MIP2461_TAG
+GCA_949789945.1	99.59		4970885	48	broker name	Bioinformatics Core Facility of Ifremer (French Research Institute for Exploitation of the Sea)
+GCA_949789945.1	99.59		4970885	48	collecting institution	Ifremer, France
+GCA_949789945.1	99.59		4970885	48	collection_date	2009-01-01
+GCA_949789945.1	99.59		4970885	48	common name	Hafnia paralvei
+GCA_949789945.1	99.59		4970885	48	environmental_sample	No
+GCA_949789945.1	99.59		4970885	48	experimental_factor	not collected
+GCA_949789945.1	99.59		4970885	48	geo_loc_name	France
+GCA_949789945.1	99.59		4970885	48	geographic location (latitude)	not collected
+GCA_949789945.1	99.59		4970885	48	geographic location (longitude)	not collected
+GCA_949789945.1	99.59		4970885	48	geographic location (region and locality)	Nantes
+GCA_949789945.1	99.59		4970885	48	investigation_type	bacteria_archaea
+GCA_949789945.1	99.59		4970885	48	isolate	MIP2461
+GCA_949789945.1	99.59		4970885	48	isolation_source	bacterial strain isolated from fresh salmon
+GCA_949789945.1	99.59		4970885	48	project_name	SEABIOMIC
+GCA_949789945.1	99.59		4970885	48	sample_name	sam_MIP2461_TAG
+GCA_949789945.1	99.59		4970885	48	description	Raw data were obtained by sequencing on a MinIOn MK1C DNA extracts from bacterial isolates. Library was prepared using Rapid Barcoding sequencing kit.Demultiplexing of the fast5 files was conducted with Guppy v6.1.1.
+GCA_949789945.1	99.59		4970885	48	sample_name	MIP2461_TAG
+GCA_949789945.1	99.59		4970885	48	scientific_name	Hafnia paralvei
+GCA_949789945.1	99.59		4970885	48	sequencing method	Nanopore Sequencing
+GCA_949789945.1	99.59		4970885	48	strain	MIP2461
+GCA_958410475.1	99.59		4579278	48	ENA-CHECKLIST	ERC000047
+GCA_958410475.1	99.59		4579278	48	ENA-FIRST-PUBLIC	2023-07-13T16:22:50Z
+GCA_958410475.1	99.59		4579278	48	ENA-LAST-UPDATE	2023-07-13T16:22:50Z
+GCA_958410475.1	99.59		4579278	48	External Id	SAMEA114060886
+GCA_958410475.1	99.59		4579278	48	INSDC center alias	EMG
+GCA_958410475.1	99.59		4579278	48	INSDC center name	EMG
+GCA_958410475.1	99.59		4579278	48	INSDC first public	2023-07-13T16:22:50Z
+GCA_958410475.1	99.59		4579278	48	INSDC last update	2023-07-13T16:22:50Z
+GCA_958410475.1	99.59		4579278	48	INSDC status	public
+GCA_958410475.1	99.59		4579278	48	Submitter Id	ERR9322425_bin.23_MetaWRAP_v1.3_MAG
+GCA_958410475.1	99.59		4579278	48	assembly quality	Many fragments with little to no review of assembly other than reporting of standard assembly statistics
+GCA_958410475.1	99.59		4579278	48	assembly software	metaspades v3.15.3
+GCA_958410475.1	99.59		4579278	48	binning parameters	MaxBin2, MetaBat2, Concoct with default parameter of the metaWRAP pipeline. Bin refinement module used from metaWRAP with default parameters.
+GCA_958410475.1	99.59		4579278	48	binning software	MetaWRAP v1.3
+GCA_958410475.1	99.59		4579278	48	env_broad_scale	Human digestive system
+GCA_958410475.1	99.59		4579278	48	broker name	EMG broker account, EMBL-EBI
+GCA_958410475.1	99.59		4579278	48	collection_date	not provided
+GCA_958410475.1	99.59		4579278	48	completeness score	99.86
+GCA_958410475.1	99.59		4579278	48	completeness software	CheckM
+GCA_958410475.1	99.59		4579278	48	contamination score	0.61
+GCA_958410475.1	99.59		4579278	48	env_medium	faeces
+GCA_958410475.1	99.59		4579278	48	geo_loc_name	not provided
+GCA_958410475.1	99.59		4579278	48	geographic location (latitude)	not provided
+GCA_958410475.1	99.59		4579278	48	geographic location (longitude)	not provided
+GCA_958410475.1	99.59		4579278	48	investigation_type	metagenome-assembled genome
+GCA_958410475.1	99.59		4579278	48	isolation_source	human feces metagenome
+GCA_958410475.1	99.59		4579278	48	local environmental context	colon
+GCA_958410475.1	99.59		4579278	48	metagenomic source	human feces metagenome
+GCA_958410475.1	99.59		4579278	48	project_name	INSPIRE is a study of duodenal mucosal resurfacing, through intestinal ablation, to investigate its potential for treatment of type 2 diabetes mellitus. In this study, the microbiome before and after intestinal ablation was studied in combination with a range of clinical markers.
+GCA_958410475.1	99.59		4579278	48	sample derived from	SAMEA13060057
+GCA_958410475.1	99.59		4579278	48	sample_name	ERR9322425_bin.23_MetaWRAP_v1.3_MAG
+GCA_958410475.1	99.59		4579278	48	scientific_name	Hafnia paralvei
+GCA_958410475.1	99.59		4579278	48	sequencing method	unspecified
+GCA_958410475.1	99.59		4579278	48	taxonomic classification	The taxonomy of this Metagenome-Assembled Genome was originally computed with GTDBtk, which assigned the following taxonomic annotation: d__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Enterobacterales;f__Hafniaceae;g__Hafnia;s__Hafnia paralvei
+GCA_958410475.1	99.59		4579278	48	taxonomic identity marker	multi-marker approach
+GCA_959018365.1	96.61	0.09	4404199	48	ENA-CHECKLIST	ERC000047
+GCA_959018365.1	96.61	0.09	4404199	48	ENA-FIRST-PUBLIC	2023-07-18T16:27:40Z
+GCA_959018365.1	96.61	0.09	4404199	48	ENA-LAST-UPDATE	2023-07-18T16:27:40Z
+GCA_959018365.1	96.61	0.09	4404199	48	External Id	SAMEA114096560
+GCA_959018365.1	96.61	0.09	4404199	48	INSDC center alias	EMG
+GCA_959018365.1	96.61	0.09	4404199	48	INSDC center name	EMG
+GCA_959018365.1	96.61	0.09	4404199	48	INSDC first public	2023-07-18T16:27:40Z
+GCA_959018365.1	96.61	0.09	4404199	48	INSDC last update	2023-07-18T16:27:40Z
+GCA_959018365.1	96.61	0.09	4404199	48	INSDC status	public
+GCA_959018365.1	96.61	0.09	4404199	48	Submitter Id	SRR13494483_bin.8_MetaWRAP_v1.3_MAG
+GCA_959018365.1	96.61	0.09	4404199	48	assembly quality	Many fragments with little to no review of assembly other than reporting of standard assembly statistics
+GCA_959018365.1	96.61	0.09	4404199	48	assembly software	metaspades v3.15.3
+GCA_959018365.1	96.61	0.09	4404199	48	binning parameters	MaxBin2, MetaBat2, Concoct with default parameter of the metaWRAP pipeline. Bin refinement module used from metaWRAP with default parameters.
+GCA_959018365.1	96.61	0.09	4404199	48	binning software	MetaWRAP v1.3
+GCA_959018365.1	96.61	0.09	4404199	48	env_broad_scale	Human digestive system
+GCA_959018365.1	96.61	0.09	4404199	48	broker name	EMG broker account, EMBL-EBI
+GCA_959018365.1	96.61	0.09	4404199	48	collection_date	2018-01-17
+GCA_959018365.1	96.61	0.09	4404199	48	completeness score	98.77
+GCA_959018365.1	96.61	0.09	4404199	48	completeness software	CheckM
+GCA_959018365.1	96.61	0.09	4404199	48	contamination score	0.47
+GCA_959018365.1	96.61	0.09	4404199	48	env_medium	faeces
+GCA_959018365.1	96.61	0.09	4404199	48	geo_loc_name	USA
+GCA_959018365.1	96.61	0.09	4404199	48	geographic location (latitude)	42.2
+GCA_959018365.1	96.61	0.09	4404199	48	geographic location (longitude)	-71.06
+GCA_959018365.1	96.61	0.09	4404199	48	investigation_type	metagenome-assembled genome
+GCA_959018365.1	96.61	0.09	4404199	48	isolation_source	human feces metagenome
+GCA_959018365.1	96.61	0.09	4404199	48	local environmental context	colon
+GCA_959018365.1	96.61	0.09	4404199	48	metagenomic source	human feces metagenome
+GCA_959018365.1	96.61	0.09	4404199	48	project_name	Fecal microbiota transplantation (FMT) is an effective therapy for recurrent Clostridioides difficile infection (CDI). However, the overall mechanisms of FMT have not been comprehensively elucidated, and the safety of FMT has recently become a serious concern because of the occurrence of drug-resistant bacteremia transmitted by FMT. We investigated whether the functional restoration of the bacteriomes and viromes by FMT could be an indicator of successful FMT.
+GCA_959018365.1	96.61	0.09	4404199	48	sample derived from	SAMN17393296
+GCA_959018365.1	96.61	0.09	4404199	48	sample_name	SRR13494483_bin.8_MetaWRAP_v1.3_MAG
+GCA_959018365.1	96.61	0.09	4404199	48	scientific_name	Hafnia paralvei
+GCA_959018365.1	96.61	0.09	4404199	48	sequencing method	Illumina HiSeq 2500
+GCA_959018365.1	96.61	0.09	4404199	48	taxonomic classification	The taxonomy of this Metagenome-Assembled Genome was originally computed with GTDBtk, which assigned the following taxonomic annotation: d__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Enterobacterales;f__Hafniaceae;g__Hafnia;s__Hafnia paralvei
+GCA_959018365.1	96.61	0.09	4404199	48	taxonomic identity marker	multi-marker approach
+GCA_959028575.1	99.59		4677881	48	ENA-CHECKLIST	ERC000047
+GCA_959028575.1	99.59		4677881	48	ENA-FIRST-PUBLIC	2023-07-18T16:27:41Z
+GCA_959028575.1	99.59		4677881	48	ENA-LAST-UPDATE	2023-07-18T16:27:41Z
+GCA_959028575.1	99.59		4677881	48	External Id	SAMEA114096220
+GCA_959028575.1	99.59		4677881	48	INSDC center alias	EMG
+GCA_959028575.1	99.59		4677881	48	INSDC center name	EMG
+GCA_959028575.1	99.59		4677881	48	INSDC first public	2023-07-18T16:27:41Z
+GCA_959028575.1	99.59		4677881	48	INSDC last update	2023-07-18T16:27:41Z
+GCA_959028575.1	99.59		4677881	48	INSDC status	public
+GCA_959028575.1	99.59		4677881	48	Submitter Id	ERR10149246_bin.14_MetaWRAP_v1.3_MAG
+GCA_959028575.1	99.59		4677881	48	assembly quality	Many fragments with little to no review of assembly other than reporting of standard assembly statistics
+GCA_959028575.1	99.59		4677881	48	assembly software	metaspades v3.15.3
+GCA_959028575.1	99.59		4677881	48	binning parameters	MaxBin2, MetaBat2, Concoct with default parameter of the metaWRAP pipeline. Bin refinement module used from metaWRAP with default parameters.
+GCA_959028575.1	99.59		4677881	48	binning software	MetaWRAP v1.3
+GCA_959028575.1	99.59		4677881	48	env_broad_scale	Human digestive system
+GCA_959028575.1	99.59		4677881	48	broker name	EMG broker account, EMBL-EBI
+GCA_959028575.1	99.59		4677881	48	collection_date	2020-04-03
+GCA_959028575.1	99.59		4677881	48	completeness score	99.86
+GCA_959028575.1	99.59		4677881	48	completeness software	CheckM
+GCA_959028575.1	99.59		4677881	48	contamination score	0.45
+GCA_959028575.1	99.59		4677881	48	env_medium	faeces
+GCA_959028575.1	99.59		4677881	48	geo_loc_name	South Korea
+GCA_959028575.1	99.59		4677881	48	geographic location (latitude)	0.0
+GCA_959028575.1	99.59		4677881	48	geographic location (longitude)	0.0
+GCA_959028575.1	99.59		4677881	48	investigation_type	metagenome-assembled genome
+GCA_959028575.1	99.59		4677881	48	isolation_source	human feces metagenome
+GCA_959028575.1	99.59		4677881	48	local environmental context	colon
+GCA_959028575.1	99.59		4677881	48	metagenomic source	human feces metagenome
+GCA_959028575.1	99.59		4677881	48	project_name	whole metagenomic sequencing for child gut microbiome
+GCA_959028575.1	99.59		4677881	48	sample derived from	SAMEA111279321
+GCA_959028575.1	99.59		4677881	48	sample_name	ERR10149246_bin.14_MetaWRAP_v1.3_MAG
+GCA_959028575.1	99.59		4677881	48	scientific_name	Hafnia paralvei
+GCA_959028575.1	99.59		4677881	48	sequencing method	Illumina HiSeq 4000
+GCA_959028575.1	99.59		4677881	48	taxonomic classification	The taxonomy of this Metagenome-Assembled Genome was originally computed with GTDBtk, which assigned the following taxonomic annotation: d__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Enterobacterales;f__Hafniaceae;g__Hafnia;s__Hafnia paralvei
+GCA_959028575.1	99.59		4677881	48	taxonomic identity marker	multi-marker approach
+GCA_959599705.1	99.59		4535434	48	ENA-CHECKLIST	ERC000047
+GCA_959599705.1	99.59		4535434	48	ENA-FIRST-PUBLIC	2023-07-20T12:20:56Z
+GCA_959599705.1	99.59		4535434	48	ENA-LAST-UPDATE	2023-07-20T12:20:56Z
+GCA_959599705.1	99.59		4535434	48	External Id	SAMEA114122469
+GCA_959599705.1	99.59		4535434	48	INSDC center alias	EMG
+GCA_959599705.1	99.59		4535434	48	INSDC center name	EMG
+GCA_959599705.1	99.59		4535434	48	INSDC first public	2023-07-20T12:20:56Z
+GCA_959599705.1	99.59		4535434	48	INSDC last update	2023-07-20T12:20:56Z
+GCA_959599705.1	99.59		4535434	48	INSDC status	public
+GCA_959599705.1	99.59		4535434	48	Submitter Id	SRR16280048_bin.43_MetaWRAP_v1.3_MAG
+GCA_959599705.1	99.59		4535434	48	assembly quality	Many fragments with little to no review of assembly other than reporting of standard assembly statistics
+GCA_959599705.1	99.59		4535434	48	assembly software	metaspades v3.15.3
+GCA_959599705.1	99.59		4535434	48	binning parameters	MaxBin2, MetaBat2, Concoct with default parameter of the metaWRAP pipeline. Bin refinement module used from metaWRAP with default parameters.
+GCA_959599705.1	99.59		4535434	48	binning software	MetaWRAP v1.3
+GCA_959599705.1	99.59		4535434	48	env_broad_scale	Human digestive system
+GCA_959599705.1	99.59		4535434	48	broker name	EMG broker account, EMBL-EBI
+GCA_959599705.1	99.59		4535434	48	collection_date	2019-05-01/2020-10-30
+GCA_959599705.1	99.59		4535434	48	completeness score	99.86
+GCA_959599705.1	99.59		4535434	48	completeness software	CheckM
+GCA_959599705.1	99.59		4535434	48	contamination score	0.67
+GCA_959599705.1	99.59		4535434	48	env_medium	faeces
+GCA_959599705.1	99.59		4535434	48	geo_loc_name	China
+GCA_959599705.1	99.59		4535434	48	geographic location (latitude)	37.51
+GCA_959599705.1	99.59		4535434	48	geographic location (longitude)	122.12
+GCA_959599705.1	99.59		4535434	48	investigation_type	metagenome-assembled genome
+GCA_959599705.1	99.59		4535434	48	isolation_source	human feces metagenome
+GCA_959599705.1	99.59		4535434	48	local environmental context	colon
+GCA_959599705.1	99.59		4535434	48	metagenomic source	human feces metagenome
+GCA_959599705.1	99.59		4535434	48	project_name	Parkinson's disease has been improved to association with gastrointestinal symptoms and gut microbiota disorders, probiotics is considered as a technique for GI symptoms, while the regulative effect of probiotics on Parkinson's disease is limited. The supplementary treatment of Probio-M8 on Parkinson has been investigation.
+GCA_959599705.1	99.59		4535434	48	sample derived from	SAMN22185211
+GCA_959599705.1	99.59		4535434	48	sample_name	SRR16280048_bin.43_MetaWRAP_v1.3_MAG
+GCA_959599705.1	99.59		4535434	48	scientific_name	Hafnia paralvei
+GCA_959599705.1	99.59		4535434	48	sequencing method	Illumina HiSeq 2500
+GCA_959599705.1	99.59		4535434	48	taxonomic classification	The taxonomy of this Metagenome-Assembled Genome was originally computed with GTDBtk, which assigned the following taxonomic annotation: d__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Enterobacterales;f__Hafniaceae;g__Hafnia;s__Hafnia paralvei
+GCA_959599705.1	99.59		4535434	48	taxonomic identity marker	multi-marker approach
+GCA_963528525.1	92.03	0.14	4395450	48	ENA-CHECKLIST	ERC000047
+GCA_963528525.1	92.03	0.14	4395450	48	INSDC center name	EMG
+GCA_963528525.1	92.03	0.14	4395450	48	Submitter Id	ERR9969167_bin.16_MetaWRAP_v1.3_MAG
+GCA_963528525.1	92.03	0.14	4395450	48	assembly quality	Many fragments with little to no review of assembly other than reporting of standard assembly statistics
+GCA_963528525.1	92.03	0.14	4395450	48	assembly software	metaspades v3.15.3
+GCA_963528525.1	92.03	0.14	4395450	48	binning parameters	MaxBin2, MetaBat2, Concoct with default parameter of the metaWRAP pipeline. Bin refinement module used from metaWRAP with default parameters.
+GCA_963528525.1	92.03	0.14	4395450	48	binning software	MetaWRAP v1.3
+GCA_963528525.1	92.03	0.14	4395450	48	env_broad_scale	human digestive system
+GCA_963528525.1	92.03	0.14	4395450	48	broker name	EBI-EMG
+GCA_963528525.1	92.03	0.14	4395450	48	collection_date	2010-03-22
+GCA_963528525.1	92.03	0.14	4395450	48	completeness score	97.35
+GCA_963528525.1	92.03	0.14	4395450	48	completeness software	CheckM
+GCA_963528525.1	92.03	0.14	4395450	48	contamination score	0.65
+GCA_963528525.1	92.03	0.14	4395450	48	env_medium	plaque biofilm
+GCA_963528525.1	92.03	0.14	4395450	48	geo_loc_name	Australia
+GCA_963528525.1	92.03	0.14	4395450	48	geographic location (latitude)	33.8688
+GCA_963528525.1	92.03	0.14	4395450	48	geographic location (longitude)	151.2093
+GCA_963528525.1	92.03	0.14	4395450	48	investigation_type	metagenome-assembled genome
+GCA_963528525.1	92.03	0.14	4395450	48	isolation_source	oral metagenome
+GCA_963528525.1	92.03	0.14	4395450	48	local environmental context	oral cavity
+GCA_963528525.1	92.03	0.14	4395450	48	metagenomic source	oral metagenome
+GCA_963528525.1	92.03	0.14	4395450	48	project_name	Antibiotic overuse has promoted the spread of antimicrobial resistance (AMR) with significant health and economic consequences. Surveillance of resistance reservoirs, like the rarely explored oral microbiome, is necessary to combat AMR. We characterised the development of the paediatric oral resistome and investigated its role in dental caries in 221 twin children sampled over the first decade of life. From 535 oral metagenomes, we identified 309 antimicrobial resistance genes (ARGs), which significantly clustered by age, with the influence of host genetics on antimicrobial resistance increasing over time. Our results suggest the mobilisation potential of ARGs increased with age as Tn916 transposase was co-located with more species and ARGs as children grew. Dental caries compared to health was associated with a depletion of ARGs and species, which was reversed when restored. Our results highlight the dynamic nature of the paediatric oral resistome, and its potential role in transmission of AMR and dysbiosis.
+GCA_963528525.1	92.03	0.14	4395450	48	sample derived from	SAMEA110373919
+GCA_963528525.1	92.03	0.14	4395450	48	sample_name	ERR9969167_bin.16_MetaWRAP_v1.3_MAG
+GCA_963528525.1	92.03	0.14	4395450	48	scientific_name	Hafnia paralvei
+GCA_963528525.1	92.03	0.14	4395450	48	sequencing method	Illumina NovaSeq 6000
+GCA_963528525.1	92.03	0.14	4395450	48	taxonomic classification	The taxonomy of this Metagenome-Assembled Genome was originally computed with GTDBtk, which assigned the following taxonomic annotation: d__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Enterobacterales;f__Hafniaceae;g__Hafnia;s__Hafnia paralvei
+GCA_963528525.1	92.03	0.14	4395450	48	taxonomic identity marker	multi-marker approach
+GCA_965118295.1	99.24		4989386	48	ENA first public	2025-01-24
+GCA_965118295.1	99.24		4989386	48	ENA-CHECKLIST	ERC000011
+GCA_965118295.1	99.24		4989386	48	INSDC center name	Ifremer
+GCA_965118295.1	99.24		4989386	48	INSDC status	public
+GCA_965118295.1	99.24		4989386	48	Submitter Id	sam_MIP2438_draft genome
+GCA_965118295.1	99.24		4989386	48	broker name	SeBiMER
+GCA_965118295.1	99.24		4989386	48	collecting institution	Ifremer, France
+GCA_965118295.1	99.24		4989386	48	collection_date	2009-01-01
+GCA_965118295.1	99.24		4989386	48	common name	Hafnia paralvei
+GCA_965118295.1	99.24		4989386	48	env_package	none
+GCA_965118295.1	99.24		4989386	48	environmental_sample	No
+GCA_965118295.1	99.24		4989386	48	geo_loc_name	France
+GCA_965118295.1	99.24		4989386	48	geographic location (depth)	not collected
+GCA_965118295.1	99.24		4989386	48	geographic location (elevation)	not collected
+GCA_965118295.1	99.24		4989386	48	geographic location (latitude)	not collected
+GCA_965118295.1	99.24		4989386	48	geographic location (longitude)	not collected
+GCA_965118295.1	99.24		4989386	48	geographic location (region and locality)	Nantes
+GCA_965118295.1	99.24		4989386	48	investigation_type	bacteria_archaea
+GCA_965118295.1	99.24		4989386	48	isolate	MIP2438
+GCA_965118295.1	99.24		4989386	48	isolation_source	bacterial strain isolated from fresh salmon
+GCA_965118295.1	99.24		4989386	48	project_name	SEABIOMIC
+GCA_965118295.1	99.24		4989386	48	sample_name	sam_MIP2438_draft genome
+GCA_965118295.1	99.24		4989386	48	description	Genome sequences were obtained from DNA extracts of bacterial isolates. illumina raw data were assembled using CELIA workflow (Ifremer).
+GCA_965118295.1	99.24		4989386	48	sample_name	MIP2438_draft genome
+GCA_965118295.1	99.24		4989386	48	scientific_name	Hafnia paralvei
+GCA_965118295.1	99.24		4989386	48	sequencing method	Sequencing by synthesis (Illumina)
+GCA_965118295.1	99.24		4989386	48	strain	MIP2438
+GCA_965118475.1	99.24		4887245	48	ENA first public	2025-01-24
+GCA_965118475.1	99.24		4887245	48	ENA-CHECKLIST	ERC000011
+GCA_965118475.1	99.24		4887245	48	INSDC center name	Ifremer
+GCA_965118475.1	99.24		4887245	48	INSDC status	public
+GCA_965118475.1	99.24		4887245	48	Submitter Id	sam_MIP2468_draft genome
+GCA_965118475.1	99.24		4887245	48	broker name	SeBiMER
+GCA_965118475.1	99.24		4887245	48	collecting institution	Ifremer, France
+GCA_965118475.1	99.24		4887245	48	collection_date	2009-01-01
+GCA_965118475.1	99.24		4887245	48	common name	Hafnia paralvei
+GCA_965118475.1	99.24		4887245	48	env_package	none
+GCA_965118475.1	99.24		4887245	48	environmental_sample	No
+GCA_965118475.1	99.24		4887245	48	geo_loc_name	France
+GCA_965118475.1	99.24		4887245	48	geographic location (depth)	not collected
+GCA_965118475.1	99.24		4887245	48	geographic location (elevation)	not collected
+GCA_965118475.1	99.24		4887245	48	geographic location (latitude)	not collected
+GCA_965118475.1	99.24		4887245	48	geographic location (longitude)	not collected
+GCA_965118475.1	99.24		4887245	48	geographic location (region and locality)	Nantes
+GCA_965118475.1	99.24		4887245	48	investigation_type	bacteria_archaea
+GCA_965118475.1	99.24		4887245	48	isolate	MIP2468
+GCA_965118475.1	99.24		4887245	48	isolation_source	bacterial strain isolated from fresh salmon
+GCA_965118475.1	99.24		4887245	48	project_name	SEABIOMIC
+GCA_965118475.1	99.24		4887245	48	sample_name	sam_MIP2468_draft genome
+GCA_965118475.1	99.24		4887245	48	description	Genome sequences were obtained from DNA extracts of bacterial isolates. illumina raw data were assembled using CELIA workflow (Ifremer).
+GCA_965118475.1	99.24		4887245	48	sample_name	MIP2468_draft genome
+GCA_965118475.1	99.24		4887245	48	scientific_name	Hafnia paralvei
+GCA_965118475.1	99.24		4887245	48	sequencing method	Sequencing by synthesis (Illumina)
+GCA_965118475.1	99.24		4887245	48	strain	MIP2468
+GCF_001655005.1	99.59		4826120	48	strain	ATCC 29927
+GCF_001655005.1	99.59		4826120	48	geo_loc_name	unknown
+GCF_001655005.1	99.59		4826120	48	sample_type	whole organism
+GCF_001655005.1	99.59		4826120	48	culture_collection	ATCC:29927
+GCF_001655005.1	99.59		4826120	48	collection_date	unknown
+GCF_001655005.1	99.59		4826120	48	biomaterial_provider	ATCC 29927
+GCF_001655005.1	99.59		4826120	48	host	Homo sapiens
+GCF_001655005.1	99.59		4826120	48	type-material	type strain of Hafnia paralvei
+GCA_001655005.1	99.59		4826120	48	strain	ATCC 29927
+GCA_001655005.1	99.59		4826120	48	geo_loc_name	unknown
+GCA_001655005.1	99.59		4826120	48	sample_type	whole organism
+GCA_001655005.1	99.59		4826120	48	culture_collection	ATCC:29927
+GCA_001655005.1	99.59		4826120	48	collection_date	unknown
+GCA_001655005.1	99.59		4826120	48	biomaterial_provider	ATCC 29927
+GCA_001655005.1	99.59		4826120	48	host	Homo sapiens
+GCA_001655005.1	99.59		4826120	48	type-material	type strain of Hafnia paralvei

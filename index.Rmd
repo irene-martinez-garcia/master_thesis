@@ -1,5 +1,5 @@
 ---
-title: "AlberdiLab | Comparative metagenomics"
+title: "AlberdiLab | Master Thesis"
 subtitle: MSc project
 author:
   - Irene Martínez, M Thomas P Gilbert, Antton Alberdi^[University of Copenhagen, antton.alberdi@sund.ku.dk]
@@ -7,11 +7,11 @@ date: "Last update: `r Sys.Date()`"
 site: bookdown::bookdown_site
 documentclass: book
 bibliography: [book.bib, packages.bib]
-url: https://github.com/irene-martinez-garcia/comparative_metagenomics
+url: https://github.com/irene-martinez-garcia/master_thesis 
 description: |
   Data analysis code for comparative metagenomics of gut microbiome bacterial species in several vertebrates
 link-citations: yes
-github-repo: irene-martinez-garcia/comparative_metagenomics
+github-repo: irene-martinez-garcia/master_thesis
 ---
 
 ```{r knitr_opts, echo=FALSE}
@@ -72,6 +72,8 @@ library(ggtree)
 library(ggh4x)
 library(UpSetR)
 library(viridis)
+library(RColorBrewer)
+library(countrycode)
 
 # For statistics
 library(spaa)
