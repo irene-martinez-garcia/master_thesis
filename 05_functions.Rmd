@@ -6,16 +6,58 @@ source_colors <- c(EHI = "#8BC63F", GTDB = "#2D522D", NCBI= "#20558A")
 
 host_type_colors <- c(human = "#A90D00" , animal = "darkgreen") 
 
+
 host_order_colors <- c(
-  "Accipitriformes" = "#143AC2",  # Aves
-  "Carnivora"       = "#633C2C",  # Mammalia
-  "Chiroptera"      = "#1B2021",  # Mammalia
-  "Primates"        = "#CC0000",  # Mammalia
-  "Rodentia"        = "#FDA991",  # Mammalia
-  "Diptera"         = "#FFAE2B",  # Insecta
-  "Isoptera"        = "#E27500",  # Insecta
-  "Lepidoptera"     = "#C8591D",  # Insecta
-  "Squamata"        = "#1D921B"   # Reptilia
+  # ---- Mammalia ----
+  "Rodentia"        = "#FDA991",  # soft peach
+  "Primates"        = "#CC0000",  # bright red
+  "Lagomorpha"      = "#C87F46",  # warm brown
+  "Proboscidea"     = "#8E5B3A",  # elephant brown
+  "Artiodactyla"    = "#A86A3E",  # deer/pig/bovine brown
+  "Carnivora"       = "#633C2C",  # dark brown
+  "Perissodactyla"  = "#7A4B39",  # horse brown
+  "Chiroptera"      = "#1B2021",  # black/charcoal
+  "Dasyuromorphia"  = "#A34F3E",  # marsupial red-brown
+  "Diprotodontia"   = "#B56952",  # koala warm clay
+  
+  # --- Amphibian ----
+  "Urodela"         = "#1C5551",  # amphibian green‑teal
+
+  # ---- Aves (birds) ----
+  
+  "Accipitriformes" = "#6A1B9A",   # strong royal purple
+  "Galliformes"     = "#D9A6FF",   # light purple
+  "Sphenisciformes" = "#8E24AA",   # orchid purple
+  "Columbiformes"   = "#9C27B0",   # bright purple
+  "Strigiformes"    = "#512DA8",   # deep imperial purple
+  "Charadriiformes" = "#AB47BC",   # lavender-purple
+  "Passeriformes"   = "#BA68C8",   # softer purple
+  "Ciconiiformes"   = "#4A148C",   # darkest purple
+  "Anseriformes"    = "#6F2DA8",   # plum violet
+  "Gruiformes"      = "#9575CD",   # light violet
+  "Cathartiformes"  = "#5E35B1",   # grape purple
+
+
+  # ---- Reptilia ----
+  "Squamata"        = "#1D921B",  # bright green
+  "Testudines"      = "#0B6E32",  # turtle green
+
+  # ---- Fish (Actinopterygii) ----
+  "Salmoniformes"   = "#00BCD4",  # bright ocean blue
+  "Cichliformes"    = "#0097A7",  # deep lake blue
+
+  # ---- Insecta ----
+  "Diptera"         = "#FFAE2B",  # your original yellow-orange
+  "Isoptera"        = "#E27500",  # orange
+  "Blattodea"       = "#D68A00",  # warm amber
+  "Lepidoptera"     = "#C8591D",  # burnt orange
+  "Coleoptera"      = "#FFB547",  # softer yellow-orange
+  "Hemiptera"       = "#F19000",  # vivid golden-orange
+  "Hymenoptera"     = "#FFC966",  # honey-bee yellow
+  "Orthoptera"      = "#FF9A1A",  # locust/grasshopper orange
+
+  # ---- Unclassified / NA ----
+  "NA"              = "#BFBFBF"   # neutral grey
 )
 
 country_palette <- c(
@@ -57,28 +99,36 @@ country_palette <- c(
 load_species_files <- function(species, base_dir = "data/mags_metadata") {
 
   paths <- list(
-    ehi_metadata       = file.path(base_dir, paste0(species, "_metadata.tsv")), #EH metadata
-    gtdb_final         = file.path(base_dir, paste0(species, "_gtdb_final_metadata.tsv")), #GTDB metadata
-    contig_map         = file.path(base_dir, paste0(species, "_contig_to_mag.tsv")), #contig map to genome
-    gene_annotations   = file.path(base_dir, paste0(species, "_gene_annotations.tsv.xz")), #functional annotations
-    ncbi_metadata_rds  = file.path(base_dir, paste0(species, "_ncbi_metadata.rds")),  #NCBI metadata
-    ndb                = file.path(base_dir, paste0(species, "_Ndb.csv")) # FASTANI
+    ehi_metadata       = file.path(base_dir, paste0(species, "_metadata.tsv")),
+    gtdb_final         = file.path(base_dir, paste0(species, "_gtdb_final_metadata.tsv")),
+    contig_map         = file.path(base_dir, paste0(species, "_contig_to_mag.tsv")),
+    gene_annotations   = file.path(base_dir, paste0(species, "_gene_annotations.tsv.xz")),
+    ncbi_metadata_rds  = file.path(base_dir, paste0(species, "_ncbi_metadata.rds")),
+    ndb                = file.path(base_dir, paste0(species, "_Ndb.csv"))
   )
 
+  # helper that warns when file is missing
   load_if_exists <- function(path, loader) {
-    if (file.exists(path)) loader(path) else NULL
+    if (file.exists(path)) {
+      loader(path)
+    } else {
+      warning(sprintf("Missing file: %s", path))
+      NULL
+    }
   }
 
   result <- list(
-    ehi_metadata     = load_if_exists(paths$ehi_metadata,       function(p) readr::read_tsv(p, show_col_types = FALSE)),
-    gtdb_final       = load_if_exists(paths$gtdb_final,         function(p) readr::read_tsv(p, show_col_types = FALSE)),
-    contig_map       = load_if_exists(paths$contig_map,         function(p) readr::read_tsv(p, show_col_types = FALSE)),
-    gene_annotations = load_if_exists(paths$gene_annotations,   function(p) readr::read_tsv(p, show_col_types = FALSE)),
-    ndb              = load_if_exists(paths$ndb,   function(p) readr::read_csv(p, show_col_types = FALSE)),
-    ncbi_metadata    = load_if_exists(paths$ncbi_metadata_rds,  readRDS))
+    ehi_metadata     = load_if_exists(paths$ehi_metadata,       \(p) readr::read_tsv(p, show_col_types = FALSE)),
+    gtdb_final       = load_if_exists(paths$gtdb_final,         \(p) readr::read_tsv(p, show_col_types = FALSE)),
+    contig_map       = load_if_exists(paths$contig_map,         \(p) readr::read_tsv(p, show_col_types = FALSE)),
+    gene_annotations = load_if_exists(paths$gene_annotations,   \(p) readr::read_tsv(p, show_col_types = FALSE)),
+    ndb              = load_if_exists(paths$ndb,                \(p) readr::read_csv(p, show_col_types = FALSE)),
+    ncbi_metadata    = load_if_exists(paths$ncbi_metadata_rds,  readRDS)
+  )
 
   return(result)
 }
+
 ```
 
 
@@ -521,7 +571,7 @@ is_latin_binomial_strict <- function(x) {
     "feces","faeces","stool","urine","blood","saliva","swab","swabs",
     "skin","gut","intestinal","rumen","content","contents",
     "sample","metagenome","environment","environmental","tissue",
-    "rectal","oral","nasal","throat","vaginal","anal"
+    "rectal","oral","nasal","throat","vaginal","anal", "dairy", "cabbage", "kimchi", "broiler", "subcultured"
   )
 
   reject <- rep(FALSE, length(x))
@@ -591,9 +641,40 @@ infer_host_metadata <- function(genome_metadata) {
     "Termite",
     "Macaca fascicularis",
     "Rhinolophus capensis",
-    "Fish"
-
-  
+    "Fish",
+    
+    #Final (from total_genome_metadata)
+    "Zophobas morio",
+    "Mustela putorius",
+    "Ovis aries",
+    "Corallus caninus",
+    "Meles meles",
+    "Clanga pomarina",
+    "Buteo buteo",
+    "Accipiter gentilis",
+    "Chelonia mydas",
+    "Grampus griseus",
+    "Sterna trudeaui",
+    "Rhodnius prolixus",
+    "Turdus merula",
+    "Curruca curruca",
+    "Columba palumbus",
+    "Delichon urbicum",
+    "Chloris chloris",
+    "Hirundo rustica",
+    "Ciconia ciconia",
+    "Anas platyrhynchos",
+    "Grus grus",
+    "Apis mellifera",
+    "Coragyps atratus",
+    "Pseudoscops clamator",
+    "Pandion haliaetus",
+    "Sycanus bifidus",
+    "Eocanthecona furcellata",
+    "Arma custos",
+    "Corvus frugilegus",
+    "Milvus milvus",
+    "Vulpes zerda"
 
 
   ),
@@ -643,8 +724,40 @@ infer_host_metadata <- function(genome_metadata) {
     "Blattodea",      # Termite (termites now placed within Blattodea; Isoptera as infraorder)
     "Primates",       # Macaca fascicularis
     "Chiroptera",     # Rhinolophus capensis (horseshoe bat)
-    NA_character_     # Fish (no single order fits all fish)
-
+    NA_character_,    # Fish (no single order fits all fish)
+    
+    #Final (from total_genome_metadata)
+    "Coleoptera",          # Zophobas morio
+    "Carnivora",           # Mustela putorius
+    "Artiodactyla",        # Ovis aries
+    "Squamata",            # Corallus caninus
+    "Carnivora",           # Meles meles
+    "Accipitriformes",     # Clanga pomarina
+    "Accipitriformes",     # Buteo buteo
+    "Accipitriformes",     # Accipiter gentilis
+    "Testudines",          # Chelonia mydas
+    "Artiodactyla",        # Grampus griseus
+    "Charadriiformes",     # Sterna trudeaui
+    "Hemiptera",           # Rhodnius prolixus
+    "Passeriformes",       # Turdus merula
+    "Passeriformes",       # Curruca curruca
+    "Columbiformes",       # Columba palumbus
+    "Passeriformes",       # Delichon urbicum
+    "Passeriformes",       # Chloris chloris
+    "Passeriformes",       # Hirundo rustica
+    "Ciconiiformes",       # Ciconia ciconia
+    "Anseriformes",        # Anas platyrhynchos
+    "Gruiformes",          # Grus grus
+    "Hymenoptera",         # Apis mellifera
+    "Cathartiformes",      # Coragyps atratus
+    "Strigiformes",        # Pseudoscops clamator
+    "Accipitriformes",     # Pandion haliaetus
+    "Hemiptera",           # Sycanus bifidus
+    "Hemiptera",           # Eocanthecona furcellata
+    "Hemiptera",           # Arma custos
+    "Passeriformes",       # Corvus frugilegus
+    "Accipitriformes",     # Milvus milvus
+    "Carnivora"            # Vulpes zerda
 
 
   ),
@@ -692,9 +805,40 @@ infer_host_metadata <- function(genome_metadata) {
     "Insecta",        # Termite
     "Mammalia",       # Macaca fascicularis
     "Mammalia",       # Rhinolophus capensis
-    "Actinopterygii"  # Fish (bony fishes; safe default for generic "fish")
+    "Actinopterygii",  # Fish (bony fishes; safe default for generic "fish")
 
-
+    #Final (from total_genome_metadata)
+    "Insecta",        # Zophobas morio
+    "Mammalia",       # Mustela putorius
+    "Mammalia",       # Ovis aries
+    "Reptilia",       # Corallus caninus
+    "Mammalia",       # Meles meles
+    "Aves",           # Clanga pomarina
+    "Aves",           # Buteo buteo
+    "Aves",           # Accipiter gentilis
+    "Reptilia",       # Chelonia mydas
+    "Mammalia",       # Grampus griseus
+    "Aves",           # Sterna trudeaui
+    "Insecta",        # Rhodnius prolixus
+    "Aves",           # Turdus merula
+    "Aves",           # Curruca curruca
+    "Aves",           # Columba palumbus
+    "Aves",           # Delichon urbicum
+    "Aves",           # Chloris chloris
+    "Aves",           # Hirundo rustica
+    "Aves",           # Ciconia ciconia
+    "Aves",           # Anas platyrhynchos
+    "Aves",           # Grus grus
+    "Insecta",        # Apis mellifera
+    "Aves",           # Coragyps atratus
+    "Aves",           # Pseudoscops clamator
+    "Aves",           # Pandion haliaetus
+    "Insecta",        # Sycanus bifidus
+    "Insecta",        # Eocanthecona furcellata
+    "Insecta",        # Arma custos
+    "Aves",           # Corvus frugilegus
+    "Aves",           # Milvus milvus
+    "Mammalia"        # Vulpes zerda
 
   )
 )
@@ -760,7 +904,7 @@ infer_host_metadata <- function(genome_metadata) {
       stringr::str_detect(txt, "sus scrofa|porcine|\\bpig\\b|swine") ~ "Sus scrofa",
       stringr::str_detect(txt, "bos taurus|bovine|\\bcow\\b|cattle") ~ "Bos taurus",
       stringr::str_detect(txt, "canis lupus familiaris|canis familiaris|\\bdog\\b|canine") ~ "Canis lupus familiaris",
-      stringr::str_detect(txt, "gallus gallus|\\bchicken\\b|poultry") ~ "Gallus gallus",
+     stringr::str_detect(txt, "gallus gallus|\\bchicken\\b|\\bpoultry\\b|\\bbroiler\\b") ~ "Gallus gallus",
       stringr::str_detect(txt, "bombyx mori|silkworm") ~ "Bombyx mori",
       stringr::str_detect(txt, "drosophila|fruit fly") ~ "Drosophila melanogaster",
       stringr::str_detect(txt, "danio rerio|zebrafish") ~ "Danio rerio",
@@ -777,6 +921,60 @@ infer_host_metadata <- function(genome_metadata) {
     
         # Generic fish catch-all  ---
         stringr::str_detect(txt, "\\bfish\\b|\\bfishes\\b") ~ "Fish",
+ 
+        # Zophobas morio
+        stringr::str_detect(txt, "zophobas|superworm|darkling beetle") ~ "Zophobas morio",
+        
+        # Mustela putorius
+        stringr::str_detect(txt, "mustela putorius|polecat") ~ "Mustela putorius",
+        
+        # Ovis aries
+        stringr::str_detect(txt, "ovis aries|\\bsheep\\b") ~ "Ovis aries",
+        
+        # Corallus caninus
+        stringr::str_detect(txt, "corallus caninus|emerald tree boa") ~ "Corallus caninus",
+        
+        # Chelonia mydas
+        stringr::str_detect(txt, "chelonia mydas|green sea turtle") ~ "Chelonia mydas",
+        
+        # Grampus griseus
+        stringr::str_detect(txt, "grampus griseus|risso") ~ "Grampus griseus",
+        
+        # Rhodnius prolixus
+        stringr::str_detect(txt, "rhodnius prolixus|kissing bug") ~ "Rhodnius prolixus",
+        
+        # Apis mellifera
+        stringr::str_detect(txt, "apis mellifera|honey[- ]?bee") ~ "Apis mellifera",
+        
+        # Sycanus bifidus
+        stringr::str_detect(txt, "sycanus bifidus") ~ "Sycanus bifidus",
+        
+        # Eocanthecona furcellata
+        stringr::str_detect(txt, "eocanthecona") ~ "Eocanthecona furcellata",
+        
+        # Arma custos
+        stringr::str_detect(txt, "arma custos") ~ "Arma custos",
+        
+        # Bird species
+        stringr::str_detect(txt, "clanga pomarina|spotted eagle") ~ "Clanga pomarina",
+        stringr::str_detect(txt, "buteo buteo|buzzard") ~ "Buteo buteo",
+        stringr::str_detect(txt, "accipiter gentilis|goshawk") ~ "Accipiter gentilis",
+        stringr::str_detect(txt, "trudeaui") ~ "Sterna trudeaui",
+        stringr::str_detect(txt, "turdus merula|blackbird") ~ "Turdus merula",
+        stringr::str_detect(txt, "curruca curruca|whitethroat") ~ "Curruca curruca",
+        stringr::str_detect(txt, "columba palumbus|wood pigeon") ~ "Columba palumbus",
+        stringr::str_detect(txt, "delichon urbicum|house martin") ~ "Delichon urbicum",
+        stringr::str_detect(txt, "chloris chloris|greenfinch") ~ "Chloris chloris",
+        stringr::str_detect(txt, "hirundo rustica|barn swallow") ~ "Hirundo rustica",
+        stringr::str_detect(txt, "ciconia ciconia|white stork") ~ "Ciconia ciconia",
+        stringr::str_detect(txt, "anas platyrhynchos|mallard") ~ "Anas platyrhynchos",
+        stringr::str_detect(txt, "grus grus|crane") ~ "Grus grus",
+        stringr::str_detect(txt, "coragyps atratus|black vulture") ~ "Coragyps atratus",
+        stringr::str_detect(txt, "clamator") ~ "Pseudoscops clamator",
+        stringr::str_detect(txt, "corvus frugilegus|rook") ~ "Corvus frugilegus",
+        stringr::str_detect(txt, "milvus milvus|red kite") ~ "Milvus milvus",
+        stringr::str_detect(txt, "pandion haliaetus|osprey") ~ "Pandion haliaetus",
+
       TRUE ~ NA_character_
     )
   }
@@ -966,6 +1164,14 @@ filter_species_MAGs <- function(genome_metadata,
     x <- basename(x)
     sub("\\.(fna|fa|fasta)(\\.gz)?$", "", x, ignore.case = TRUE)
   }
+  
+  # clean genome IDs so RS_/GB_ prefixes are removed
+  clean_accession <- function(x) {
+  x <- basename(x)
+  x <- sub("\\.(fna|fa|fasta)(\\.gz)?$", "", x, ignore.case = TRUE)
+  x <- sub("^(RS_|GB_)", "", x, perl = TRUE)
+  x
+}
 
   # Extract (GCA|GCF) and numeric core (e.g., 015667075.1) from an ID
   # Handles optional GB_/RS_ prefixes; returns NA when not matching.
@@ -1006,7 +1212,7 @@ filter_species_MAGs <- function(genome_metadata,
   has_contigs <- "contigs"       %in% names(genome_metadata)
 
   gm0 <- genome_metadata %>%
-    mutate(ID_clean = clean_label(ID)) %>%
+    mutate(ID_clean = clean_accession(ID)) %>%
     # Make factors safe to merge
     mutate(across(where(is.factor), as.character)) %>%
     na_if_empty_chars()
@@ -1083,21 +1289,21 @@ filter_species_MAGs <- function(genome_metadata,
   # Combine collapsed accessioned rows and deduped others
   genome_metadata_dedup <- bind_rows(gm_acc_collapsed, gm_other) %>%
     # Drop temp fields
-    dplyr::select(-ID_clean, -acc_type, -acc_core)
+    dplyr::select(-acc_type, -acc_core)
 
   # ---------------------------
   # 2) Filter genome_annotations to match remaining genomes
   # ---------------------------
 
   ga0 <- genome_annotations %>%
-    mutate(genome_clean = clean_label(genome))
+    mutate(genome_clean = clean_accession(genome))
 
   # Remove wrong-species MAGs
   genome_annotations_filtered <- ga0 %>%
     filter(!genome_clean %in% mags_to_remove_clean)
 
   # Keep only genomes still present in metadata (after GCF/GCA merge)
-  valid_genomes <- clean_label(genome_metadata_dedup$ID)
+  valid_genomes <- genome_metadata_dedup$ID_clean
 
   genome_annotations_filtered <- genome_annotations_filtered %>%
     filter(genome_clean %in% valid_genomes) %>%
@@ -1220,87 +1426,235 @@ recreate_drep_tree(ndb)
 
 ### Drep final tree, matrix and plots
 ```{r drep_tree_metadata}
-# helper: strip file extensions so IDs match metadata
+# --- Helpers ------------------------------------------------------------------
+
+# Strip file extensions so IDs match metadata
 clean_label <- function(x) {
   x <- basename(x)
   sub("\\.(fna|fa|fasta)(\\.gz)?$", "", x, ignore.case = TRUE)
 }
 
+# Parse accessions allowing optional external prefixes like RS_ or GB_ (possibly multiple),
+# followed by GCA|GCF, digits (with leading zeros), and optional .version
+# Returns: ext_prefix (may be ""), base_prefix (GCA/GCF), digits (with zeros),
+#          core (numeric, no zeros), version (integer or NA)
+parse_accession <- function(x) {
+  x_clean <- clean_label(x)
+ 
+  re <- "^((?:[A-Za-z0-9]+_)*)(GCA|GCF)_([0-9]+)(?:\\.([0-9]+))?$"
+  m <- regexec(re, x_clean, ignore.case = FALSE)
+  parts <- regmatches(x_clean, m)
 
-##### Drep tree metadata ---------------------------------------------------------------------------------
-drep_tree_metadata <- function(genome_metadata = genome_metadata, ndb =ndb, drop_ids = character(0)){
+  out <- lapply(parts, function(p) {
+    if (length(p) == 0) {
+      return(list(
+        ext_prefix  = NA_character_,
+        base_prefix = NA_character_,
+        digits      = NA_character_,
+        core        = NA_integer_,
+        version     = NA_integer_
+      ))
+    }
+    ext_prefix  <- p[2]
+    base_prefix <- p[3]
+    digits      <- p[4]
+    version     <- if (!is.na(p[5])) as.integer(p[5]) else NA_integer_
+    core        <- suppressWarnings(as.integer(sub("^0+", "", digits)))
+    if (is.na(core)) core <- 0L  # for a string of zeros (rare), keep a numeric
+    list(
+      ext_prefix  = ext_prefix,
+      base_prefix = base_prefix,
+      digits      = digits,
+      core        = core,
+      version     = version
+    )
+  })
+
+  tibble::tibble(
+    ext_prefix  = vapply(out, `[[`, character(1), "ext_prefix"),
+    base_prefix = vapply(out, `[[`, character(1), "base_prefix"),
+    digits      = vapply(out, `[[`, character(1), "digits"),
+    core        = vapply(out, `[[`, integer(1),   "core"),
+    version     = vapply(out, `[[`, integer(1),   "version")
+  )
+}
+
+# Canonical grouping key:
+# If accession-like, group by numeric core (ignores external prefixes and leading zeros).
+# Else, group by the cleaned label itself.
+canonical_key <- function(x) {
+  x_clean <- clean_label(x)
+  acc <- parse_accession(x_clean)
+  ifelse(!is.na(acc$core), paste0("ACC_CORE_", acc$core), x_clean)
+}
+
+# Build a normalized label with *no* external prefix by default.
+# You can flip `keep_external_prefix = TRUE` if you want to preserve RS_/GB_/... in outputs.
+build_normalized_label <- function(base_prefix, digits, version, ext_prefix = "", keep_external_prefix = FALSE) {
+  core_part <- paste0(base_prefix, "_", digits)
+  if (!is.na(version) && version > 0) {
+    core_part <- paste0(core_part, ".", version)
+  }
+  if (keep_external_prefix && nzchar(ext_prefix)) {
+    paste0(ext_prefix, core_part)
+  } else {
+    core_part
+  }
+}
+
+# Within a set of labels sharing the same canonical key, choose the representative:
+# Priority:
+#   1) Prefer base_prefix == "GCF"
+#   2) Higher version number
+#   3) Longer digits (padding tends to follow RefSeq style); then lexicographic for stability
+# Output: normalized label (no external prefix by default).
+choose_preferred_label <- function(labels, keep_external_prefix = FALSE) {
+  labs <- clean_label(labels)
+  acc  <- parse_accession(labs)
+  is_acc <- !is.na(acc$base_prefix)
+
+  if (any(is_acc)) {
+    df <- tibble::tibble(
+      lab          = labs,
+      ext_prefix   = acc$ext_prefix,
+      base_prefix  = acc$base_prefix,
+      digits       = acc$digits,
+      core         = acc$core,
+      version      = acc$version
+    )
+    df$version[is.na(df$version)] <- 0L
+
+    ord <- order(
+      !(df$base_prefix == "GCF"),         # GCF first
+      -df$version,                        # higher version
+      -nchar(df$digits),                  # longer digits (keeps zero padding if present)
+      df$lab                              # stable tie-breaker
+    )
+    df <- df[ord, , drop = FALSE]
+
+    # Build normalized label for the top candidate; drop external prefix by default
+    return(build_normalized_label(
+      base_prefix = df$base_prefix[1],
+      digits      = df$digits[1],
+      version     = df$version[1],
+      ext_prefix  = df$ext_prefix[1],
+      keep_external_prefix = keep_external_prefix
+    ))
+  } else {
+    # No accession-like labels; just pick a stable representative
+    return(sort(unique(labs))[1])
+  }
+}
+
+# Build a label rewrite map so that all labels in the same canonical group map to one preferred label
+build_label_map <- function(labels, keep_external_prefix = FALSE) {
+  labs <- unique(clean_label(labels))
+  keys <- canonical_key(labs)
+  grp  <- split(labs, keys)
+  pref <- vapply(grp, choose_preferred_label, character(1), keep_external_prefix = keep_external_prefix)
+  from <- unlist(grp, use.names = FALSE)
+  to   <- rep(pref[names(grp)], lengths(grp))
+  tibble::tibble(from = from, to = to)
+}
+
+# --- Main ---------------------------------------------------------------------
+
+drep_tree_metadata <- function(genome_metadata = genome_metadata,
+                               ndb = ndb,
+                               drop_ids = character(0),
+                               keep_external_prefix = FALSE) {
   metadata <- genome_metadata
-  id_col   <- "ID" 
-  
-  fastani <- ndb %>%
-  dplyr::select(reference, querry, ani) %>%
-  dplyr::filter(!is.na(reference), !is.na(querry), reference != querry)
+  id_col   <- "ID"
 
-  # Clean IDs to remove extensions
-  fastani <- fastani %>%
+  # Start from ndb edges
+  fastani <- ndb %>%
+    dplyr::select(reference, querry, ani) %>%  # fully-qualified per your preference
+    dplyr::filter(!is.na(reference), !is.na(querry), reference != querry) %>%
     dplyr::mutate(
       reference = clean_label(reference),
-      querry     = clean_label(querry)
+      querry    = clean_label(querry)
     ) %>%
     dplyr::filter(reference != querry)
-  
-  # Remove duplicate pairs (keep the max ANI per pair)
+
+  # Collect all labels we may see anywhere (pairs + metadata IDs)
+  all_labels <- unique(c(
+    fastani$reference,
+    fastani$querry,
+    clean_label(metadata[[id_col]])
+  ))
+
+  # Build rewrite map: GCA/GCF with the same core collapse to one preferred label (GCF > GCA; higher version wins).
+  # External prefixes (RS_/GB_/...) are dropped by default in outputs.
+  lab_map <- build_label_map(all_labels, keep_external_prefix = keep_external_prefix)
+
+  # Helper to rewrite vectors using a named map
+  rewrite_labels <- function(x) {
+    x_clean <- clean_label(x)
+    map_vec <- stats::setNames(lab_map$to, lab_map$from)
+    m <- map_vec[x_clean]
+    x_clean[!is.na(m)] <- m[!is.na(m)]
+    x_clean
+  }
+
+  # Rewrite reference/querry and collapse pair duplicates by taking max ANI
   fastani <- fastani %>%
+    dplyr::mutate(
+      reference = rewrite_labels(reference),
+      querry    = rewrite_labels(querry)
+    ) %>%
+    dplyr::filter(reference != querry) %>%
     dplyr::group_by(reference, querry) %>%
     dplyr::summarise(ani = max(ani), .groups = "drop")
 
-  # Optionally drop genomes (IDs without suffix)
+  # Optionally drop genomes (use rewritten IDs so the drop matches what will appear in the tree)
   if (length(drop_ids) > 0) {
+    drop_ids2 <- rewrite_labels(drop_ids)
     fastani <- fastani %>%
-      dplyr::filter(!reference %in% drop_ids, !querry %in% drop_ids)
+      dplyr::filter(!reference %in% drop_ids2, !querry %in% drop_ids2)
   }
-  
-  # Build a symmetric ANI matrix with diag = 1 (dedup-safe)
-    genomes <- sort(unique(c(fastani$reference, fastani$querry)))
-  
-    both <- dplyr::bind_rows(
-      fastani %>% dplyr::transmute(reference, querry, ani),
-      fastani %>% dplyr::transmute(reference = querry, querry = reference, ani)
+
+  # Build a symmetric ANI matrix with diag = 1
+  genomes <- sort(unique(c(fastani$reference, fastani$querry)))
+
+  both <- dplyr::bind_rows(
+    fastani %>% dplyr::transmute(reference, querry, ani),
+    fastani %>% dplyr::transmute(reference = querry, querry = reference, ani)
+  ) %>%
+    dplyr::distinct(reference, querry, .keep_all = TRUE)
+
+  ani_mat <- both %>%
+    tidyr::complete(reference = genomes, querry = genomes) %>%
+    tidyr::pivot_wider(
+      names_from  = querry,
+      values_from = ani,
+      values_fn   = max
     ) %>%
-      dplyr::distinct(reference, querry, .keep_all = TRUE)
-  
-    ani_mat <- both %>%
-      tidyr::complete(reference = genomes, querry = genomes) %>%
-      tidyr::pivot_wider(
-        names_from  = querry,
-        values_from = ani,
-        values_fn   = max  # <-- ensure no duplicate cells cause errors
-      ) %>%
-      tibble::column_to_rownames("reference") %>%
-      as.matrix()
-  
-    diag(ani_mat) <- 1
+    tibble::column_to_rownames("reference") %>%
+    as.matrix()
 
-    
-    # Build the tree (UPGMA/average as in dRep)
-      dist_mat <- 1 - ani_mat
-      hc <- hclust(as.dist(dist_mat), method = "average")
-      tree <- ape::as.phylo(hc)
+  diag(ani_mat) <- 1
 
-    # De-duplicate metadata by ID and clean ID if needed
-      metadata_dedup <- metadata %>%
-      dplyr::mutate(!!id_col := clean_label(.data[[id_col]])) %>%  # safe if already clean
-      dplyr::distinct(.data[[id_col]], .keep_all = TRUE)
-    
-    # Add metadata to tips (tree labels are already clean IDs)
-       stopifnot(id_col %in% names(metadata_dedup))
-      
-        tip_df <- tibble::tibble(label = tree$tip.label) %>%
-        dplyr::left_join(metadata_dedup, by = setNames(id_col, "label")) %>%
-        dplyr::mutate(label_clean = label) 
-        
-        
-       return(list(
-      tree = tree,
-      tip_df = tip_df,
-      ani_matrix = ani_mat
-    ))
-  
+  # Build the tree (UPGMA/average as in dRep)
+  dist_mat <- 1 - ani_mat
+  hc <- hclust(as.dist(dist_mat), method = "average")
+  tree <- ape::as.phylo(hc)
+
+  # Deduplicate & rewrite metadata IDs with the same map so labels match the tree tips
+  metadata_dedup <- metadata %>%
+    dplyr::mutate(!!id_col := rewrite_labels(.data[[id_col]])) %>%
+    dplyr::distinct(.data[[id_col]], .keep_all = TRUE)
+
+  stopifnot(id_col %in% names(metadata_dedup))
+
+  tip_df <- tibble::tibble(label = tree$tip.label) %>%
+    dplyr::left_join(metadata_dedup, by = setNames(id_col, "label")) %>%
+    dplyr::mutate(label_clean = label)
+
+  return(list(
+    tree = tree,
+    tip_df = tip_df,
+    ani_matrix = ani_mat
+  ))
 }
 
   
@@ -1372,7 +1726,7 @@ res <- process_one_species(sp)
 
 genome_metadata <- res$metadata
 ```
-```{r testing phocaeicola, fig.height= 30, fig.width = 10}
+```{r testing phocaeicola, fig.height= 14, fig.width = 10}
 phocaeicola_results <- drep_tree_metadata(genome_metadata, ndb, drop_ids = c("GCA_040912025.1", "GCF_048453085.1", "GCA_048453085.1"))
 
 tree <- phocaeicola_results$tree
@@ -1620,8 +1974,8 @@ run_fisher_tests <- function(mat, metadata, annotation_name = "feature") {
   if (!"genome" %in% names(mat)) {
     stop("Input 'mat' must contain a 'genome' column.")
   }
-  if (!all(c("ID", "host_type") %in% names(metadata))) {
-    stop("Input 'metadata' must contain columns 'ID' and 'host_type'.")
+  if (!all(c("ID_clean", "host_type") %in% names(metadata))) {
+    stop("Input 'metadata' must contain columns 'ID_clean' and 'host_type'.")
   }
 
   # Presence/absence conversion (keep genome as-is; non-NA and non-zero -> 1 else 0)
@@ -1647,8 +2001,8 @@ run_fisher_tests <- function(mat, metadata, annotation_name = "feature") {
   # Attach host_type
   pa_with_host <- pa_long %>%
     dplyr::left_join(
-      metadata %>% dplyr::select(ID, host_type),
-      by = c("genome" = "ID")
+      metadata %>% dplyr::select(ID_clean, host_type),
+      by = c("genome" = "ID_clean")
     )
 
   # Count how many MAGs present in each annotation by host_type
@@ -1659,7 +2013,7 @@ run_fisher_tests <- function(mat, metadata, annotation_name = "feature") {
   # Totals per host_type (denominator)
   total_mags_per_host_type <- metadata %>%
     dplyr::group_by(host_type) %>%
-    dplyr::summarise(total_mags = dplyr::n_distinct(ID), .groups = "drop")
+    dplyr::summarise(total_mags = dplyr::n_distinct(ID_clean), .groups = "drop")
 
   # Proportions + absences
   pa_mag_proportions <- pa_mag_counts %>%
@@ -1817,10 +2171,27 @@ pa_permanova <- function(mat, metadata) {
   meta       <- meta[ok, , drop = FALSE]
   stopifnot(identical(rownames(meta), rownames(pa_nz)))
   
+  # Remove genomes with no presence after filtering
+  empty <- rowSums(pa_nz) == 0
+  if (any(empty)) {
+  message("Removing ", sum(empty), " empty genomes (all zeros).")
+  pa_nz <- pa_nz[!empty, , drop = FALSE]
+  meta  <- meta[!empty, , drop = FALSE]
+}
+  message("Remaining genomes: ", nrow(pa_nz))
   # Distance, dispersion, PERMANOVA
-  dist_pa <- vegan::vegdist(pa_nz, method = "jaccard", binary = TRUE)
-  
-  betadisp_results <- vegan::betadisper(dist_pa, meta$host_type)
+  dist_pa <- suppressWarnings(
+  suppressMessages(
+    vegan::vegdist(pa_nz, method = "jaccard", binary = TRUE)
+  )
+)
+
+  betadisp_results <- suppressWarnings(
+    suppressMessages(
+      vegan::betadisper(dist_pa, meta$host_type)
+    )
+  )
+
   
   
  permanova_results <- vegan::adonis2(

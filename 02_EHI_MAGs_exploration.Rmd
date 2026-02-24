@@ -272,18 +272,39 @@ for (current_species in species_selection_f) {
 }
 ```
 
-```{r make index with all MAGs, eval = FALSE}
-### First only with two:
-all_mags <- ehi_mags %>%
-  filter(completeness > 90,
-         contamination < 2.5,
-         species %in% c("s__Parabacteroides distasonis", "s__Phocaeicola vulgatus")) %>%
-  mutate(species = str_remove(species, "^s__") %>% str_to_lower() %>%
-           str_replace(" ", "_"),
-    out_path = paste0("data/", species, "/mags/", basename(MAG_url))
-  ) %>%
-  dplyr::select(species, ID, MAG_url, out_path)
-write_tsv(all_mags, "all_mags_index.tsv")
+```{r enterococcus hirae, eval = FALSE}
+# Fix species name normalization (handles Enterococcus_B properly)
+ehi_mags_clean <- ehi_mags %>%
+  mutate(
+    species_clean = species %>%
+      str_remove("^s__") %>%
+      str_to_lower() %>%
+      str_replace_all("[^a-z0-9]+", "_") # replace spaces, punctuation, underscores
+  )
+
+# Show unique species so you can inspect normalization
+unique(ehi_mags_clean$species_clean)
+
+# Target species
+target <- "enterococcus_b_hirae"
+
+# Filter again using the improved cleaning
+species_data <- ehi_mags_clean %>%
+  filter(
+    completeness > 90,
+    contamination < 2.5,
+    species_clean == target
+  )
+
+# Quick sanity check
+print(nrow(species_data))
+print(table(species_data$species_clean))
+
+# Write EHI metadata for this species
+write_tsv(species_data,
+          "data/mags_metadata/enterococcus_hirae_metadata.tsv")
+
 
 ```
+
 
