@@ -3053,14 +3053,36 @@ library(KEGGREST)
 
 # Function to get info from KEGG
 get_kegg_info <- function(ko_id) {
-  query <- keggGet(ko_id)[[1]]
+  # Robust fetching with retries
+  safe_get <- function(id) {
+    tries <- 5
+    for (i in 1:tries) {
+      result <- try(keggGet(id, timeout = 60), silent = TRUE)
+      if (!inherits(result, "try-error")) return(result)
+      Sys.sleep(1 * i)   # exponential backoff
+    }
+    return(NULL)  # failed after all retries
+  }
+  
+  query <- safe_get(ko_id)
+  
+  if (is.null(query)) {
+    return(c(
+      KO = ko_id,
+      Name = "Error",
+      Definition = "Timeout or fetch failed",
+      Pathways = "N/A"
+    ))
+  }
+  
+  query <- query[[1]]
   
   # Extract Name and Definition
   name <- ifelse(!is.null(query$NAME), query$NAME, "N/A")
   definition <- ifelse(!is.null(query$DEFINITION), query$DEFINITION, "N/A")
   
-  # Extract Pathways (often multiple)
-  pathways <- if(!is.null(query$PATHWAY)) {
+  # Extract Pathways
+  pathways <- if (!is.null(query$PATHWAY)) {
     paste(names(query$PATHWAY), query$PATHWAY, sep = ": ", collapse = "; ")
   } else {
     "No pathway assigned"
@@ -5198,56 +5220,67 @@ host_type_colors <- c(human = "#A90D00" , animal = "darkgreen")
 
 host_order_colors <- c(
   # ---- Mammalia ----
-  "Rodentia"        = "#FDA991",  # soft peach
-  "Primates"        = "#CC0000",  # bright red
-  "Lagomorpha"      = "#C87F46",  # warm brown
-  "Proboscidea"     = "#8E5B3A",  # elephant brown
-  "Artiodactyla"    = "#A86A3E",  # deer/pig/bovine brown
-  "Carnivora"       = "#633C2C",  # dark brown
-  "Perissodactyla"  = "#7A4B39",  # horse brown
-  "Chiroptera"      = "#1B2021",  # black/charcoal
-  "Dasyuromorphia"  = "#A34F3E",  # marsupial red-brown
-  "Diprotodontia"   = "#B56952",  # koala warm clay
+  "Rodentia"        = "#FDA991",  
+  "Primates"        = "#CC0000",  
+  "Lagomorpha"      = "#C87F46",  
+  "Proboscidea"     = "#8E5B3A",  
+  "Artiodactyla"    = "#A86A3E",  
+  "Carnivora"       = "#633C2C",  
+  "Perissodactyla"  = "#7A4B39", 
+  "Chiroptera"      = "#1B2021", 
+  "Dasyuromorphia"  = "#A34F3E",  
+  "Diprotodontia"   = "#B56952", 
   
   # --- Amphibian ----
-  "Urodela"         = "#1C5551",  # amphibian green‑teal
+  "Urodela"         = "#1C5551", 
 
   # ---- Aves (birds) ----
   
-  "Accipitriformes" = "#6A1B9A",   # strong royal purple
-  "Galliformes"     = "#D9A6FF",   # light purple
-  "Sphenisciformes" = "#8E24AA",   # orchid purple
-  "Columbiformes"   = "#9C27B0",   # bright purple
-  "Strigiformes"    = "#512DA8",   # deep imperial purple
-  "Charadriiformes" = "#AB47BC",   # lavender-purple
-  "Passeriformes"   = "#BA68C8",   # softer purple
-  "Ciconiiformes"   = "#4A148C",   # darkest purple
-  "Anseriformes"    = "#6F2DA8",   # plum violet
-  "Gruiformes"      = "#9575CD",   # light violet
-  "Cathartiformes"  = "#5E35B1",   # grape purple
+  "Accipitriformes" = "#6A1B9A",   
+  "Galliformes"     = "#D9A6FF",   
+  "Sphenisciformes" = "#8E24AA",   
+  "Columbiformes"   = "#9C27B0",   
+  "Strigiformes"    = "#512DA8",  
+  "Charadriiformes" = "#AB47BC",   
+  "Passeriformes"   = "#BA68C8",   
+  "Ciconiiformes"   = "#4A148C",   
+  "Anseriformes"    = "#6F2DA8",   
+  "Gruiformes"      = "#9575CD",   
+  "Cathartiformes"  = "#5E35B1",   
 
 
   # ---- Reptilia ----
-  "Squamata"        = "#1D921B",  # bright green
-  "Testudines"      = "#0B6E32",  # turtle green
+  "Squamata"        = "#1D921B",  
+  "Testudines"      = "#0B6E32",  
 
   # ---- Fish (Actinopterygii) ----
-  "Salmoniformes"   = "#00BCD4",  # bright ocean blue
-  "Cichliformes"    = "#0097A7",  # deep lake blue
+  "Salmoniformes"   = "#00BCD4",  
+  "Cichliformes"    = "#0097A7", 
 
   # ---- Insecta ----
-  "Diptera"         = "#FFAE2B",  # your original yellow-orange
-  "Isoptera"        = "#E27500",  # orange
-  "Blattodea"       = "#D68A00",  # warm amber
-  "Lepidoptera"     = "#C8591D",  # burnt orange
-  "Coleoptera"      = "#FFB547",  # softer yellow-orange
-  "Hemiptera"       = "#F19000",  # vivid golden-orange
-  "Hymenoptera"     = "#FFC966",  # honey-bee yellow
-  "Orthoptera"      = "#FF9A1A",  # locust/grasshopper orange
+  "Diptera"         = "#FFAE2B",  
+  "Isoptera"        = "#E27500",  
+  "Blattodea"       = "#D68A00",  
+  "Lepidoptera"     = "#C8591D",  
+  "Coleoptera"      = "#FFB547",  
+  "Hemiptera"       = "#F19000",  
+  "Hymenoptera"     = "#FFC966",  
+  "Orthoptera"      = "#FF9A1A",  
 
   # ---- Unclassified / NA ----
-  "NA"              = "#BFBFBF"   # neutral grey
+  "NA"              = "#BFBFBF"   
 )
+
+
+host_class_colors <- c(
+  "Mammalia"  = "#A90D00",  
+  "Reptilia"  = "#1D921B", 
+  "Aves"      = "#6A1B9A",
+  "Fish"      = "#00BCD4",
+  "Insecta"   = "#E1B12C",
+  "Amphibia"  = "#1C5551"
+)
+
 
 country_palette <- c(
   # Southern Europe
@@ -6339,6 +6372,7 @@ normalize_country_fields <- function(genome_metadata) {
 filter_species_MAGs <- function(genome_metadata,
                                 genome_annotations,
                                 mags_to_remove,
+                                ndb,
                                 match_on_version = TRUE) {
   if (is.null(genome_metadata) || is.null(genome_annotations)) {
     stop("Both genome_metadata and genome_annotations must be provided.")
@@ -6503,7 +6537,8 @@ filter_species_MAGs <- function(genome_metadata,
   # ---------------------------
   list(
     metadata    = genome_metadata_dedup,
-    annotations = genome_annotations_filtered
+    annotations = genome_annotations_filtered,
+    ndb         = ndb
   )
 }
 ```
@@ -6517,6 +6552,7 @@ process_one_species <- function(species, mags_to_remove = character(0)) {
   ehi  <- prep_ehi_metadata(files$ehi_metadata)
   gtdb <- prep_gtdb_final(files$gtdb_final)
   ncbi <- prep_ncbi_metadata(files$ncbi_metadata)
+  
 
   meta <- combine_metadata_sources(ehi, gtdb, ncbi) %>%
     infer_host_metadata() %>%
@@ -6537,10 +6573,13 @@ process_one_species <- function(species, mags_to_remove = character(0)) {
     ann_raw        = files$gene_annotations,
     contig_map_raw = files$contig_map
   )
+  
+  ndb <- files$ndb
 
   cleaned <- filter_species_MAGs(
     genome_metadata    = meta,
     genome_annotations = ann,
+    ndb                = ndb,
     mags_to_remove     = mags_to_remove
   )
 
@@ -6596,10 +6635,11 @@ dist_matrix <- as.dist(1 - ani_matrix)
 hc <- hclust(dist_matrix, method = "average") #drep uses hierarchical clustering
 tree <- as.phylo(hc)
 
-ggtree(tree) + 
+drep_tree <- ggtree(tree) + 
   geom_tiplab(size = 2) +
   theme_tree2()
   
+print(drep_tree)
 }
   
   
@@ -6619,6 +6659,11 @@ recreate_drep_tree(ndb)
 
 # Strip file extensions so IDs match metadata
 clean_label <- function(x) {
+  if (is.null(x)) return(character(0))
+  # Flatten factors/logicals/numerics to character; also handles tibbles columns
+  x <- as.character(x)
+  # basename requires character; protect against NA
+  x <- ifelse(is.na(x), NA_character_, x)
   x <- basename(x)
   sub("\\.(fna|fa|fasta)(\\.gz)?$", "", x, ignore.case = TRUE)
 }
@@ -6753,7 +6798,7 @@ drep_tree_metadata <- function(genome_metadata = genome_metadata,
                                drop_ids = character(0),
                                keep_external_prefix = FALSE) {
   metadata <- genome_metadata
-  id_col   <- "ID"
+  id_col   <- "ID_clean"
 
   # Start from ndb edges
   fastani <- ndb %>%
@@ -7134,12 +7179,48 @@ genome_metadata <- hp
 
 
 
+# make_annotation_matrix <- function(genome_annotations, column) {
+#   genome_annotations %>%
+#     filter(!is.na(.data[[column]])) %>%
+#     count(genome, annotation = .data[[column]]) %>%
+#     tidyr::pivot_wider(
+#       names_from = annotation,
+#       values_from = n,
+#       values_fill = 0
+#     )
+# }
+
+# V2: checks if annotation columns are empty and keeps running
+
 make_annotation_matrix <- function(genome_annotations, column) {
-  genome_annotations %>%
-    filter(!is.na(.data[[column]])) %>%
-    count(genome, annotation = .data[[column]]) %>%
+  # Basic validation 
+  if (is.null(genome_annotations) || !is.data.frame(genome_annotations) || nrow(genome_annotations) == 0) {
+    message(sprintf("make_annotation_matrix(): annotations are empty or NULL; returning empty matrix for column '%s'.", column))
+    return(tibble::tibble(genome = character()))
+  }
+
+  if (!column %in% names(genome_annotations)) {
+    message(sprintf("Column '%s' not found in annotations; skipping and returning genome-only matrix.", column))
+    # Try to extract genomes if present; else return empty
+    genomes <- if ("genome" %in% names(genome_annotations)) unique(genome_annotations$genome) else character()
+    return(tibble::tibble(genome = genomes))
+  }
+
+  # Filter to non-NA in the requested column
+  out <- genome_annotations %>%
+    dplyr::filter(!is.na(.data[[column]]))
+
+  if (nrow(out) == 0) {
+    message(sprintf("Column '%s' exists but has no non-NA values; returning genome-only matrix.", column))
+    genomes <- if ("genome" %in% names(genome_annotations)) unique(genome_annotations$genome) else character()
+    return(tibble::tibble(genome = genomes))
+  }
+
+  # Build the wide binary matrix (counts; you can coerce to 0/1 later if needed)
+  out %>%
+    dplyr::count(genome, annotation = .data[[column]]) %>%
     tidyr::pivot_wider(
-      names_from = annotation,
+      names_from  = annotation,
       values_from = n,
       values_fill = 0
     )
@@ -7154,7 +7235,156 @@ vf_mat   <- make_annotation_matrix(genome_annotations, "vf")
 
 ### Run Fisher tests on proportions
 ```{r fisher}
+# run_fisher_tests <- function(mat, metadata, annotation_name = "feature") {
+#   # mat: wide matrix with columns: genome, <annotation columns...>
+#   # metadata: data frame with columns ID, host_type
+#   # annotation_name: name for the long column (e.g., "kegg", "amr")
+# 
+#   # checks
+#   if (!"genome" %in% names(mat)) {
+#     stop("Input 'mat' must contain a 'genome' column.")
+#   }
+#   if (!all(c("ID_clean", "host_type") %in% names(metadata))) {
+#     stop("Input 'metadata' must contain columns 'ID_clean' and 'host_type'.")
+#   }
+# 
+#   # Presence/absence conversion (keep genome as-is; non-NA and non-zero -> 1 else 0)
+#   pa <- mat %>%
+#     dplyr::mutate(
+#       dplyr::across(
+#         -genome,
+#         ~ as.integer(!is.na(.) & . != 0)
+#       )
+#     )
+# 
+#   # Wide -> long
+#   pa_long <- pa %>%
+#     tidyr::pivot_longer(
+#       cols = -genome,
+#       names_to = annotation_name,   # creates a column with this exact name
+#       values_to = "present"
+#     ) %>%
+#     dplyr::filter(present == 1L) %>%
+#     dplyr::select(genome, dplyr::all_of(annotation_name)) %>%  # keep genome + annotation
+#     dplyr::distinct()
+# 
+#   # Attach host_type
+#   pa_with_host <- pa_long %>%
+#     dplyr::left_join(
+#       metadata %>% dplyr::select(ID_clean, host_type),
+#       by = c("genome" = "ID_clean")
+#     )
+# 
+#   # Count how many MAGs present in each annotation by host_type
+#   pa_mag_counts <- pa_with_host %>%
+#     dplyr::group_by(host_type, .data[[annotation_name]]) %>%
+#     dplyr::summarise(n_mags = dplyr::n(), .groups = "drop")
+# 
+#   # Totals per host_type (denominator)
+#   total_mags_per_host_type <- metadata %>%
+#     dplyr::group_by(host_type) %>%
+#     dplyr::summarise(total_mags = dplyr::n_distinct(ID_clean), .groups = "drop")
+# 
+#   # Proportions + absences
+#   pa_mag_proportions <- pa_mag_counts %>%
+#     dplyr::left_join(total_mags_per_host_type, by = "host_type") %>%
+#     dplyr::mutate(
+#       proportion = n_mags / total_mags,
+#       absent     = total_mags - n_mags
+#     )
+# 
+#   # Build the wide counts matrix (animal vs human)
+#   pa_matrix <- pa_mag_proportions %>%
+#     dplyr::select(dplyr::all_of(annotation_name), host_type, n_mags, absent) %>%
+#     tidyr::pivot_wider(
+#       names_from  = host_type,
+#       values_from = c(n_mags, absent),
+#       values_fill = 0
+#     )
+# 
+#   # Sanity check for expected host groups (animal/human)
+#   required_cols <- c(
+#     annotation_name,
+#     "n_mags_animal", "absent_animal",
+#     "n_mags_human",  "absent_human"
+#   )
+#   if (!all(required_cols %in% names(pa_matrix))) {
+#     stop(
+#       "Expected columns missing in pa_matrix: ",
+#       paste(setdiff(required_cols, names(pa_matrix)), collapse = ", "),
+#       "\nCheck that metadata$host_type contains 'animal' and 'human' and that both have genomes."
+#     )
+#   }
+# 
+#   # Fisher exact test per row (2x2)
+#   results <- pa_matrix %>%
+#     dplyr::rowwise() %>%
+#     dplyr::mutate(
+#       ft = list(stats::fisher.test(
+#         matrix(
+#           c(n_mags_animal, absent_animal,
+#             n_mags_human,  absent_human),
+#           nrow = 2, byrow = TRUE
+#         )
+#       )),
+#       p_value    = ft$p.value,
+#       odds_ratio = unname(ft$estimate),
+#       log2_or = log2(odds_ratio),
+#       conf_low   = ft$conf.int[1],
+#       conf_high  = ft$conf.int[2]
+#     ) %>%
+#     dplyr::ungroup() %>%
+#     dplyr::select(-ft) %>%
+#     dplyr::mutate(
+#       p_adj       = stats::p.adjust(p_value, method = "BH"),
+#       prop_animal = n_mags_animal / (n_mags_animal + absent_animal),
+#       prop_human  = n_mags_human  / (n_mags_human  + absent_human),
+#       diff_prop   = prop_human - prop_animal
+#     )
+# 
+#   return(results)
+# }
+
+
+### FISHER SAFE
 run_fisher_tests <- function(mat, metadata, annotation_name = "feature") {
+  # --- Safety guards (added) --------------------------------------------------
+  # mat checks
+  if (is.null(mat) || !is.data.frame(mat) || nrow(mat) == 0) {
+    message(sprintf("run_fisher_tests('%s'): 'mat' is NULL/empty; returning empty.", annotation_name))
+    return(tibble::tibble())
+  }
+  if (!"genome" %in% names(mat)) {
+    message(sprintf("run_fisher_tests('%s'): 'mat' lacks 'genome' column; returning empty.", annotation_name))
+    return(tibble::tibble())
+  }
+  feature_cols <- setdiff(names(mat), "genome")
+  if (length(feature_cols) == 0) {
+    message(sprintf("run_fisher_tests('%s'): no feature columns (only 'genome'); returning empty.", annotation_name))
+    return(tibble::tibble())
+  }
+
+  # metadata checks
+  if (is.null(metadata) || !is.data.frame(metadata) || nrow(metadata) == 0) {
+    message(sprintf("run_fisher_tests('%s'): 'metadata' is NULL/empty; returning empty.", annotation_name))
+    return(tibble::tibble())
+  }
+  if (!all(c("ID_clean", "host_type") %in% names(metadata))) {
+    message(sprintf("run_fisher_tests('%s'): metadata must contain 'ID_clean' and 'host_type'; returning empty.", annotation_name))
+    return(tibble::tibble())
+  }
+
+  # Ensure both host groups exist (animal & human) before continuing
+  host_groups <- unique(metadata$host_type)
+  if (!all(c("animal", "human") %in% host_groups)) {
+    message(sprintf(
+      "run_fisher_tests('%s'): metadata$host_type must include both 'animal' and 'human'; returning empty.",
+      annotation_name
+    ))
+    return(tibble::tibble())
+  }
+  # ---------------------------------------------------------------------------
+
   # mat: wide matrix with columns: genome, <annotation columns...>
   # metadata: data frame with columns ID, host_type
   # annotation_name: name for the long column (e.g., "kegg", "amr")
@@ -7187,12 +7417,26 @@ run_fisher_tests <- function(mat, metadata, annotation_name = "feature") {
     dplyr::select(genome, dplyr::all_of(annotation_name)) %>%  # keep genome + annotation
     dplyr::distinct()
 
+  # --- Safety guard: if nothing is present, return empty ----------------------
+  if (nrow(pa_long) == 0) {
+    message(sprintf("run_fisher_tests('%s'): no genomes carry any features; returning empty.", annotation_name))
+    return(tibble::tibble())
+  }
+  # ---------------------------------------------------------------------------
+
   # Attach host_type
   pa_with_host <- pa_long %>%
     dplyr::left_join(
       metadata %>% dplyr::select(ID_clean, host_type),
       by = c("genome" = "ID_clean")
     )
+
+  # --- Safety guard: if join produced no host_type, return empty --------------
+  if (!"host_type" %in% names(pa_with_host) || all(is.na(pa_with_host$host_type))) {
+    message(sprintf("run_fisher_tests('%s'): no matches between 'genome' and metadata$ID_clean; returning empty.", annotation_name))
+    return(tibble::tibble())
+  }
+  # ---------------------------------------------------------------------------
 
   # Count how many MAGs present in each annotation by host_type
   pa_mag_counts <- pa_with_host %>%
@@ -7263,6 +7507,7 @@ run_fisher_tests <- function(mat, metadata, annotation_name = "feature") {
 
   return(results)
 }
+
 ```
 
 
@@ -7288,7 +7533,13 @@ plot_volcano <- function(df, feature_col) {
       data = . %>% filter(sig) %>% slice_max(nl10, n = 10),
       aes(label = .data[[feature_col]])
     ) +
+    labs(
+      title = paste("Volcano plot -", feature_col) ,
+      x = "log2(Odds Ratio)",
+      y = "-log10(adj. p-value)"
+    ) +
     theme_minimal()
+
 }
 
 plot_volcano(kegg_fisher, "kegg")
@@ -7329,14 +7580,14 @@ pa_permanova <- function(mat, metadata) {
   
   # Report what will be kept/dropped
   message("# common: ", length(common_ids))
-  message("# in KEGG only: ", length(setdiff(rownames(pa_nz), metadata$ID)))
-  message("# in metadata only: ", length(setdiff(metadata$ID, rownames(pa_nz))))
+  message("# in KEGG only: ", length(setdiff(rownames(pa_nz), metadata$ID_clean)))
+  message("# in metadata only: ", length(setdiff(metadata$ID_clean, rownames(pa_nz))))
   
   # Subset to the intersection (and keep order identical)
   pa_nz <- pa_nz[common_ids, , drop = FALSE]
   
   meta <- metadata %>%
-    dplyr::filter(ID %in% common_ids) %>%
+    dplyr::filter(ID_clean %in% common_ids) %>%
     dplyr::distinct(ID, .keep_all = TRUE) %>%
     tibble::column_to_rownames("ID") %>%
     .[common_ids, , drop = FALSE]
@@ -7381,7 +7632,24 @@ pa_permanova <- function(mat, metadata) {
     )
   )
 
+  ## Tidy so it prints nice :)
+  tidy_betadisper <- function(bd) {
+  # ANOVA table
+  an <- as.data.frame(anova(bd))
+  an$term <- rownames(an)
+  rownames(an) <- NULL
   
+  # Group mean dispersions
+  means <- data.frame(
+    group = names(bd$group),
+    mean_distance = bd$means
+  )
+  
+  list(
+    anova_table = an,
+    group_means = means
+  )
+}
   
  permanova_results <- vegan::adonis2(
     dist_pa ~ genome_size + completeness + host_type,
@@ -7390,17 +7658,423 @@ pa_permanova <- function(mat, metadata) {
     by = "margin"
   )
  
+ tidy_permanova <- function(ad) {
+  df <- as.data.frame(ad)
+  df$term <- rownames(df)
+  rownames(df) <- NULL
+  df
+}
+ 
  results <- list(
-    dist           = dist_pa,
-    betadisper     = betadisp_results,
-    permanova      = permanova_results,
-    pa_nz = pa_nz)
+  dist           = dist_pa,
+  betadisper_raw = betadisp_results,
+  betadisper     = tidy_betadisper(betadisp_results),
+  permanova_raw  = permanova_results,
+  permanova      = tidy_permanova(permanova_results),
+  pa_nz          = pa_nz
+)
  
   return(results)
 }
 
 results <-pa_permanova(kegg_mat, genome_metadata)
 results$permanova
+
+```
+
+## GIFTs
+
+### Plotting GIFTs
+```{r gift pcoa plots}
+gift_pcoa_plots <- function(genome_gifts, genome_metadata) {
+  # Convert the GIFTs into a matrix of functional elements per genome (row)
+  gift_pcoa <- genome_gifts %>%
+    to.elements(., GIFT_db) %>%
+    as.data.frame() %>%
+    vegdist(method="euclidean") %>%
+    pcoa() #principal component analysis
+    
+    #Extract eigenvalues (variance explained by first 10 axes)
+    gift_pcoa_rel_eigen <- gift_pcoa$values$Relative_eig[1:10]
+    
+    
+    # Get genome positions
+    gift_pcoa_vectors <- gift_pcoa$vectors %>% #extract vectors
+      as.data.frame() %>% 
+     dplyr::select(Axis.1,Axis.2) # keep the first 2 axes
+    
+    
+    gift_pcoa_eigenvalues <- gift_pcoa$values$Eigenvalues[c(1,2)]
+    
+    
+    #For the black arrows: Functional group loadings
+    # covariance between each functional trait and pcoa axis scores
+    #scale with the eigenvectors
+    gift_pcoa_gifts <- cov(genome_gifts, scale(gift_pcoa_vectors)) %*%
+      diag((gift_pcoa_eigenvalues/(nrow(genome_gifts)-1))^(-0.5)) %>%
+      as.data.frame() %>% 
+      dplyr::rename(Axis.1=1,Axis.2=2) %>% 
+      rownames_to_column(var="label") %>% 
+      #get function summary vectors
+      mutate(func=substr(label,1,3)) %>% 
+      group_by(func) %>% #grouping by function
+      summarise(Axis.1=mean(Axis.1),
+                Axis.2=mean(Axis.2)) %>% 
+      dplyr::rename(label=func) %>% 
+      filter(!label %in% c("S01","S02","S03"))
+      
+  
+    set.seed(101)
+scale <- 20 # scale for vector loadings (to make arrows visible)
+arrows_plot <- gift_pcoa_vectors %>% 
+  rownames_to_column(var="ID") %>% 
+  left_join(genome_metadata, by="ID") %>%
+  ggplot() +
+      #genome positions
+      scale_color_manual(values=host_type_colors)+
+      geom_point(aes(x=Axis.1,y=Axis.2, color = host_type), 
+                 alpha=0.9, shape=16) +
+      scale_size_continuous(range = c(0.1,5)) +
+      #loading positions
+      geom_segment(data=gift_pcoa_gifts, 
+                   aes(x=0, y=0, xend=Axis.1 * scale, yend=Axis.2 * scale),
+                    arrow = arrow(length = unit(0.3, "cm"), 
+                    type = "open", 
+                    angle = 25),
+                    linewidth = 0.5, 
+                    color = "black") +
+     #Primary and secondary scale adjustments
+     scale_x_continuous(name = paste0("PCoA1 (",round(gift_pcoa_rel_eigen[1]*100, digits = 2), " %)"),
+                      sec.axis = sec_axis(~ . / scale, name = "Loadings on PCoA1")
+            ) +
+     scale_y_continuous(name = paste0("PCoA2 (",round(gift_pcoa_rel_eigen[2]*100, digits = 2), " %)"),
+                      sec.axis = sec_axis(~ . / scale, name = "Loadings on PCoA2")
+            ) +
+    geom_label_repel(data = gift_pcoa_gifts,
+                     aes(label = label, x = Axis.1 * scale, y = Axis.2 * scale),
+                     segment.color = 'transparent') +
+    xlim(-0.8,1) + 
+    ylim(-1,1.5) +
+    theme_minimal() + 
+  
+  labs(
+    x = paste0("PCoA1 (", round(gift_pcoa_rel_eigen[1]*100, 2), " %)"),
+    y = paste0("PCoA2 (", round(gift_pcoa_rel_eigen[2]*100, 2), " %)"))
+  
+  centroids <- gift_pcoa_vectors %>%
+  rownames_to_column(var = "ID") %>%
+  left_join(genome_metadata, by = "ID") %>%
+  group_by(host_type) %>%
+  summarise(
+    Axis.1 = mean(Axis.1, na.rm = TRUE),
+    Axis.2 = mean(Axis.2, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+big_plot <- gift_pcoa_vectors %>% 
+  rownames_to_column(var = "ID") %>% 
+  left_join(genome_metadata, by = "ID") %>%
+  ggplot(aes(x = Axis.1, y = Axis.2, color = host_type)) +
+  geom_point(size = 3, alpha = 0.9) +
+  scale_color_manual(values = host_type_colors) +
+
+  labs(
+    x = paste0("PCoA1 (", round(gift_pcoa_rel_eigen[1] * 100, 2), " %)"),
+    y = paste0("PCoA2 (", round(gift_pcoa_rel_eigen[2] * 100, 2), " %)")
+  ) +
+
+  coord_cartesian(xlim = c(-0.6, 1), ylim = c(-1, 1)) +
+
+  theme_minimal(base_size = 16) +
+  theme(
+    axis.title = element_text(size = 14, face = "bold"),
+    axis.text  = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text  = element_text(size = 14),
+    panel.grid.minor = element_blank()
+  )
+
+big_order_plot <- gift_pcoa_vectors %>% 
+  rownames_to_column(var = "ID") %>% 
+  left_join(genome_metadata, by = "ID") %>%
+  ggplot(aes(x = Axis.1, y = Axis.2, color = host_order)) +
+  geom_point(size = 3, alpha = 0.9) +
+  scale_color_manual(values = host_order_colors) +
+
+  labs(
+    x = paste0("PCoA1 (", round(gift_pcoa_rel_eigen[1] * 100, 2), " %)"),
+    y = paste0("PCoA2 (", round(gift_pcoa_rel_eigen[2] * 100, 2), " %)")
+  ) +
+
+  coord_cartesian(xlim = c(-0.6, 1), ylim = c(-1, 1)) +
+
+  theme_minimal(base_size = 16) +
+  theme(
+    axis.title = element_text(size = 14, face = "bold"),
+    axis.text  = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text  = element_text(size = 14),
+    panel.grid.minor = element_blank()
+  )
+
+results <- list(
+    arrows_plot     = arrows_plot,
+    big_plot        = big_plot,
+    big_order_plot  = big_order_plot,
+    gift_pcoa_vectors = gift_pcoa_vectors)
+ 
+  return(results)
+}
+```
+
+
+```{r gift plots}
+plot_gifts <- function(GIFTs_elements, metadata_with_cluster) { 
+cluster <- GIFTs_elements %>%
+    as.data.frame() %>%
+    rownames_to_column(var="MAG")%>%
+    pivot_longer(!MAG,names_to="trait",values_to="gift") %>%
+    left_join(metadata_with_cluster, by = join_by(MAG == ID_clean)) %>%
+    mutate(functionid = substr(trait, 1, 3)) %>%
+    mutate(trait = case_when(
+      trait %in% GIFT_db$Code_element ~ GIFT_db$Element[match(trait, GIFT_db$Code_element)],
+      TRUE ~ trait
+    )) %>%
+    mutate(functionid = case_when(
+      functionid %in% GIFT_db$Code_function ~ GIFT_db$Function[match(functionid, GIFT_db$Code_function)],
+      TRUE ~ functionid
+    )) %>%
+    mutate(trait=factor(trait,levels=unique(GIFT_db$Element))) %>%
+    mutate(functionid=factor(functionid,levels=unique(GIFT_db$Function))) %>%
+    ggplot(aes(x=MAG,y=trait,fill=gift)) +
+        geom_tile(colour="white", linewidth=0.2)+
+        scale_fill_gradientn(colours=rev(c("#d53e4f", "#f46d43", "#fdae61", "#fee08b", "#e6f598", "#abdda4", "#ddf1da")))+
+        facet_grid(functionid ~ cluster, scales="free",space="free") +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size=6),
+              strip.text.y = element_text(angle = 0)
+              ) +
+        labs(y="Traits",x="Samples",fill="GIFT")
+  
+  
+  
+  host_type <- GIFTs_elements %>%
+    as.data.frame() %>%
+    rownames_to_column(var="MAG")%>%
+    pivot_longer(!MAG,names_to="trait",values_to="gift") %>%
+    left_join(metadata_with_cluster, by = join_by(MAG == ID_clean)) %>%
+    mutate(functionid = substr(trait, 1, 3)) %>%
+    mutate(trait = case_when(
+      trait %in% GIFT_db$Code_element ~ GIFT_db$Element[match(trait, GIFT_db$Code_element)],
+      TRUE ~ trait
+    )) %>%
+    mutate(functionid = case_when(
+      functionid %in% GIFT_db$Code_function ~ GIFT_db$Function[match(functionid, GIFT_db$Code_function)],
+      TRUE ~ functionid
+    )) %>%
+    mutate(trait=factor(trait,levels=unique(GIFT_db$Element))) %>%
+    mutate(functionid=factor(functionid,levels=unique(GIFT_db$Function))) %>%
+    ggplot(aes(x=MAG,y=trait,fill=gift)) +
+        geom_tile(colour="white", linewidth=0.2)+
+        scale_fill_gradientn(colours=rev(c("#d53e4f", "#f46d43", "#fdae61", "#fee08b", "#e6f598", "#abdda4", "#ddf1da")))+
+        facet_grid(functionid ~ host_type, scales="free",space="free") +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size=6),
+              strip.text.y = element_text(angle = 0)
+              ) +
+        labs(y="Traits",x="Samples",fill="GIFT")
+
+  antibiotic <-
+    GIFTs_elements %>%
+  melt() %>%
+  dplyr::rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
+  inner_join(GIFT_db, by = "Code_element") %>%
+  filter(str_starts(Code_element, "D09")) %>%
+  left_join(metadata_with_cluster, by = join_by(Genome == ID)) %>%
+  mutate(cluster = factor(cluster)) %>%
+  droplevels() %>%
+  arrange(cluster, Genome) %>%
+  mutate(trait = Element) %>%
+  # Ensure trait is a factor to maintain order
+  mutate(trait = factor(trait, levels = rev(unique(GIFT_db$Element)))) %>%
+  ggplot( aes(x = Genome, y = trait)) +
+  # Heatmap
+  geom_tile(aes(fill = GIFT), color = "white") +
+  scale_fill_gradientn(colours = brewer.pal(7, "YlGnBu"), name = "GIFT Score") +
+  
+  # Start a new fill scale for the host_type bar
+  new_scale_fill() +
+  
+  # Add the host_type bar at the very top or bottom
+  geom_tile(aes(y = -0.5, fill = host_type), height = 0.5) +
+  scale_fill_manual(values = host_type_colors) +
+  
+  facet_grid(~ cluster, scales = "free_x", space = "free_x") +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  
+  results <- list(
+    host_type   = host_type,
+    cluster     = cluster,
+    antibiotic  = antibiotic)
+ 
+  return(results)
+  
+}
+```
+
+### Differences in GIFTs
+```{r checking_diff_GIFTs}
+#### Differences between clusters formed in PCoA
+
+gift_stats <- function(GIFTs_elements,
+                       metadata_with_cluster,
+                       GIFT_db,
+                       host_type_colors,
+                       host_class_colors) {
+
+  suppressWarnings({
+    
+    
+    # PREPARE DATA –––––––––––––––––––––––––––––––
+  
+    gift_cols <- setdiff(colnames(GIFTs_elements),
+                         c("genome", "cluster", "host_type"))
+    
+    gift_df <- GIFTs_elements %>%
+      as.data.frame() %>%
+      tibble::rownames_to_column("ID_clean") %>%
+      left_join(
+        metadata_with_cluster %>% distinct(ID_clean, .keep_all = TRUE),
+        by = "ID_clean"
+      )
+    
+    
+   
+    # KRUSKAL-WALLIS (CLUSTERS) ––––––––––––––––––––––––––––––––
+    
+    kw_p <- sapply(gift_cols, function(g) {
+      kruskal.test(gift_df[[g]] ~ gift_df$cluster)$p.value
+    })
+    
+    kruskal_table <- tibble(
+      GIFT = gift_cols,
+      p_value = kw_p,
+      p_adj = p.adjust(kw_p, "BH")
+    )
+    
+    
+   
+    # PAIRWISE WILCOXON (CLUSTERS) –––––––––––––––––––––––––––––––
+
+    pairwise_sig_table <- map_df(gift_cols, function(g) {
+      pw <- pairwise.wilcox.test(gift_df[[g]],
+                                 gift_df$cluster,
+                                 p.adjust.method = "BH",
+                                 exact = FALSE)$p.value
+      
+      as.data.frame(as.table(pw)) %>%
+        filter(!is.na(Freq), Freq < 0.05) %>%
+        rename(group1 = Var1, group2 = Var2, p_adj = Freq) %>%
+        mutate(GIFT = g)
+    })
+    
+    
+
+    # CLUSTER DIFFERENCE PLOT ––––––––––––––––––––––––––––––––
+    
+    cluster_diff_plot <- NULL
+    
+    if (nrow(pairwise_sig_table) > 0) {
+      cluster_diff_plot <- GIFTs_elements %>%
+        melt() %>%
+        rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
+        inner_join(GIFT_db, by = "Code_element") %>%
+        filter(Code_element %in% pairwise_sig_table$GIFT) %>%
+        distinct(Genome, Code_element, .keep_all = TRUE) %>%
+        left_join(metadata_with_cluster, by = join_by(Genome == ID_clean)) %>%
+        ggplot(aes(x = Genome, y = Element, fill = GIFT)) +
+        geom_tile(color = "white", linewidth = 0.2) +
+        scale_fill_gradientn(limits = c(0, 1),
+          colours = RColorBrewer::brewer.pal(7, "YlGnBu")
+        ) +
+        new_scale_fill() +
+        geom_tile(aes(y = -0.5, fill = host_type), height = 0.3) +
+        scale_fill_manual(values = host_type_colors) +
+        facet_grid(~ cluster, scales = "free_x", space = "free_x") +
+        theme(axis.text.x =
+                element_text(angle = 45, hjust = 1, size = 4)) +
+        labs(y = "Trait", x = "Genome", fill = "GIFT")
+    }
+    
+    
+    
+    # HOST-TYPE WILCOXON  ––––––––––––––––––––––––––––––––
+    
+    w_p <- sapply(gift_cols, function(g) {
+      wilcox.test(gift_df[[g]] ~ gift_df$host_type,
+                  exact = FALSE)$p.value
+    })
+    
+    w_adj <- p.adjust(w_p, "BH")
+    
+    # Effect size (median difference)
+    effect_size <- sapply(gift_cols, function(g) {
+      median(gift_df[[g]][gift_df$host_type == "human"]) -
+        median(gift_df[[g]][gift_df$host_type == "animal"])
+    })
+    
+    wilcox_res_host_type <- tibble(
+      GIFT = gift_cols,
+      p_value = w_p,
+      p_adj = w_adj,
+      effect = effect_size
+    ) %>%
+      filter(p_adj < 0.05)
+    
+    
+    
+    # HOST TYPE DIFFERENCE PLOT --------------------
+    
+    host_type_diff_plot <- NULL
+    
+    if (nrow(wilcox_res_host_type) > 0) {
+      host_type_diff_plot <- GIFTs_elements %>%
+        melt() %>%
+        rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
+        inner_join(GIFT_db, by = "Code_element") %>%
+        filter(Code_element %in% wilcox_res_host_type$GIFT) %>%
+        distinct(Genome, Code_element, .keep_all = TRUE) %>%
+        left_join(metadata_with_cluster, by = join_by(Genome == ID_clean)) %>%
+        ggplot(aes(x = Genome, y = Element, fill = GIFT)) +
+        geom_tile(color = "white", linewidth = 0.2) +
+        scale_fill_gradientn(limits = c(0, 1),
+          colours = RColorBrewer::brewer.pal(7, "YlGnBu")
+        ) +
+        new_scale_fill() +
+        geom_tile(aes(y = -0.5, fill = host_class), height = 0.3) +
+        scale_fill_manual(values = host_class_colors) +
+        facet_grid(~ host_type, scales = "free_x", space = "free_x") +
+        theme(axis.text.x = element_blank()) +
+        labs(y = "Trait", x = "Genome", fill = "GIFT")
+    }
+    
+    
+    #–––––––––––––––––––––––––––––––––
+    # RETURN ALL RESULTS
+  
+    list(
+      # cluster analysis
+      kruskal_table = kruskal_table,
+      pairwise_sig_table = pairwise_sig_table,
+      cluster_diff_plot = cluster_diff_plot,
+      
+      # host-type analysis
+      wilcox_res_host_type = wilcox_res_host_type,
+      host_type_diff_plot = host_type_diff_plot
+    )
+  })
+}
 
 ```
 
@@ -7677,16 +8351,13 @@ legend_order <- order_to_class %>%
   dplyr::arrange(host_class) %>%
   dplyr::pull(host_order)
 
-total_genome_metadata$host_order <- factor(
-  total_genome_metadata$host_order,
-  levels = legend_order
-)
+
 ```
 
 
 
 ## Define species list
-```{r Define species and mags to remove list, eval = FALSE}
+```{r Define species and mags to remove list}
 # ALL SPECIES
 species_list <- c(
   "lactococcus_lactis",
@@ -7720,6 +8391,8 @@ mags_to_remove_list <- list(
   bacteroides_fragilis = character(0)
 )
 
+
+results <- list()
 
 for (sp in species_list) {
   results[[sp]] <- process_one_species(
@@ -7755,7 +8428,13 @@ named_list <- list(
 
 total_genome_metadata <- dplyr::bind_rows(named_list, .id = "bacterial_species")
 
+total_genome_metadata$host_order <- factor(
+  total_genome_metadata$host_order,
+  levels = legend_order
+)
+
 ```
+
 ## Data statistics
 ```{r counting species order and class}
 total_genome_metadata %>% dplyr::count(host_species)
@@ -7764,6 +8443,7 @@ total_genome_metadata %>% dplyr::count(host_order)
 
 total_genome_metadata %>% dplyr::count(host_class)
 ```
+
 ```{r plotting host order}
 df_host_species <- total_genome_metadata %>%
   filter(!is.na(bacterial_species), !is.na(host_species)) %>%
@@ -7885,7 +8565,7 @@ grid.arrange(grobs = list(genome_completeness,genome_biplot,genome_contamination
 ```
 
 
-```{r test the loop with data preparation}
+```{r test the loop with data preparation, eval = FALSE}
 species_list <- c(
   "citrobacter_braakii",
   "hafnia_paralvei"
@@ -7915,24 +8595,21 @@ for (sp in species_list) {
 ## Testing functions with one species
 
 
-```{r example loading data}
-sp <- "lactococcus_lactis"
+```{r example loading data_1}
+sp <- "citrobacter_braakii"
 res <- process_one_species(sp)
 
 genome_metadata <- res$metadata
 genome_annotations <- res$annotations
-# ndb <- res$ndb
-
-ndb <- read_csv("data/mags_metadata/lactococcus_lactis_Ndb.csv") #TODO include in process one species!
-
+ndb <- res$ndb
 ```
 
 
-```{r example_drep, fig.height = 10, fig_width = 8}
+```{r example_drep_1, fig.height = 10, fig_width = 8}
 recreate_drep_tree(ndb)
 ```
 
-```{r example_drep_final, fig.height = 10, fig_width = 8}
+```{r example_drep_final_1, fig.height = 10, fig_width = 8}
 drep_results <- drep_tree_metadata(genome_metadata, ndb)
 
 tree <- drep_results$tree
@@ -7946,40 +8623,62 @@ p_host_order
 ```
 
 
-```{r example run with one species}
+```{r example run with one species_1}
 # Build matrices
 kegg_mat <- make_annotation_matrix(genome_annotations, "kegg")
 amr_mat  <- make_annotation_matrix(genome_annotations, "resistance_target")
 vf_mat <- make_annotation_matrix(genome_annotations, "vf")
+cazy_mat <- make_annotation_matrix(genome_annotations, "cazy")
+defense_mat <- make_annotation_matrix(genome_annotations, "defense")
+antidefense_mat <- make_annotation_matrix(genome_annotations, "antidefense")
 
 # Fisher + volcano
 kegg_fisher <- run_fisher_tests(kegg_mat, genome_metadata, "kegg")
 amr_fisher  <- run_fisher_tests(amr_mat, genome_metadata, "amr")
 vf_fisher  <- run_fisher_tests(vf_mat, genome_metadata, "vf")
+cazy_fisher  <- run_fisher_tests(cazy_mat, genome_metadata, "cazy")
+defense_fisher  <- run_fisher_tests(defense_mat, genome_metadata, "defense")
+antidefense_fisher  <- run_fisher_tests(antidefense_mat, genome_metadata, "antidefense")
 
 plot_volcano(kegg_fisher, "kegg")
 plot_volcano(amr_fisher, "amr")
 plot_volcano(vf_fisher, "vf")
+plot_volcano(cazy_fisher, "cazy")
+plot_volcano(defense_fisher, "defense")
+plot_volcano(antidefense_fisher, "antidefense")
 
 
 # PCA
 pca_kegg <- run_pca(kegg_mat)
 pca_amr  <- run_pca(amr_mat)
 pca_vf  <- run_pca(vf_mat)
+pca_cazy  <- run_pca(cazy_mat)
 
 # PERMANOVA
 kegg <- pa_permanova(kegg_mat, genome_metadata)
-kegg$dist
+kegg$betadisper
 kegg$permanova
 
 amr <- pa_permanova(amr_mat, genome_metadata)
-
-amr$dist
+amr$betadisper
 amr$permanova
 
 vf <- pa_permanova(vf_mat, genome_metadata)
-vf$dist
+vf$betadisper
 vf$permanova
+
+cazy <- pa_permanova(cazy_mat, genome_metadata)
+cazy$betadisper
+cazy$permanova
+
+defense <- pa_permanova(defense_mat, genome_metadata)
+defense$betadisper
+defense$permanova
+
+antidefense <- pa_permanova(antidefense_mat, genome_metadata)
+antidefense$betadisper
+antidefense$permanova
+
 
 # PCOAs
 
@@ -7988,7 +8687,6 @@ pcoa_res <- ape::pcoa(kegg$dist, correction = "cailliez")
 
 #TODO-fix this - subset to only grab common ids
 # fails with enterococcus_hirae
-
 
 pcoa_df <- data.frame(
   ID = rownames(kegg$pa_nz),
@@ -8093,6 +8791,207 @@ ggplot(pcoa_df, aes(PC1, PC2, color = host_order)) +
     y = paste0("PC2 (", round(var_exp[2], 1), "%)")
   )
 
+
+## CAZY
+pcoa_res <- ape::pcoa(cazy$dist, correction = "cailliez")
+
+pcoa_df <- data.frame(
+  ID = rownames(cazy$pa_nz),
+  PC1 = pcoa_res$vectors[, 1],
+  PC2 = pcoa_res$vectors[, 2],
+  host_type = genome_metadata$host_type,
+  host_order = genome_metadata$host_order
+)
+
+var_exp <- round(100 * pcoa_res$values$Rel_corr_eig[1:2], 1)
+
+pcoa_cazy_pa <- ggplot(pcoa_df, aes(PC1, PC2, color = host_type)) +
+  geom_point(size = 2) +
+  scale_color_manual(values = host_type_colors, name = "Host type")+
+  theme_minimal() +
+  labs(
+    title = "PCoA of Cazy presence/absence matrix across MAGs (colored by host type)",
+    x = paste0("PC1 (",round(var_exp[1], 1), "%)"),
+    y = paste0("PC2 (", round(var_exp[2], 1), "%)")
+  )
+
+pcoa_cazy_pa
+
+ggplot(pcoa_df, aes(PC1, PC2, color = host_order)) +
+  geom_point(size = 2) +
+  scale_color_manual(values = host_order_colors, name = "Host order")+
+  theme_minimal() +
+  labs(
+    title = "PCoA of Cazy presence/absence matrix across MAGs (colored by host order)",
+    x = paste0("PC1 (",round(var_exp[1], 1), "%)"),
+    y = paste0("PC2 (", round(var_exp[2], 1), "%)")
+  )
+
+
+## Defense
+pcoa_res <- ape::pcoa(defense$dist, correction = "cailliez")
+
+pcoa_df <- data.frame(
+  ID = rownames(defense$pa_nz),
+  PC1 = pcoa_res$vectors[, 1],
+  PC2 = pcoa_res$vectors[, 2],
+  host_type = genome_metadata$host_type,
+  host_order = genome_metadata$host_order
+)
+
+var_exp <- round(100 * pcoa_res$values$Rel_corr_eig[1:2], 1)
+
+pcoa_defense_pa <- ggplot(pcoa_df, aes(PC1, PC2, color = host_type)) +
+  geom_point(size = 2) +
+  scale_color_manual(values = host_type_colors, name = "Host type")+
+  theme_minimal() +
+  labs(
+    title = "PCoA of Defense presence/absence matrix across MAGs (colored by host type)",
+    x = paste0("PC1 (",round(var_exp[1], 1), "%)"),
+    y = paste0("PC2 (", round(var_exp[2], 1), "%)")
+  )
+
+pcoa_defense_pa
+
+ggplot(pcoa_df, aes(PC1, PC2, color = host_order)) +
+  geom_point(size = 2) +
+  scale_color_manual(values = host_order_colors, name = "Host order")+
+  theme_minimal() +
+  labs(
+    title = "PCoA of Defense presence/absence matrix across MAGs (colored by host order)",
+    x = paste0("PC1 (",round(var_exp[1], 1), "%)"),
+    y = paste0("PC2 (", round(var_exp[2], 1), "%)")
+  )
+
+```
+
+```{r checking ids_1}
+a <- genome_metadata %>% pull(ID_clean) %>% unique()
+
+b <- genome_annotations %>% pull(genome) %>%unique()
+
+setdiff(a,b)
+```
+
+
+## GIFTs
+
+```{r distill_gift_annotations_5, warning=FALSE, comments="", message=FALSE}
+genome_gifts <- distill(genome_annotations,GIFT_db,genomecol= 18, annotcol=c(4,5,6, 7), verbosity = F)
+```
+```{r gift pcoa_1}
+plots <- gift_pcoa_plots(genome_gifts, genome_metadata)
+
+plots$arrows_plot
+plots$big_plot
+plots$big_order_plot
+
+pcoa_gift_vectors <- plots$gift_pcoa_vectors
+```
+
+
+```{r checking the clusters_1}
+coords <- pcoa_gift_vectors %>%
+  rownames_to_column("MAG") %>%
+  as_tibble()
+
+set.seed(123)
+km <- kmeans(coords[, c("Axis.1", "Axis.2")], centers = 3, nstart = 25, iter.max = 100)
+
+coords <- coords %>% mutate(cluster = factor(km$cluster))
+
+```
+
+
+
+
+
+```{r kmeans plot_2}
+# centroids as a tibble for plotting
+centroids <- as_tibble(km$centers) %>% mutate(cluster = factor(1:nrow(km$centers)))
+
+ggplot(coords, aes(x = Axis.1, y = Axis.2, color = cluster)) +
+  geom_point(size = 2, alpha = 0.8) +
+  geom_point(data = centroids, aes(x = Axis.1, y = Axis.2, color = cluster),
+             shape = 4, size = 5, stroke = 1.25) +   # X marks centroids
+  theme_minimal() +
+  labs(title = paste0("PCoA colored by kmeans (k=2)"),
+       color = "cluster")
+
+metadata_with_cluster <- genome_metadata %>%
+  left_join(coords %>% dplyr::select(MAG, cluster), by = c("ID_clean" = "MAG"))
+
+
+#Is genome size different between clusters?
+kruskal.test(genome_size ~ cluster, data = metadata_with_cluster)
+
+
+pairwise.wilcox.test(
+  x = metadata_with_cluster$genome_size,
+  g = metadata_with_cluster$cluster,
+  p.adjust.method = "BH"   # FDR correction
+)
+```
+
+```{r checking clusters_3}
+metadata_with_cluster %>%
+  group_by(cluster, host_type) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  arrange(cluster, desc(n))
+
+# Group summaries
+metadata_with_cluster %>%
+  group_by(cluster) %>%
+  summarise(mean_genome_size = mean(genome_size, na.rm = TRUE),
+            median_contamination = median(contamination, na.rm = TRUE),
+            .groups = "drop")
+```
+
+
+
+```{r GIFT aggregations_2}
+#Aggregate bundle-level GIFTs into the compound level
+GIFTs_elements <- to.elements(genome_gifts,GIFT_db)
+
+#Aggregate element-level GIFTs into the function level
+GIFTs_functions <- to.functions(GIFTs_elements,GIFT_db)
+
+#Aggregate function-level GIFTs into overall Biosynthesis, Degradation and Structural GIFTs
+GIFTs_domains <- to.domains(GIFTs_functions,GIFT_db)
+
+```
+
+### GIFT community plots
+
+```{r comumnity_elem_plot_gut_2, comment="", message=FALSE, warning=FALSE, fig.height=16, fig.width=14, fig.fullwidth=TRUE}
+library(reshape2)
+gift_plots <- plot_gifts(GIFTs_elements, metadata_with_cluster)
+
+gift_plots$cluster
+gift_plots$host_type
+gift_plots$antibiotic
+```
+
+
+
+```{r gift_differences}
+gift_stats_res <- gift_stats(GIFTs_elements,
+                  metadata_with_cluster,
+                  GIFT_db,
+                  host_type_colors,
+                  host_class_colors)
+
+
+#cluster
+gift_stats_res$kruskal_table
+gift_stats_res$pairwise_sig_table
+gift_stats_res$cluster_diff_plot
+
+#host type
+gift_stats_res$wilcox_res_host_type
+gift_stats_res$host_type_diff_plot
+
+
 ```
 
 
@@ -8101,5 +9000,931 @@ ggplot(pcoa_df, aes(PC1, PC2, color = host_order)) +
 
 
 
-<!--chapter:end:06_looping_all_species.Rmd-->
+
+
+<!--chapter:end:06_one_species.Rmd-->
+
+
+
+## Define species list
+```{r Define species and mags to remove list_2}
+# ALL SPECIES
+species_list <- c(
+  "lactococcus_lactis",
+  "parabacteroides_goldsteinii",
+  "enterococcus_faecalis",
+  "bacteroides_uniformis",
+  "phocaeicola_vulgatus",
+  "hafnia_paralvei",
+  "citrobacter_braakii",
+  "enterococcus_hirae",
+  "akkermansia_muciniphila",
+  "bacteroides_fragilis"
+)
+
+
+mags_to_remove_list <- list(
+  lactococcus_lactis = c(
+    "GCA_018369575.1.fna","GCA_947063445.1.fna","GCA_947101685.1.fna",
+    "GCA_948698275.1.fna","GCA_937910935.1.fna","GCA_947072755.1.fna",
+    "GCA_948655095.1.fna","GCA_948703095.1.fna","GCA_947041925.1.fna",
+    "GCA_947073355.1.fna","GCA_948675165.1.fna","GCA_948718815.1.fna"
+  ),
+  parabacteroides_goldsteinii = character(0), # none to remove
+  enterococcus_faecalis = character(0),
+  hafnia_paralvei = character(0),
+  bacteroides_uniformis = character(0),
+  phocaeicola_vulgatus = c("GCA_040912025.1", "GCF_048453085.1", "GCA_048453085.1"),
+  citrobacter_braakii = character(0),
+  enterococcus_hirae = character(0),
+  akkermansia_muciniphila = character(0),
+  bacteroides_fragilis = character(0)
+)
+
+results <- list()
+
+for (sp in species_list) {
+  results[[sp]] <- process_one_species(
+    species        = sp,
+    mags_to_remove = mags_to_remove_list[[sp]]
+  )
+}
+
+pg <- results[["parabacteroides_goldsteinii"]]$metadata
+eh <- results[["enterococcus_hirae"]]$metadata
+ef <- results[["enterococcus_faecalis"]]$metadata
+pv <- results[["phocaeicola_vulgatus"]]$metadata
+am <- results[["akkermansia_muciniphila"]]$metadata
+bf <- results[["bacteroides_fragilis"]]$metadata
+bu <- results[["bacteroides_uniformis"]]$metadata
+ll <- results[["lactococcus_lactis"]]$metadata
+hp <- results[["hafnia_paralvei"]]$metadata
+cb <- results[["citrobacter_braakii"]]$metadata
+
+
+named_list <- list(
+  parabacteroides_goldsteinii = pg,
+  enterococcus_hirae          = eh,
+  enterococcus_faecalis       = ef,
+  phocaeicola_vulgatus        = pv,
+  akkermansia_muciniphila     = am,
+  bacteroides_fragilis        = bf,
+  bacteroides_uniformis       = bu,
+  lactococcus_lactis          = ll,
+  hafnia_paralvei             = hp,
+  citrobacter_braakii         = cb
+)
+
+total_genome_metadata <- dplyr::bind_rows(named_list, .id = "bacterial_species")
+
+```
+
+
+
+## Data statistics
+```{r counting species order and class_2}
+total_genome_metadata %>% dplyr::count(host_species)
+
+total_genome_metadata %>% dplyr::count(host_order)
+
+total_genome_metadata %>% dplyr::count(host_class)
+```
+
+```{r plotting host order_2}
+df_host_species <- total_genome_metadata %>%
+  filter(!is.na(bacterial_species), !is.na(host_species)) %>%
+  distinct(bacterial_species, host_species) %>%
+  count(bacterial_species, name = "n_host_species") %>%
+  mutate(bacterial_species = fct_reorder(bacterial_species, n_host_species))
+
+ggplot(df_host_species,
+       aes(x = bacterial_species, y = n_host_species)) +
+  geom_col(fill = "#355C7D") +
+  geom_text(aes(label = n_host_species), vjust = -0.3, size = 3) +
+  labs(
+    title = "Number of Host Species per Bacterial Species",
+    x = "Bacterial species",
+    y = "Distinct host species"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+
+
+
+df_order_counts <- total_genome_metadata %>%
+  filter(!is.na(host_order)) %>%
+  count(host_order, name = "n_mags") %>%
+  mutate(host_order = fct_reorder(host_order, n_mags))
+
+ggplot(df_order_counts,
+       aes(x = host_order, y = n_mags)) +
+  geom_col() +
+  scale_fill_manual(values = host_order_colors)+
+  geom_text(aes(label = n_mags), vjust = -0.3, size = 3) +
+  labs(
+    title = "Number of MAGs per Host Order",
+    x = "Host order",
+    y = "MAG count"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+
+```
+
+
+
+### Mean completeness and contamination
+```{r mean completeness and contamination final_2}
+total_genome_metadata %>% 
+  summarise(
+    mean_c = mean(completeness, na.rm = TRUE) %>% round(2),
+    sd_c = sd(completeness, na.rm = TRUE) %>% round(2),
+    mean_con = mean(contamination, na.rm = TRUE) %>% round(2),
+    sd_con = sd(contamination, na.rm = TRUE) %>% round(2)
+  ) %>%
+  unite("Completeness", mean_c, sd_c, sep = " ± ") %>%
+  unite("Contamination", mean_con, sd_con, sep = " ± ") %>%
+  tt()
+```
+
+```{r genome_quality_plot_3, message=FALSE, warning=FALSE, fig.height=6, fig.width=10, fig.fullwidth=TRUE}
+#Generate quality biplot
+genome_biplot <- total_genome_metadata %>%
+  dplyr::select(c(ID,completeness,contamination, host_order)) %>%
+  ggplot(aes(x=completeness, y=contamination, color = host_order)) +
+  scale_color_manual(values = host_order_colors, name = "Host Order") +
+  geom_point(alpha=0.7, size = 4) +
+  xlim(c(90,100)) +
+  ylim(c(2.5,0)) +
+  labs(y= "Contamination", x = "Completeness") +
+  theme_classic() +
+  theme(
+    legend.position = "left",
+    axis.text.y = element_text(size=12),
+    axis.text.x = element_text(size=12),
+    axis.title.x = element_text(size = 16, face = "bold"),
+    axis.title.y = element_text(size = 16, face = "bold")
+  )
+
+#Generate contamination boxplot
+genome_contamination <- total_genome_metadata %>%
+            ggplot(aes(y=contamination)) +
+                    ylim(c(2.5,0)) +
+                    geom_boxplot(colour = "#999999", fill="#cccccc") +
+                    theme_classic() +
+                    theme(legend.position = "none",
+                    axis.line = element_blank(),
+                    axis.title = element_blank(),
+                    axis.text=element_blank(),
+                    axis.ticks=element_blank(),
+                        plot.margin = unit(c(0, 0, 0.40, 0),"inches")) #add bottom-margin (top, right, bottom, left)
+
+#Generate completeness boxplot
+genome_completeness <- total_genome_metadata %>%
+        ggplot(aes(x=completeness)) +
+                xlim(c(90,100)) +
+                geom_boxplot(colour = "#999999", fill="#cccccc") +
+                theme_classic() +
+                theme(legend.position = "none",
+                    axis.line = element_blank(),
+                    axis.title = element_blank(),
+                    axis.text=element_blank(),
+                    axis.ticks=element_blank(),
+                    plot.margin = unit(c(0, 0, 0, 0.50),"inches")) #add left-margin (top, right, bottom, left)
+
+#Render composite figure
+#pdf("figures/completeness_contamination.pdf",width=10, height=5)
+grid.arrange(grobs = list(genome_completeness,genome_biplot,genome_contamination),
+        layout_matrix = rbind(c(1,1,1,1,1,1,1,1,1,1,1,4),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3)))
+#dev.off()
+```
+
+
+
+
+Right now we dont have all the species annotated, so here is testing the loop with the ones we have annotations for;
+
+
+## Load data
+```{r loop_1}
+species_list <- c(
+  "lactococcus_lactis",
+  "parabacteroides_goldsteinii",
+  "hafnia_paralvei",
+  "citrobacter_braakii",
+  "enterococcus_hirae"
+)
+
+
+mags_to_remove_list <- list(
+  lactococcus_lactis = c(
+    "GCA_018369575.1.fna","GCA_947063445.1.fna","GCA_947101685.1.fna",
+    "GCA_948698275.1.fna","GCA_937910935.1.fna","GCA_947072755.1.fna",
+    "GCA_948655095.1.fna","GCA_948703095.1.fna","GCA_947041925.1.fna",
+    "GCA_947073355.1.fna","GCA_948675165.1.fna","GCA_948718815.1.fna"
+  ),
+  parabacteroides_goldsteinii = character(0), # none to remove
+  hafnia_paralvei = character(0),
+  citrobacter_braakii = character(0),
+  enterococcus_hirae = character(0)
+)
+
+species_data <- list()
+
+for (sp in species_list) {
+  species_data[[sp]] <- process_one_species(
+    species        = sp,
+    mags_to_remove = mags_to_remove_list[[sp]]
+  )
+  
+  recreate_drep_tree(species_data[[sp]]$ndb)
+  
+}
+```
+## Genomic similarity (drep)
+```{r example_drep_final, fig.height = 10, fig_width = 8}
+for (sp in species_list) {
+
+  # Run drep tree construction for THIS species
+  drep_results <- drep_tree_metadata(
+    genome_metadata = species_data[[sp]]$metadata,
+    ndb = species_data[[sp]]$ndb
+  )
+
+  p_host_order <- plot_tree_basic(
+    tree       = drep_results$tree,
+    tip_df     = drep_results$tip_df,
+    color_by   = "host_order",
+    label_tips = TRUE,
+    show_threshold = 99.5
+  )
+
+  print(p_host_order)  
+
+}
+```
+
+## Functional analysis
+### Fisher
+```{r functional analysis fisher}
+for (sp in species_list) {
+
+  genome_annotations <- species_data[[sp]]$annotations
+  genome_metadata <- species_data[[sp]]$metadata
+
+  # Build matrices
+    kegg_mat <- make_annotation_matrix(genome_annotations, "kegg")
+    amr_mat  <- make_annotation_matrix(genome_annotations, "resistance_target")
+    vf_mat <- make_annotation_matrix(genome_annotations, "vf")
+    cazy_mat <- make_annotation_matrix(genome_annotations, "cazy")
+    defense_mat <- make_annotation_matrix(genome_annotations, "defense")
+    antidefense_mat <- make_annotation_matrix(genome_annotations, "antidefense")
+    
+    # Fisher 
+    kegg_fisher <- run_fisher_tests(kegg_mat, genome_metadata, "kegg")
+    amr_fisher  <- run_fisher_tests(amr_mat, genome_metadata, "amr")
+    vf_fisher  <- run_fisher_tests(vf_mat, genome_metadata, "vf")
+    cazy_fisher  <- run_fisher_tests(cazy_mat, genome_metadata, "cazy")
+    defense_fisher  <- run_fisher_tests(defense_mat, genome_metadata, "defense")
+    antidefense_fisher  <- run_fisher_tests(antidefense_mat, genome_metadata, "antidefense")
+    
+    #Volcano
+    volcano_kegg <- plot_volcano(kegg_fisher, "kegg")
+    volcano_amr <- plot_volcano(amr_fisher, "amr")
+    volcano_vf <- plot_volcano(vf_fisher, "vf")
+    volcano_cazy <- plot_volcano(cazy_fisher, "cazy")
+   
+
+    
+
+ print(volcano_kegg) 
+ print(volcano_amr) 
+ print(volcano_vf) 
+ print(volcano_cazy) 
+
+}
+```
+### PERMANOVA
+```{r functional analysis permanova pcoa}
+
+# Helper: extract PERMANOVA table into tidy rows
+.extract_permanova_rows <- function(permanova_obj, species, matrix_name) {
+  if (is.null(permanova_obj)) return(tibble::tibble())
+  df <- tryCatch(
+    {
+      if (inherits(permanova_obj, "adonis") || inherits(permanova_obj, "adonis2")) {
+        as.data.frame(permanova_obj)
+      } else if (!is.null(permanova_obj$aov.tab)) {
+        as.data.frame(permanova_obj$aov.tab)
+      } else if (is.data.frame(permanova_obj)) {
+        permanova_obj
+      } else {
+        as.data.frame(permanova_obj)
+      }
+    },
+    error = function(e) NULL
+  )
+  if (is.null(df) || nrow(df) == 0) return(tibble::tibble())
+
+  # Add the term from rownames if not already present
+  if (is.null(df$term)) df$term <- rownames(df)
+
+  df$species     <- species
+  df$matrix_name <- matrix_name
+
+  # Move species/matrix/term up front
+  df <- df[, c("species", "matrix_name", "term", setdiff(names(df), c("species","matrix_name","term"))), drop = FALSE]
+  tibble::as_tibble(df, .name_repair = "minimal")
+}
+
+# Helper: extract betadisper results (ANOVA table + optional permutest p-value)
+.extract_betadisper_rows <- function(betadisper_obj, species, matrix_name) {
+  if (is.null(betadisper_obj)) return(tibble::tibble())
+
+  out <- list()
+
+  # ANOVA table
+  an_df <- tryCatch(
+    {
+      an <- stats::anova(betadisper_obj)
+      df <- as.data.frame(an)
+      df$term <- rownames(an)
+      df
+    },
+    error = function(e) NULL
+  )
+  if (!is.null(an_df)) {
+    an_df$type <- "anova"
+    out[["anova"]] <- an_df
+  }
+
+  # permutest p-value (if vegan is available)
+  pt_df <- tryCatch(
+    {
+      pt <- vegan::permutest(betadisper_obj)
+      pval <- tryCatch(pt$tab[1, "Pr(>F)"], error = function(e) NA_real_)
+      data.frame(term = "Groups", `Pr(>F)` = pval, stringsAsFactors = FALSE)
+    },
+    error = function(e) NULL
+  )
+  if (!is.null(pt_df)) {
+    pt_df$type <- "permutest"
+    out[["permutest"]] <- pt_df
+  }
+
+  if (length(out) == 0) return(tibble::tibble())
+
+  res <- dplyr::bind_rows(out)
+  res$species     <- species
+  res$matrix_name <- matrix_name
+  res <- res[, c("species", "matrix_name", "type", "term", setdiff(names(res), c("species","matrix_name","type","term"))), drop = FALSE]
+  tibble::as_tibble(res, .name_repair = "minimal")
+}
+
+
+
+
+# Accumulators
+permanova_rows  <- list()
+betadisper_rows <- list()
+row_idx <- 0  # simple counter
+
+for (sp in species_list) {
+  genome_annotations <- species_data[[sp]]$annotations
+  genome_metadata    <- species_data[[sp]]$metadata
+
+  # Build matrices
+  kegg_mat        <- make_annotation_matrix(genome_annotations, "kegg")
+  amr_mat         <- make_annotation_matrix(genome_annotations, "resistance_target")
+  vf_mat          <- make_annotation_matrix(genome_annotations, "vf")
+  cazy_mat        <- make_annotation_matrix(genome_annotations, "cazy")
+  defense_mat     <- make_annotation_matrix(genome_annotations, "defense")
+  antidefense_mat <- make_annotation_matrix(genome_annotations, "antidefense")
+
+  # PERMANOVAs 
+  kegg  <- tryCatch(pa_permanova(kegg_mat,        genome_metadata), error = function(e) { message("[", sp, "] KEGG failed: ", e$message); NULL })
+  amr   <- tryCatch(pa_permanova(amr_mat,         genome_metadata), error = function(e) { message("[", sp, "] AMR failed: ", e$message); NULL })
+  vf    <- tryCatch(pa_permanova(vf_mat,          genome_metadata), error = function(e) { message("[", sp, "] VF failed: ", e$message); NULL })
+  cazy  <- tryCatch(pa_permanova(cazy_mat,        genome_metadata), error = function(e) { message("[", sp, "] CAZY failed: ", e$message); NULL })
+  defense <- tryCatch(pa_permanova(defense_mat,   genome_metadata), error = function(e) { message("[", sp, "] DEFENSE failed: ", e$message); NULL })
+  antidefense <- tryCatch(pa_permanova(antidefense_mat, genome_metadata), error = function(e) { message("[", sp, "] ANTIDEFENSE failed: ", e$message); NULL })
+
+  # Collect results into tables
+  res_list <- list(
+    KEGG        = kegg,
+    AMR         = amr,
+    VF          = vf,
+    CAZY        = cazy
+    # Include if you want these too:
+    # DEFENSE     = defense,
+    # ANTIDEFENSE = antidefense
+  )
+
+  for (nm in names(res_list)) {
+    obj <- res_list[[nm]]
+    if (is.null(obj)) next
+
+    # PERMANOVA rows
+    pr <- .extract_permanova_rows(obj$permanova, species = sp, matrix_name = nm)
+    if (nrow(pr) > 0) {
+      row_idx <- row_idx + 1
+      permanova_rows[[row_idx]] <- pr
+    }
+
+    # betadisper rows
+    br <- .extract_betadisper_rows(obj$betadisper, species = sp, matrix_name = nm)
+    if (nrow(br) > 0) {
+      row_idx <- row_idx + 1
+      betadisper_rows[[row_idx]] <- br
+    }
+  }
+
+  # PCoA plotting
+  
+# Choose which PERMANOVA result objects to plot
+mat_objs <- list(
+  KEGG        = kegg,
+  AMR         = amr,
+  VF          = vf,
+  CAZY        = cazy
+  # You can include these too if you want PCoAs for them:
+  # DEFENSE     = defense,
+  # ANTIDEFENSE = antidefense
+)
+
+for (nm in names(mat_objs)) {
+  obj <- mat_objs[[nm]]
+  if (is.null(obj) || is.null(obj$dist) || is.null(obj$pa_nz)) {
+    message(sprintf("[%s - %s] Skipping: missing 'dist' or 'pa_nz'.", sp, nm))
+    next
+  }
+
+  # --- IDs from dist, pa_nz, and metadata ------------------------------------
+  ids_dist <- if (inherits(obj$dist, "dist")) {
+    attr(obj$dist, "Labels")
+  } else {
+    rownames(obj$dist)
+  }
+  ids_pa   <- rownames(obj$pa_nz)
+  ids_meta <- genome_metadata$ID_clean
+
+  common_ids <- Reduce(intersect, list(ids_dist, ids_pa, ids_meta))
+  if (length(common_ids) < 3) {
+    message(sprintf("[%s - %s] Too few common IDs (%d). Need >= 3 for PCoA.", sp, nm, length(common_ids)))
+    next
+  }
+
+  # --- Subset dist to common_ids (preserve order = common_ids) ---------------
+  dist_mat <- if (inherits(obj$dist, "dist")) as.matrix(obj$dist) else obj$dist
+  # Ensure the distance matrix has rownames/colnames to subset by names:
+  if (is.null(rownames(dist_mat)) || is.null(colnames(dist_mat))) {
+    stop(sprintf("[%s - %s] Distance matrix lacks row/col names; cannot align.", sp, nm))
+  }
+  dist_sub <- dist_mat[common_ids, common_ids, drop = FALSE]
+  dist_sub <- stats::as.dist(dist_sub)
+
+  # --- Subset PA matrix (not strictly needed for plots, but keeps things aligned)
+  pa_sub <- obj$pa_nz[common_ids, , drop = FALSE]
+
+  # --- Subset & re-order metadata to match common_ids ------------------------
+  meta_sub <- genome_metadata[match(common_ids, genome_metadata$ID_clean), , drop = FALSE]
+
+  # --- PCoA -------------------------------------------------------------------
+  pcoa_res <- ape::pcoa(dist_sub, correction = "cailliez")
+  # Explained variance (%), using correction-adjusted components:
+  var_exp <- round(100 * pcoa_res$values$Rel_corr_eig[1:2], 1)
+
+  # Build PCoA data frame (rows are in the same order as dist_sub/common_ids)
+  pcoa_df <- data.frame(
+    ID         = common_ids,
+    PC1        = pcoa_res$vectors[, 1],
+    PC2        = pcoa_res$vectors[, 2],
+    host_type  = meta_sub$host_type,
+    host_order = meta_sub$host_order,
+    stringsAsFactors = FALSE
+  )
+
+  # --- Plot 1: color by host_type --------------------------------------------
+  p1 <- ggplot(pcoa_df, aes(PC1, PC2, color = host_type)) +
+    geom_point(size = 2) +
+    scale_color_manual(values = host_type_colors, name = "Host type") +
+    theme_minimal() +
+    labs(
+      title = paste("PCoA of", nm, "presence/absence matrix across MAGs (colored by host type) -", sp),
+      x = paste0("PC1 (", var_exp[1], "%)"),
+      y = paste0("PC2 (", var_exp[2], "%)")
+    )
+  print(p1)
+
+  # --- Plot 2: color by host_order -------------------------------------------
+  p2 <- ggplot(pcoa_df, aes(PC1, PC2, color = host_order)) +
+    geom_point(size = 2) +
+    scale_color_manual(values = host_order_colors, name = "Host order") +
+    theme_minimal() +
+    labs(
+      title = paste("PCoA of", nm, "presence/absence matrix across MAGs (colored by host order) -", sp),
+      x = paste0("PC1 (", var_exp[1], "%)"),
+      y = paste0("PC2 (", var_exp[2], "%)")
+    )
+  print(p2)
+}
+
+
+
+# Bind lists into final tables
+permanova_all  <- if (length(permanova_rows))  dplyr::bind_rows(permanova_rows)  else tibble::tibble()
+betadisper_all <- if (length(betadisper_rows)) dplyr::bind_rows(betadisper_rows) else tibble::tibble()
+
+# Quick peek
+print(permanova_all, n = 20)
+print(betadisper_all, n = 20)
+
+# Or a compact glimpse
+# dplyr::glimpse(permanova_all)
+# dplyr::glimpse(betadisper_all)
+
+
+}
+  
+
+
+```
+
+
+
+
+### GIFTs
+
+```{r GIFTs}
+
+for (sp in species_list) {
+  
+  genome_annotations <- species_data[[sp]]$annotations
+  genome_metadata <- species_data[[sp]]$metadata
+  
+  genome_gifts <- distill(genome_annotations,GIFT_db,genomecol= "genome", 
+                          annotcol=c("kegg", "ec", "pfam", "cazy"), verbosity = F)
+  
+  plots <- gift_pcoa_plots(genome_gifts, genome_metadata)
+
+  print(plots$arrows_plot)
+  print(plots$big_plot)
+  print(plots$big_order_plot)
+
+}
+
+
+```
+
+
+
+# Meta-analysis
+```{r total_genome_annotations}
+
+lactococcus_annotations    <- species_data$lactococcus_lactis$annotations
+hafnia_annotations         <- species_data$hafnia_paralvei$annotations
+enterococcus_annotations   <- species_data$enterococcus_hirae$annotations
+citrobacter_annotations    <- species_data$citrobacter_braakii$annotations
+parabacteroides_annotations<- species_data$parabacteroides_goldsteinii$annotations
+
+
+ann_list <- list(
+  lactococcus     = lactococcus_annotations,
+  hafnia          = hafnia_annotations,
+  enterococcus    = enterococcus_annotations,
+  citrobacter     = citrobacter_annotations,
+  parabacteroides = parabacteroides_annotations
+)
+
+# Coerce start/end to numeric wherever they exist and are character
+ann_list <- purrr::map(ann_list, ~ .x %>%
+  mutate(
+    across(any_of(c("start", "end")),
+           ~ if (is.character(.x)) readr::parse_double(.x, na = c("", "NA")) else .x)
+  )
+)
+
+total_genome_annotations <- bind_rows(ann_list, .id = "species")
+
+```
+
+
+
+```{r functional analysis all together}
+# Build matrices
+kegg_mat <- make_annotation_matrix(total_genome_annotations, "kegg")
+amr_mat  <- make_annotation_matrix(total_genome_annotations, "resistance_target")
+vf_mat <- make_annotation_matrix(total_genome_annotations, "vf")
+cazy_mat <- make_annotation_matrix(total_genome_annotations, "cazy")
+defense_mat <- make_annotation_matrix(total_genome_annotations, "defense")
+antidefense_mat <- make_annotation_matrix(total_genome_annotations, "antidefense")
+
+# Fisher + volcano
+kegg_fisher <- run_fisher_tests(kegg_mat, total_genome_metadata, "kegg")
+amr_fisher  <- run_fisher_tests(amr_mat, total_genome_metadata, "amr")
+vf_fisher  <- run_fisher_tests(vf_mat, total_genome_metadata, "vf")
+cazy_fisher  <- run_fisher_tests(cazy_mat, total_genome_metadata, "cazy")
+defense_fisher  <- run_fisher_tests(defense_mat, total_genome_metadata, "defense")
+antidefense_fisher  <- run_fisher_tests(antidefense_mat, total_genome_metadata, "antidefense")
+
+plot_volcano(kegg_fisher, "kegg")
+plot_volcano(amr_fisher, "amr")
+plot_volcano(vf_fisher, "vf")
+plot_volcano(cazy_fisher, "cazy")
+plot_volcano(defense_fisher, "defense")
+plot_volcano(antidefense_fisher, "antidefense")
+
+
+# PERMANOVA
+kegg <- pa_permanova(kegg_mat, total_genome_metadata)
+kegg$betadisper
+kegg$permanova
+
+amr <- pa_permanova(amr_mat, total_genome_metadata)
+amr$betadisper
+amr$permanova
+
+vf <- pa_permanova(vf_mat, total_genome_metadata)
+vf$betadisper
+vf$permanova
+
+cazy <- pa_permanova(cazy_mat, total_genome_metadata)
+cazy$betadisper
+cazy$permanova
+
+defense <- pa_permanova(defense_mat, total_genome_metadata)
+defense$betadisper
+defense$permanova
+
+antidefense <- pa_permanova(antidefense_mat, total_genome_metadata)
+antidefense$betadisper
+antidefense$permanova
+
+
+# PCOAs
+
+#### ---------------------
+#### KEGG
+#### ---------------------
+pcoa_res <- ape::pcoa(kegg$dist, correction = "cailliez")
+
+ids_pa   <- rownames(kegg$pa_nz)
+ids_pcoa <- rownames(pcoa_res$vectors)
+ids_meta <- rownames(total_genome_metadata)
+
+# common_ids <- Reduce(intersect, list(ids_pa, ids_pcoa, ids_meta))
+# if (length(common_ids) == 0L) stop("[KEGG] No common IDs across pa_nz, PCoA vectors, and metadata.")
+# 
+# .report_drops("KEGG", ids_pa, ids_pcoa, ids_meta, common_ids)
+# 
+# # enforce order by PCoA vectors
+# common_ids <- intersect(rownames(pcoa_res$vectors), common_ids)
+# 
+# pcoa_vec     <- pcoa_res$vectors[common_ids, , drop = FALSE]
+# meta_aligned <- total_genome_metadata[common_ids, , drop = FALSE]
+# 
+# pcoa_df <- data.frame(
+#   ID        = common_ids,
+#   PC1       = pcoa_vec[, 1],
+#   PC2       = pcoa_vec[, 2],
+#   host_type = meta_aligned$host_type,
+#   host_order= meta_aligned$host_order,
+#   row.names = NULL, check.names = FALSE
+# )
+# 
+# var_exp <- round(100 * pcoa_res$values$Rel_corr_eig[1:2], 1)
+# 
+# pcoa_kegg_pa <- ggplot(pcoa_df, aes(PC1, PC2, color = host_type)) +
+#   geom_point(size = 2) +
+#   scale_color_manual(values = host_type_colors, name = "Host type") +
+#   theme_minimal() +
+#   labs(
+#     title = "PCoA of KEGG presence/absence across MAGs (colored by host type)",
+#     x = paste0("PC1 (", var_exp[1], "%)"),
+#     y = paste0("PC2 (", var_exp[2], "%)")
+#   )
+# pcoa_kegg_pa
+# 
+# ggplot(pcoa_df, aes(PC1, PC2, color = host_order)) +
+#   geom_point(size = 2) +
+#   scale_color_manual(values = host_order_colors, name = "Host order") +
+#   theme_minimal() +
+#   labs(
+#     title = "PCoA of KEGG presence/absence across MAGs (colored by host order)",
+#     x = paste0("PC1 (", var_exp[1], "%)"),
+#     y = paste0("PC2 (", var_exp[2], "%)")
+#   )
+# 
+# 
+# #### ---------------------
+# #### AMR
+# #### ---------------------
+# pcoa_res <- ape::pcoa(amr$dist, correction = "cailliez")
+# 
+# ids_pa   <- rownames(amr$pa_nz)
+# ids_pcoa <- rownames(pcoa_res$vectors)
+# ids_meta <- rownames(total_genome_metadata)
+# 
+# common_ids <- Reduce(intersect, list(ids_pa, ids_pcoa, ids_meta))
+# if (length(common_ids) == 0L) stop("[AMR] No common IDs across pa_nz, PCoA vectors, and metadata.")
+# 
+# .report_drops("AMR", ids_pa, ids_pcoa, ids_meta, common_ids)
+# 
+# common_ids <- intersect(rownames(pcoa_res$vectors), common_ids)
+# 
+# pcoa_vec     <- pcoa_res$vectors[common_ids, , drop = FALSE]
+# meta_aligned <- total_genome_metadata[common_ids, , drop = FALSE]
+# 
+# pcoa_df <- data.frame(
+#   ID        = common_ids,
+#   PC1       = pcoa_vec[, 1],
+#   PC2       = pcoa_vec[, 2],
+#   host_type = meta_aligned$host_type,
+#   host_order= meta_aligned$host_order,
+#   row.names = NULL, check.names = FALSE
+# )
+# 
+# var_exp <- round(100 * pcoa_res$values$Rel_corr_eig[1:2], 1)
+# 
+# pcoa_amr_pa <- ggplot(pcoa_df, aes(PC1, PC2, color = host_type)) +
+#   geom_point(size = 2) +
+#   scale_color_manual(values = host_type_colors, name = "Host type") +
+#   theme_minimal() +
+#   labs(
+#     title = "PCoA of AMR presence/absence across MAGs (colored by host type)",
+#     x = paste0("PC1 (", var_exp[1], "%)"),
+#     y = paste0("PC2 (", var_exp[2], "%)")
+#   )
+# pcoa_amr_pa
+# 
+# ggplot(pcoa_df, aes(PC1, PC2, color = host_order)) +
+#   geom_point(size = 2) +
+#   scale_color_manual(values = host_order_colors, name = "Host order") +
+#   theme_minimal() +
+#   labs(
+#     title = "PCoA of AMR presence/absence across MAGs (colored by host order)",
+#     x = paste0("PC1 (", var_exp[1], "%)"),
+#     y = paste0("PC2 (", var_exp[2], "%)")
+#   )
+# 
+# 
+# #### ---------------------
+# #### VF
+# #### ---------------------
+# pcoa_res <- ape::pcoa(vf$dist, correction = "cailliez")
+# 
+# ids_pa   <- rownames(vf$pa_nz)
+# ids_pcoa <- rownames(pcoa_res$vectors)
+# ids_meta <- rownames(total_genome_metadata)
+# 
+# common_ids <- Reduce(intersect, list(ids_pa, ids_pcoa, ids_meta))
+# if (length(common_ids) == 0L) stop("[VF] No common IDs across pa_nz, PCoA vectors, and metadata.")
+# 
+# .report_drops("VF", ids_pa, ids_pcoa, ids_meta, common_ids)
+# 
+# common_ids <- intersect(rownames(pcoa_res$vectors), common_ids)
+# 
+# pcoa_vec     <- pcoa_res$vectors[common_ids, , drop = FALSE]
+# meta_aligned <- total_genome_metadata[common_ids, , drop = FALSE]
+# 
+# pcoa_df <- data.frame(
+#   ID        = common_ids,
+#   PC1       = pcoa_vec[, 1],
+#   PC2       = pcoa_vec[, 2],
+#   host_type = meta_aligned$host_type,
+#   host_order= meta_aligned$host_order,
+#   row.names = NULL, check.names = FALSE
+# )
+# 
+# var_exp <- round(100 * pcoa_res$values$Rel_corr_eig[1:2], 1)
+# 
+# pcoa_vf_pa <- ggplot(pcoa_df, aes(PC1, PC2, color = host_type)) +
+#   geom_point(size = 2) +
+#   scale_color_manual(values = host_type_colors, name = "Host type") +
+#   theme_minimal() +
+#   labs(
+#     title = "PCoA of VF presence/absence across MAGs (colored by host type)",
+#     x = paste0("PC1 (", var_exp[1], "%)"),
+#     y = paste0("PC2 (", var_exp[2], "%)")
+#   )
+# pcoa_vf_pa
+# 
+# ggplot(pcoa_df, aes(PC1, PC2, color = host_order)) +
+#   geom_point(size = 2) +
+#   scale_color_manual(values = host_order_colors, name = "Host order") +
+#   theme_minimal() +
+#   labs(
+#     title = "PCoA of VF presence/absence across MAGs (colored by host order)",
+#     x = paste0("PC1 (", var_exp[1], "%)"),
+#     y = paste0("PC2 (", var_exp[2], "%)")
+#   )
+# 
+# 
+# #### ---------------------
+# #### CAZY
+# #### ---------------------
+# pcoa_res <- ape::pcoa(cazy$dist, correction = "cailliez")
+# 
+# ids_pa   <- rownames(cazy$pa_nz)
+# ids_pcoa <- rownames(pcoa_res$vectors)
+# ids_meta <- rownames(total_genome_metadata)
+# 
+# common_ids <- Reduce(intersect, list(ids_pa, ids_pcoa, ids_meta))
+# if (length(common_ids) == 0L) stop("[CAZY] No common IDs across pa_nz, PCoA vectors, and metadata.")
+# 
+# .report_drops("CAZY", ids_pa, ids_pcoa, ids_meta, common_ids)
+# 
+# common_ids <- intersect(rownames(pcoa_res$vectors), common_ids)
+# 
+# pcoa_vec     <- pcoa_res$vectors[common_ids, , drop = FALSE]
+# meta_aligned <- total_genome_metadata[common_ids, , drop = FALSE]
+# 
+# pcoa_df <- data.frame(
+#   ID        = common_ids,
+#   PC1       = pcoa_vec[, 1],
+#   PC2       = pcoa_vec[, 2],
+#   host_type = meta_aligned$host_type,
+#   host_order= meta_aligned$host_order,
+#   row.names = NULL, check.names = FALSE
+# )
+# 
+# var_exp <- round(100 * pcoa_res$values$Rel_corr_eig[1:2], 1)
+# 
+# pcoa_cazy_pa <- ggplot(pcoa_df, aes(PC1, PC2, color = host_type)) +
+#   geom_point(size = 2) +
+#   scale_color_manual(values = host_type_colors, name = "Host type") +
+#   theme_minimal() +
+#   labs(
+#     title = "PCoA of CAZy presence/absence across MAGs (colored by host type)",
+#     x = paste0("PC1 (", var_exp[1], "%)"),
+#     y = paste0("PC2 (", var_exp[2], "%)")
+#   )
+# pcoa_cazy_pa
+# 
+# ggplot(pcoa_df, aes(PC1, PC2, color = host_order)) +
+#   geom_point(size = 2) +
+#   scale_color_manual(values = host_order_colors, name = "Host order") +
+#   theme_minimal() +
+#   labs(
+#     title = "PCoA of CAZy presence/absence across MAGs (colored by host order)",
+#     x = paste0("PC1 (", var_exp[1], "%)"),
+#     y = paste0("PC2 (", var_exp[2], "%)")
+#   )
+# 
+# 
+# #### ---------------------
+# #### Defense
+# #### ---------------------
+# pcoa_res <- ape::pcoa(defense$dist, correction = "cailliez")
+# 
+# ids_pa   <- rownames(defense$pa_nz)
+# ids_pcoa <- rownames(pcoa_res$vectors)
+# ids_meta <- rownames(total_genome_metadata)
+# 
+# common_ids <- Reduce(intersect, list(ids_pa, ids_pcoa, ids_meta))
+# if (length(common_ids) == 0L) stop("[Defense] No common IDs across pa_nz, PCoA vectors, and metadata.")
+# 
+# .report_drops("Defense", ids_pa, ids_pcoa, ids_meta, common_ids)
+# 
+# common_ids <- intersect(rownames(pcoa_res$vectors), common_ids)
+# 
+# pcoa_vec     <- pcoa_res$vectors[common_ids, , drop = FALSE]
+# meta_aligned <- total_genome_metadata[common_ids, , drop = FALSE]
+# 
+# pcoa_df <- data.frame(
+#   ID        = common_ids,
+#   PC1       = pcoa_vec[, 1],
+#   PC2       = pcoa_vec[, 2],
+#   host_type = meta_aligned$host_type,
+#   host_order= meta_aligned$host_order,
+#   row.names = NULL, check.names = FALSE
+# )
+# 
+# var_exp <- round(100 * pcoa_res$values$Rel_corr_eig[1:2], 1)
+# 
+# pcoa_defense_pa <- ggplot(pcoa_df, aes(PC1, PC2, color = host_type)) +
+#   geom_point(size = 2) +
+#   scale_color_manual(values = host_type_colors, name = "Host type") +
+#   theme_minimal() +
+#   labs(
+#     title = "PCoA of Defense presence/absence across MAGs (colored by host type)",
+#     x = paste0("PC1 (", var_exp[1], "%)"),
+#     y = paste0("PC2 (", var_exp[2], "%)")
+#   )
+
+```
+
+
+<!--chapter:end:07_looping.Rmd-->
 

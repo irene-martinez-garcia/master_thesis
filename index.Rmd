@@ -74,6 +74,7 @@ library(UpSetR)
 library(viridis)
 library(RColorBrewer)
 library(countrycode)
+library(patchwork)
 
 # For statistics
 library(spaa)
@@ -83,10 +84,20 @@ library(geiger)
 library(distillR)
 library(ANCOMBC)
 library(lme4)
+library(lmerTest) 
 library(nlme)
 library(pairwiseAdonis)
 library(emmeans)
 library(pheatmap)
 library(rstatix)
 library(uwot)
+
+
+# For KEGGs
+library(KEGGREST)
+
+# For meta-analysis
+library(dmetar)
+library(metafor)
+library(meta)
 ```
