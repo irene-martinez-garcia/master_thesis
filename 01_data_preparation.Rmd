@@ -98,6 +98,10 @@ screen -S parabacteroides_distasonis
 7) Run drakkar annotating_function.smk to re-annotate all the MAGs:
 ```{bash, eval = FALSE}
 drakkar annotating -b /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/data/phocaeicola_vulgatus/mags/unzipped -o /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/data/phocaeicola_vulgatus --env_path /projects/alberdilab/data/environments/drakkar --annotation-type function 
+
+
+#new - gene-level annotations only:
+drakkar annotating -b /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/data/bacteroides_uniformis/mags/unzipped -o /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/data/bacteroides_uniformis --env_path /projects/alberdilab/data/environments/drakkar --annotation-type genes 
 ```
 
 
@@ -109,9 +113,12 @@ bash /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/scripts/bu
 
 8) Pangenome analysis with ppanggolin
 ```{bash, eval = FALSE}
-snakemake --snakefile Snakefile.pangolin \
-          --configfile snakefiles/pangolin_config.yaml \
-          --use-conda \
-          -j 40
+snakemake \
+  --snakefile /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/snakefiles/ppanggolin.smk \
+  --configfile /maps/projects/alberdilab/people/pjq449/comparative_metagenomics/snakefiles/pangolin_config.yaml \
+  --executor slurm \
+  --jobs 10 \
+  --latency-wait 60 \
+  --printshellcmds
 ```
 

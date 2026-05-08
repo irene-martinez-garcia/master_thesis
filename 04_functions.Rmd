@@ -1,101 +1,190 @@
 
 # Functions and helpers
 
+## Colour schemes
 ```{r color schemes}
 source_colors <- c(EHI = "#8BC63F", GTDB = "#2D522D", NCBI= "#20558A")
 
-host_type_colors <- c(human = "#A90D00" , animal = "darkgreen") 
+host_type_colors <- c(human = "#D81B60" , animal = "#004D40") 
+
+host_type_2_colors <- c(human = "#db2b39" , domestic = "#29335c", wild= "#f3a712") 
+
+host_type_3_colors <- c(human_adj = "#D81B60" , wild = "#004D40") 
 
 
 host_order_colors <- c(
   # ---- Mammalia ----
-  "Rodentia"        = "#FDA991",  # soft peach
-  "Primates"        = "#CC0000",  # bright red
-  "Lagomorpha"      = "#C87F46",  # warm brown
-  "Proboscidea"     = "#8E5B3A",  # elephant brown
-  "Artiodactyla"    = "#A86A3E",  # deer/pig/bovine brown
-  "Carnivora"       = "#633C2C",  # dark brown
-  "Perissodactyla"  = "#7A4B39",  # horse brown
-  "Chiroptera"      = "#1B2021",  # black/charcoal
-  "Dasyuromorphia"  = "#A34F3E",  # marsupial red-brown
-  "Diprotodontia"   = "#B56952",  # koala warm clay
+  "Rodentia"        = "#FDA991",  
+  "Primates"        = "#CC0000",  
+  "Lagomorpha"      = "#C87F46",  
+  "Proboscidea"     = "#8E5B3A",  
+  "Artiodactyla"    = "#A86A3E",  
+  "Carnivora"       = "#633C2C",  
+  "Perissodactyla"  = "#7A4B39", 
+  "Chiroptera"      = "#1B2021", 
+  "Dasyuromorphia"  = "#A34F3E",  
+  "Diprotodontia"   = "#B56952", 
   
   # --- Amphibian ----
-  "Urodela"         = "#1C5551",  # amphibian green‑teal
+  "Urodela"         = "#1C5551", 
 
   # ---- Aves (birds) ----
   
-  "Accipitriformes" = "#6A1B9A",   # strong royal purple
-  "Galliformes"     = "#D9A6FF",   # light purple
-  "Sphenisciformes" = "#8E24AA",   # orchid purple
-  "Columbiformes"   = "#9C27B0",   # bright purple
-  "Strigiformes"    = "#512DA8",   # deep imperial purple
-  "Charadriiformes" = "#AB47BC",   # lavender-purple
-  "Passeriformes"   = "#BA68C8",   # softer purple
-  "Ciconiiformes"   = "#4A148C",   # darkest purple
-  "Anseriformes"    = "#6F2DA8",   # plum violet
-  "Gruiformes"      = "#9575CD",   # light violet
-  "Cathartiformes"  = "#5E35B1",   # grape purple
+  "Accipitriformes" = "#6A1B9A",   
+  "Galliformes"     = "#D9A6FF",   
+  "Sphenisciformes" = "#8E24AA",   
+  "Columbiformes"   = "#9C27B0",   
+  "Strigiformes"    = "#512DA8",  
+  "Charadriiformes" = "#AB47BC",   
+  "Passeriformes"   = "#BA68C8",   
+  "Ciconiiformes"   = "#4A148C",   
+  "Anseriformes"    = "#6F2DA8",   
+  "Gruiformes"      = "#9575CD",   
+  "Cathartiformes"  = "#5E35B1",   
 
 
   # ---- Reptilia ----
-  "Squamata"        = "#1D921B",  # bright green
-  "Testudines"      = "#0B6E32",  # turtle green
+  "Squamata"        = "#1D921B",  
+  "Testudines"      = "#0B6E32",  
 
   # ---- Fish (Actinopterygii) ----
-  "Salmoniformes"   = "#00BCD4",  # bright ocean blue
-  "Cichliformes"    = "#0097A7",  # deep lake blue
-
-  # ---- Insecta ----
-  "Diptera"         = "#FFAE2B",  # your original yellow-orange
-  "Isoptera"        = "#E27500",  # orange
-  "Blattodea"       = "#D68A00",  # warm amber
-  "Lepidoptera"     = "#C8591D",  # burnt orange
-  "Coleoptera"      = "#FFB547",  # softer yellow-orange
-  "Hemiptera"       = "#F19000",  # vivid golden-orange
-  "Hymenoptera"     = "#FFC966",  # honey-bee yellow
-  "Orthoptera"      = "#FF9A1A",  # locust/grasshopper orange
+  "Salmoniformes"   = "#00BCD4",  
+  "Cichliformes"    = "#0097A7", 
 
   # ---- Unclassified / NA ----
-  "NA"              = "#BFBFBF"   # neutral grey
+  "NA"              = "#BFBFBF"   
 )
+
+
+host_class_colors <- c(
+  "Mammalia"  = "#A90D00",  
+  "Reptilia"  = "#1D921B", 
+  "Aves"      = "#6A1B9A",
+  "Actinopterygii"      = "#00BCD4",
+  "Amphibia"  = "#1C5551"
+)
+
 
 country_palette <- c(
-  # Southern Europe
-  "Spain" = "#1B9E77",
-  "Italy" = "#33A02C",
-  "Greece" = "#66C2A5",
-  "Portugal" = "#2CA25F",
-  "Malta" = "#99D8C9",
+  #  Southern Europe (oranges) 
+  "Spain"      = "#E66101",
+  "Italy"      = "#F17C0E",
+  "Greece"     = "#FC8D59",
+  "Portugal"   = "#FDB863",
+  "Malta"      = "#FECC8F",
+  "Turkey"     = "#E34A33",
+  "Bosnia And Herzegovina" = "#F46D43",
+  "Slovenia"   = "#FEE08B",
+  "Croatia"    = "#FDAE61",  
+  "Serbia"     = "#FEC44F",  
 
-  # Northern/Central Europe
-  "Germany" = "#1F78B4",
-  "United Kingdom" = "#4A90E2",
-  "Ireland" = "#6BAED6",
+  #  Northern & Central Europe (blues)
+  "Denmark"      = "#1F78B4",
+  "Norway"       = "#3182BD",
+  "Sweden"       = "#6BAED6",
+  "Finland"      = "#9ECAE1",
+  "Germany"      = "#08519C",
+  "Netherlands"  = "#2171B5",
+  "Belgium"      = "#4292C6",
+  "Ireland"      = "#6BAED6",
+  "United Kingdom" = "#9ECAE1",
+  "Estonia"      = "#08306B",
+  "Poland"       = "#4A90E2",
+  "Slovakia"     = "#5DA5DA",
+  "Czechia"      = "#7FA9DF",
+  "Austria"      = "#4F81BD",
+  "Hungary"      = "#6C9AC3",
+  "Bulgaria"     = "#3B74A5",
 
-  # East Asia 
-  "Japan" = "#E31A1C",
-  "South Korea" = "#FB6A4A",
-  "China" = "#CB181D",
+  #  East Asia (reds) 
+  "China"       = "#B2182B",
+  "Japan"       = "#D6604D",
+  "South Korea" = "#F4A582",
+  "Taiwan"      = "#67000D",
+  "Hong Kong"   = "#A50F15",
+  "Cambodia"    = "#FB6A4A",
+  "Malaysia"    = "#EF3B2C",
 
-  # North America 
-  "USA" = "#756BB1",
-  "Canada" = "#9E9AC8",
+  #  South Asia (magenta)
+  "India"       = "#D13C8C",
 
-  # Distinct
-  "Australia" = "#FFD92F",   
-  "Greenland" = "#A6CEE3",
+  # Middle East (browns)
+  "Israel"        = "#8C510A",
+  "Saudi Arabia"  = "#BF812D",
+  "Turkey"        = "#E08214",
 
-  "none" = "grey70"
+  #Africa (yellows ) 
+  "Ghana"           = "#FEE391",
+  "Nigeria"         = "#FEC44F",
+  "Cameroon"        = "#FEE0B6",
+  "Tunisia"         = "#FDD49E",
+  "Tanzania"        = "#F6E8C3",
+  "Equatorial Guinea" = "#F2C969",
+  "South Africa"    = "#F4D03F",
+
+  # North America (purples)
+  "United States" = "#756BB1",
+  "USA"           = "#756BB1",   
+  "Canada"        = "#9E9AC8",
+  "Mexico"        = "#BC80BD",
+
+  # South America (greens) 
+  "Brazil"      = "#1B9E77",
+  "Colombia"    = "#66C2A5",
+  "Chile"       = "#41AE76",
+
+  # Oceania 
+  "Australia"    = "#FFD92F",
+  "New Zealand"  = "#E5C100",
+
+  #  Polar 
+  "Greenland"   = "#A6CEE3",
+  "Antarctica"  = "#BFD3E6",
+
+  # Missing / meta categories (greys)-
+  "None"           = "grey70",
+  "Not Applicable" = "grey75",
+  "Not Provided"   = "grey80",
+  "Not Collected"  = "grey85",
+  "Missing"        = "grey60",
+  "Na"             = "grey65",
+  "NA"               = "grey50"
 )
 
+
+continent_palette <-  c(
+  "Europe"      = "#08306B",
+  "Asia"       = "#B2182B",
+  "Africa"         = "orange",
+  "North America"        = "#BC80BD",
+  "South America"      = "#1B9E77",
+  "Oceania"    = "#FFD92F",
+  "Greenland"   = "#A6CEE3",
+  "Antarctica"  = "#BFD3E6",
+  # Missing 
+  "None"           = "grey70",
+  "Not Applicable" = "grey75",
+  "Not Provided"   = "grey80",
+  "Not Collected"  = "grey85",
+  "Missing"        = "grey60",
+  "Na"             = "grey65",
+  "NA"               = "grey50"
+)
 
 ```
 
 ## DATA PREPARATION
-### Load all the data
+### Load all the files
+
+We have the following files per species:
+1) metadata from the GTDB, NCBI and EHI MAGs (some species don't have GTDB MAGs or NCBI MAGs)
+2) Ndb.csv files - ANI matrix from drep 
+3) gene_annotations.tsv.xz - the gene-level annotations - includes contig names but not genome (MAGs) names
+4) contig_to_mag.tsv -  maps contig names from gene_annotations to MAG names
+
+
 ```{r load_species_files}
-## Load all the data 
+## Load all the files 
 load_species_files <- function(species, base_dir = "data/mags_metadata") {
 
   paths <- list(
@@ -131,16 +220,16 @@ load_species_files <- function(species, base_dir = "data/mags_metadata") {
 
 ```
 
-
+Normalize columns between the different metadata files.
 ```{r helpers to standardize columns}
-# Find the most plausible genome size column and rename to genome_size
+# Find the genome size column and rename to genome_size
 detect_and_rename_genome_size <- function(df) {
   if (is.null(df)) return(df)
 
   # If exact already present, nothing to do
   if ("genome_size" %in% names(df)) return(df)
 
-  # Common explicit variants (ordered by preference)
+  # Common explicit variants 
   candidates <- c(
     # EHI 
     "size", "Size", "SIZE",
@@ -203,7 +292,7 @@ harmonize_schema <- function(df) {
   }
 
 
-  #  Define expected schema
+  #  Define expected column names
 
   char_cols <- c(
     "ID","source","species","gtdb_taxonomy","gtdb_representative",
@@ -253,65 +342,8 @@ harmonize_schema <- function(df) {
 }
 
 
-# ---- Prepare gene annotations: add the genome with contig_map ----
-prep_gene_annotations_with_genome <- function(ann_raw, contig_map_raw) {
-  if (is.null(ann_raw)) return(NULL)
-  if (is.null(contig_map_raw)) {
-    stop("contig_map is required to attach 'genome' to gene_annotations.")
-  }
 
-  # --- Standardize contig_map to columns: contig, genome ---
-  cm <- contig_map_raw
-
-  contig_col_candidates <- intersect(names(cm), c("contig", "contig_id", "contig_name", "scaffold"))
-  if (length(contig_col_candidates) == 0) {
-    stop("contig_map must have a contig column (one of: contig, contig_id, contig_name, scaffold).")
-  }
-
-  genome_col_candidates <- intersect(
-    names(cm),
-    c("genome", "genome_filename", "mag", "bin", "genome_id", "assembly")
-  )
-  if (length(genome_col_candidates) == 0) {
-    stop("contig_map must have a genome column (e.g., genome, genome_filename, mag, bin, genome_id, assembly).")
-  }
-
-  cm <- cm %>%
-    dplyr::rename(
-      contig = !!rlang::sym(contig_col_candidates[1]),
-      genome = !!rlang::sym(genome_col_candidates[1])
-    ) %>%
-    dplyr::mutate(
-      contig = as.character(contig),
-      genome = as.character(genome)
-    )
-
-  # --- Ensure annotations have a contig column ---
-  an <- ann_raw
-
-  if (!("contig" %in% names(an))) {
-    # Try to derive from a gene-like column by stripping the last _segment
-    gene_col_candidates <- intersect(names(an), c("gene", "gene_id", "locus_tag", "feature_id"))
-    if (length(gene_col_candidates) == 0) {
-      stop("gene_annotations must have `contig` or a gene-like column (gene/gene_id/locus_tag/feature_id).")
-    }
-
-    an <- an %>%
-      dplyr::rename(.gene_tmp = !!rlang::sym(gene_col_candidates[1])) %>%
-      dplyr::mutate(contig = sub("_[^_]*$", "", .data$.gene_tmp)) %>%
-      dplyr::select(-dplyr::any_of(".gene_tmp"))
-  }
-
-  # --- Join to add genome and filter out missing ---
-  an <- an %>%
-    dplyr::mutate(contig = as.character(contig)) %>%
-    dplyr::left_join(cm, by = "contig") %>%
-    dplyr::filter(!is.na(.data$genome))
-
-  return(an)
-}
-
-
+#change all missing/not provided cells to NAs
 clean_biosample_value <- function(v) {
   if (is.na(v)) return(NA_character_)
   v <- str_trim(v)
@@ -322,6 +354,54 @@ clean_biosample_value <- function(v) {
                    "unspecified","not collected","not determined","not available")) return(NA_character_)
   if (v == "") return(NA_character_)
   v
+}
+
+```
+
+Add genome column to gene annotations.
+```{r prepare gene annotations}
+# ---- Prepare gene annotations: add the genome with contig_map ----
+prep_gene_annotations_with_genome <- function(ann_raw, contig_map_raw) {
+  if (is.null(ann_raw)) return(NULL)
+  if (is.null(contig_map_raw)) {
+    stop("contig_map is required to attach 'genome' to gene_annotations.")
+  }
+
+  ## ---- Standardize contig_map ----
+  cm <- contig_map_raw %>%
+    dplyr::rename(
+      contig = contig_id,
+      genome = mag
+    ) %>%
+    dplyr::mutate(
+      contig = as.character(contig),
+      genome = as.character(genome)
+    )
+
+  ## ---- Derive contig from gene (remove final _<gene_number>) ----
+  if (!("gene" %in% names(ann_raw))) {
+    stop("gene_annotations must contain column `gene`.")
+  }
+
+  an <- ann_raw %>%
+    dplyr::mutate(
+      contig = sub("_[0-9]+$", "", gene)
+    )
+
+  ## ---- Join contig → genome ----
+  an_joined <- an %>%
+    dplyr::left_join(cm, by = "contig")
+
+  ## ---- Hard failure if something goes wrong ----
+  if (all(is.na(an_joined$genome))) {
+    stop(
+      "No contigs matched contig_map.\n",
+      "Derived contig example: ", an_joined$contig[1],
+      "\nExpected contig_map example: ", cm$contig[1]
+    )
+  }
+
+  an_joined
 }
 
 ```
@@ -531,8 +611,8 @@ combine_metadata_sources <- function(ehi_clean,
 
 ### Infer host metadata 
 ```{r infer host species}
+##Try to take species name and standardize to latin binomial if possible
 normalize_species <- function(s) {
-  # Vectorized normalization of binomials
   s <- as.character(s)
   s[is.na(s) | s == ""] <- NA_character_
 
@@ -558,7 +638,8 @@ normalize_species <- function(s) {
   out[] <- vapply(out, reformat, character(1))
   out
 }
-#----------------------------------------------------------------------------------
+
+#########################################################################################
 
 # Accept only true-looking Latin binomials and reject common non-species nouns
 is_latin_binomial_strict <- function(x) {
@@ -587,7 +668,11 @@ is_latin_binomial_strict <- function(x) {
 }
 
 
-#----------------------------------------------------------------
+#########################################################################################
+## Actual inferring of host metadata function
+## Searches for common names and tries to assign host species, class and order
+## (made after checking which host species we have in total)
+
 infer_host_metadata <- function(genome_metadata) {
 
   if (is.null(genome_metadata)) return(NULL)
@@ -845,6 +930,7 @@ infer_host_metadata <- function(genome_metadata) {
   
 
   # --- 1) Unified host text for pattern matching ---
+  # join all columns where the host species could be mentioned for easier search
   genome_metadata <- genome_metadata %>%
     dplyr::mutate(
       host_text = stringr::str_to_lower(
@@ -1012,6 +1098,9 @@ infer_host_metadata <- function(genome_metadata) {
     dplyr::ungroup()
 
   # --- 4) Decide host_species (trust valid binomial, then common-name, then binomial guess) ---
+  
+  # bad terms -> terms that are not species latin binomials
+  
   bad_terms <- "(feces|faeces|stool|urine|blood|saliva|swab|swabs|skin|gut|intestinal|rumen|content|contents|sample|metagenome|environment|environmental|patient|infant|adult|child|rectal|oral|nasal|throat|vaginal|anal)"
 
   genome_metadata <- genome_metadata %>%
@@ -1039,7 +1128,7 @@ infer_host_metadata <- function(genome_metadata) {
     ) %>%
     dplyr::select(-dplyr::any_of(c("tax_host_order","tax_host_class")))
 
-  # --- 6) host_type ---
+  # --- 6) host_type (animal or human) ---
   genome_metadata <- genome_metadata %>%
     dplyr::mutate(
       host_type = dplyr::case_when(
@@ -1048,6 +1137,53 @@ infer_host_metadata <- function(genome_metadata) {
         TRUE ~ NA_character_
       )
     )
+  
+  
+  # --- 7) host_type_2 (human / domestic / wild) ---
+
+  domestic_species <- c(
+  # Pets
+  "Canis lupus familiaris",  # dog
+  "Felis catus",             # cat
+  
+  # Livestock
+  "Bos taurus",              # cattle
+  "Sus scrofa",              # pig
+  "Ovis aries",              # sheep
+  "Capra hircus",            # goat
+  "Equus caballus",          # horse
+  
+  # Poultry
+  "Gallus gallus",           # chicken
+  "Anas platyrhynchos",      # duck
+  
+  # Lab animals
+  "Mus musculus",            # mouse
+  "Rattus norvegicus",       # rat
+  "Oryctolagus cuniculus"    # rabbit
+)
+  
+  genome_metadata <- genome_metadata %>%
+    dplyr::mutate(
+      host_type_2 = dplyr::case_when(
+        host_species == "Homo sapiens" ~ "human",
+        host_species %in% domestic_species ~ "domestic",
+        !is.na(host_species) ~ "wild",
+        TRUE ~ NA_character_
+      )
+    )
+  
+   #  (putting humans and domesticated animals in one group vs wild animals)---
+  genome_metadata <- genome_metadata %>%
+    dplyr::mutate(
+      host_type_3 = dplyr::case_when(
+        host_species == "Homo sapiens" ~ "human_adj",
+        host_species %in% domestic_species ~ "human_adj",
+        !is.na(host_species) ~ "wild",
+        TRUE ~ NA_character_
+      )
+    )
+  
 
   # Cleanup helpers
   genome_metadata <- genome_metadata %>%
@@ -1064,8 +1200,6 @@ infer_host_metadata <- function(genome_metadata) {
 normalize_country_fields <- function(genome_metadata) {
   if (is.null(genome_metadata)) return(NULL)
 
-  # Be explicit about packages used
-  # library(dplyr); library(stringr); library(countrycode)
 
   # 1) Simplify country strings like "Country: region"
   genome_metadata <- genome_metadata %>%
@@ -1073,8 +1207,8 @@ normalize_country_fields <- function(genome_metadata) {
       country_simple = stringr::str_trim(
         stringr::str_split_fixed(dplyr::coalesce(.data$country, ""), ":", 2)[, 1]
       ),
-      country_simple = dplyr::na_if(.data$country_simple, "")
-    )
+      country_simple = dplyr::na_if(.data$country_simple, "")) 
+
 
   # 2) Normalization map for common ENA/NCBI variants (patterns in lower-case)
   country_map <- c(
@@ -1115,7 +1249,7 @@ normalize_country_fields <- function(genome_metadata) {
                     stringr::str_replace_all(y, paste0("^", pat, "$"), repl),
                     y)
       }
-      # Minor tidy-ups
+      #  tidy-up
       y <- ifelse(!is.na(y), stringr::str_replace_all(y, "\\s+", " "), y)
       y <- ifelse(y == "people's republic of china", "China", y)
 
@@ -1144,12 +1278,23 @@ normalize_country_fields <- function(genome_metadata) {
 
 ### Filter species that don't belong and remove duplicate MAGs
 ```{r filtering_deduplication}
+
+#function to clean accessions
+clean_accession <- function(x) {
+  x <- basename(x)
+  x <- sub("\\.(fna|fa|fasta)(\\.gz)?$", "", x, ignore.case = TRUE)
+  x <- sub("^(RS_|GB_)", "", x, perl = TRUE)
+  x
+}
+
+
 # Remove non-species MAGs and deduplicate genomes by quality,
 #  merge GCA/GCF duplicates (keep GCF; merge metadata).
 
 filter_species_MAGs <- function(genome_metadata,
                                 genome_annotations,
                                 mags_to_remove,
+                                ndb,
                                 match_on_version = TRUE) {
   if (is.null(genome_metadata) || is.null(genome_annotations)) {
     stop("Both genome_metadata and genome_annotations must be provided.")
@@ -1246,26 +1391,30 @@ filter_species_MAGs <- function(genome_metadata,
   gm_acc_collapsed <- gm_acc %>%
     group_by(acc_core) %>%
     group_modify(function(df, key) {
+    
+      n <- nrow(df)
+    
       # Prefer GCF if present
       prefer_gcf <- any(df$acc_type == "GCF")
-      pref_rank <- if (prefer_gcf) ifelse(df$acc_type == "GCF", 0L, 1L) else 0L
-
-      # Order rows by (preference, quality)
+      pref_rank <- if (prefer_gcf) ifelse(df$acc_type == "GCF", 0L, 1L) else rep(0L, n)
+    
+      # Force numeric vectors of correct length
+      comp <- if ("completeness" %in% names(df)) as.numeric(df$completeness) else rep(NA_real_, n)
+      cont <- if ("contamination" %in% names(df)) as.numeric(df$contamination) else rep(NA_real_, n)
+      ctgs <- if ("contigs" %in% names(df)) as.numeric(df$contigs) else rep(NA_real_, n)
+    
       ord <- order(
         pref_rank,
-        -ifelse(is.na(df$completeness), -Inf, df$completeness),
-        ifelse(is.na(df$contamination), Inf, df$contamination),
-        ifelse(is.na(df$contigs), Inf, df$contigs),
+        -ifelse(is.na(comp), -Inf, comp),
+         ifelse(is.na(cont),  Inf, cont),
+         ifelse(is.na(ctgs),  Inf, ctgs),
         na.last = TRUE
       )
+    
       dfo <- df[ord, , drop = FALSE]
-
-      # Summarize to one row by taking first non-NA per column
-      # (ID will become the preferred row's ID; metadata merged)
-      out <- dfo %>%
+    
+      dfo %>%
         summarise(across(everything(), first_non_na), .groups = "drop")
-
-      out
     }) %>%
     ungroup()
 
@@ -1314,7 +1463,8 @@ filter_species_MAGs <- function(genome_metadata,
   # ---------------------------
   list(
     metadata    = genome_metadata_dedup,
-    annotations = genome_annotations_filtered
+    annotations = genome_annotations_filtered,
+    ndb         = ndb
   )
 }
 ```
@@ -1328,10 +1478,87 @@ process_one_species <- function(species, mags_to_remove = character(0)) {
   ehi  <- prep_ehi_metadata(files$ehi_metadata)
   gtdb <- prep_gtdb_final(files$gtdb_final)
   ncbi <- prep_ncbi_metadata(files$ncbi_metadata)
+  
 
   meta <- combine_metadata_sources(ehi, gtdb, ncbi) %>%
     infer_host_metadata() %>%
-    normalize_country_fields()   
+    normalize_country_fields() %>%
+    filter(host_class != "Insecta") %>%  #remove invertebrates (in this case we only have insects)
+    filter(!is.na(host_type)) # remove mags that do not have host information!
+
+  if (is.null(files$contig_map) || is.null(files$gene_annotations)) {
+    warning(sprintf(
+      "[%s] Missing %s; returning metadata only.",
+      species,
+      if (is.null(files$contig_map) && is.null(files$gene_annotations)) "contig_map and gene_annotations"
+      else if (is.null(files$contig_map)) "contig_map"
+      else "gene_annotations"
+    ))
+    return(list(metadata = meta, annotations = NULL))
+  }
+
+  
+  
+  # Create cleaned genome IDs in metadata (needed here)
+  meta <- meta %>%
+    dplyr::mutate(
+      ID_clean = clean_accession(ID)
+    )
+
+  
+  ann <- prep_gene_annotations_with_genome(
+    ann_raw        = files$gene_annotations,
+    contig_map_raw = files$contig_map
+  )
+  
+  ann <- ann %>%
+  dplyr::mutate(
+    genome = clean_accession(genome)
+  )
+  
+  
+  #make sure that we only keep mags present in the gene_annotation file (I downloaded metadata from a lot of mags, but not necessarily downloaded all the mags)
+  annotated_genomes <- unique(ann$genome)
+  meta <- meta %>% filter(ID_clean %in% annotated_genomes)
+
+  
+  ndb <- files$ndb
+
+  
+  cleaned <- filter_species_MAGs(
+    genome_metadata    = meta,
+    genome_annotations = ann,
+    ndb                = ndb,
+    mags_to_remove     = mags_to_remove
+  )
+
+  
+    
+  cleaned$annotations <- cleaned$annotations %>%
+  dplyr::filter(genome %in% cleaned$metadata$ID_clean)
+  
+  
+  cleaned
+}
+
+
+
+
+
+
+## for wild vs human ONLY
+process_one_species_2 <- function(species, mags_to_remove = character(0)) {
+  files <- load_species_files(species)
+
+  ehi  <- prep_ehi_metadata(files$ehi_metadata)
+  gtdb <- prep_gtdb_final(files$gtdb_final)
+  ncbi <- prep_ncbi_metadata(files$ncbi_metadata)
+  
+
+  meta <- combine_metadata_sources(ehi, gtdb, ncbi) %>%
+    infer_host_metadata() %>%
+    normalize_country_fields()%>%
+    filter(host_type_2 %in% c("human", "wild")) #keep only mags with human and wild metadata
 
   if (is.null(files$contig_map) || is.null(files$gene_annotations)) {
     warning(sprintf(
@@ -1348,10 +1575,102 @@ process_one_species <- function(species, mags_to_remove = character(0)) {
     ann_raw        = files$gene_annotations,
     contig_map_raw = files$contig_map
   )
+  
+  ndb <- files$ndb
 
   cleaned <- filter_species_MAGs(
     genome_metadata    = meta,
     genome_annotations = ann,
+    ndb                = ndb,
+    mags_to_remove     = mags_to_remove
+  )
+
+  cleaned
+}
+
+
+## for domestic vs human ONLY
+process_one_species_3 <- function(species, mags_to_remove = character(0)) {
+  files <- load_species_files(species)
+
+  ehi  <- prep_ehi_metadata(files$ehi_metadata)
+  gtdb <- prep_gtdb_final(files$gtdb_final)
+  ncbi <- prep_ncbi_metadata(files$ncbi_metadata)
+  
+
+  meta <- combine_metadata_sources(ehi, gtdb, ncbi) %>%
+    infer_host_metadata() %>%
+    normalize_country_fields()%>%
+    filter(host_type_2 %in% c("human", "domestic")) #keep only mags with human and domestic metadata
+
+  if (is.null(files$contig_map) || is.null(files$gene_annotations)) {
+    warning(sprintf(
+      "[%s] Missing %s; returning metadata only.",
+      species,
+      if (is.null(files$contig_map) && is.null(files$gene_annotations)) "contig_map and gene_annotations"
+      else if (is.null(files$contig_map)) "contig_map"
+      else "gene_annotations"
+    ))
+    return(list(metadata = meta, annotations = NULL))
+  }
+
+  ann <- prep_gene_annotations_with_genome(
+    ann_raw        = files$gene_annotations,
+    contig_map_raw = files$contig_map
+  )
+  
+  ndb <- files$ndb
+
+  cleaned <- filter_species_MAGs(
+    genome_metadata    = meta,
+    genome_annotations = ann,
+    ndb                = ndb,
+    mags_to_remove     = mags_to_remove
+  )
+
+  cleaned
+}
+  
+
+
+
+
+## for domestic vs human ONLY
+process_one_species_4 <- function(species, mags_to_remove = character(0)) {
+  files <- load_species_files(species)
+
+  ehi  <- prep_ehi_metadata(files$ehi_metadata)
+  gtdb <- prep_gtdb_final(files$gtdb_final)
+  ncbi <- prep_ncbi_metadata(files$ncbi_metadata)
+  
+
+  meta <- combine_metadata_sources(ehi, gtdb, ncbi) %>%
+    infer_host_metadata() %>%
+    normalize_country_fields()%>%
+    filter(host_type_2 %in% c("wild", "domestic")) #keep only mags with wild and domestic metadata
+
+  if (is.null(files$contig_map) || is.null(files$gene_annotations)) {
+    warning(sprintf(
+      "[%s] Missing %s; returning metadata only.",
+      species,
+      if (is.null(files$contig_map) && is.null(files$gene_annotations)) "contig_map and gene_annotations"
+      else if (is.null(files$contig_map)) "contig_map"
+      else "gene_annotations"
+    ))
+    return(list(metadata = meta, annotations = NULL))
+  }
+
+  ann <- prep_gene_annotations_with_genome(
+    ann_raw        = files$gene_annotations,
+    contig_map_raw = files$contig_map
+  )
+  
+  ndb <- files$ndb
+
+  cleaned <- filter_species_MAGs(
+    genome_metadata    = meta,
+    genome_annotations = ann,
+    ndb                = ndb,
     mags_to_remove     = mags_to_remove
   )
 
@@ -1359,16 +1678,6 @@ process_one_species <- function(species, mags_to_remove = character(0)) {
 }
   
 ```
-
-```{r COME BACK}
-# sp <- "lactococcus_lactis"
-# res <- process_one_species(sp)
-# 
-# genome_metadata <- res$metadata
-# 
-# write_tsv(genome_metadata, "data/mags_metadata/lactococcus_lactis_FINAL_metadata.tsv")
-```
-
 
 
 ## DREP ANALYSIS
@@ -1407,10 +1716,11 @@ dist_matrix <- as.dist(1 - ani_matrix)
 hc <- hclust(dist_matrix, method = "average") #drep uses hierarchical clustering
 tree <- as.phylo(hc)
 
-ggtree(tree) + 
+drep_tree <- ggtree(tree) + 
   geom_tiplab(size = 2) +
   theme_tree2()
   
+print(drep_tree)
 }
   
   
@@ -1419,6 +1729,7 @@ ggtree(tree) +
 
 
 ```{r drep_tree_test, fig.height = 10, fig.width = 12}
+### testing with one species
 ndb <- read_csv("data/mags_metadata/phocaeicola_vulgatus_Ndb.csv") 
 recreate_drep_tree(ndb)
 ```
@@ -1428,8 +1739,15 @@ recreate_drep_tree(ndb)
 ```{r drep_tree_metadata}
 # --- Helpers ------------------------------------------------------------------
 
+
+
 # Strip file extensions so IDs match metadata
 clean_label <- function(x) {
+  if (is.null(x)) return(character(0))
+  # Flatten factors/logicals/numerics to character, also handles tibbles columns
+  x <- as.character(x)
+  # basename requires character; protect against NA
+  x <- ifelse(is.na(x), NA_character_, x)
   x <- basename(x)
   sub("\\.(fna|fa|fasta)(\\.gz)?$", "", x, ignore.case = TRUE)
 }
@@ -1488,8 +1806,8 @@ canonical_key <- function(x) {
   ifelse(!is.na(acc$core), paste0("ACC_CORE_", acc$core), x_clean)
 }
 
-# Build a normalized label with *no* external prefix by default.
-# You can flip `keep_external_prefix = TRUE` if you want to preserve RS_/GB_/... in outputs.
+# Build a normalized label with NO external prefix by default.
+
 build_normalized_label <- function(base_prefix, digits, version, ext_prefix = "", keep_external_prefix = FALSE) {
   core_part <- paste0(base_prefix, "_", digits)
   if (!is.na(version) && version > 0) {
@@ -1506,8 +1824,9 @@ build_normalized_label <- function(base_prefix, digits, version, ext_prefix = ""
 # Priority:
 #   1) Prefer base_prefix == "GCF"
 #   2) Higher version number
-#   3) Longer digits (padding tends to follow RefSeq style); then lexicographic for stability
-# Output: normalized label (no external prefix by default).
+#   3) Longer digits, then lexicographic for stability
+# Output: normalized label (no external prefix by default)
+
 choose_preferred_label <- function(labels, keep_external_prefix = FALSE) {
   labs <- clean_label(labels)
   acc  <- parse_accession(labs)
@@ -1527,12 +1846,12 @@ choose_preferred_label <- function(labels, keep_external_prefix = FALSE) {
     ord <- order(
       !(df$base_prefix == "GCF"),         # GCF first
       -df$version,                        # higher version
-      -nchar(df$digits),                  # longer digits (keeps zero padding if present)
+      -nchar(df$digits),                  # longer digits 
       df$lab                              # stable tie-breaker
     )
     df <- df[ord, , drop = FALSE]
 
-    # Build normalized label for the top candidate; drop external prefix by default
+    # Build normalized label for the top candidate, drop external prefix by default
     return(build_normalized_label(
       base_prefix = df$base_prefix[1],
       digits      = df$digits[1],
@@ -1541,7 +1860,7 @@ choose_preferred_label <- function(labels, keep_external_prefix = FALSE) {
       keep_external_prefix = keep_external_prefix
     ))
   } else {
-    # No accession-like labels; just pick a stable representative
+    # No accession-like labels, just pick a stable representative
     return(sort(unique(labs))[1])
   }
 }
@@ -1564,7 +1883,7 @@ drep_tree_metadata <- function(genome_metadata = genome_metadata,
                                drop_ids = character(0),
                                keep_external_prefix = FALSE) {
   metadata <- genome_metadata
-  id_col   <- "ID"
+  id_col   <- "ID_clean"
 
   # Start from ndb edges
   fastani <- ndb %>%
@@ -1639,7 +1958,7 @@ drep_tree_metadata <- function(genome_metadata = genome_metadata,
   hc <- hclust(as.dist(dist_mat), method = "average")
   tree <- ape::as.phylo(hc)
 
-  # Deduplicate & rewrite metadata IDs with the same map so labels match the tree tips
+  # Deduplicate and rewrite metadata IDs with the same map so labels match the tree tips
   metadata_dedup <- metadata %>%
     dplyr::mutate(!!id_col := rewrite_labels(.data[[id_col]])) %>%
     dplyr::distinct(.data[[id_col]], .keep_all = TRUE)
@@ -1661,7 +1980,7 @@ drep_tree_metadata <- function(genome_metadata = genome_metadata,
 
 ####-----------------------------------------------------------------------------------------
 
-# Helper for ANI axis labels (unchanged)
+# Helper for ANI axis labels 
 ani_axis <- function(p, tree, show_threshold = NULL) {
   df <- ggtree::fortify(tree)
   max_x <- max(df$x[df$isTip])
@@ -1720,23 +2039,92 @@ plot_tree_basic <- function(tree, tip_df, color_by = NULL, label_tips = TRUE,
 ```
 
 
-```{r checking tree}
-sp <- "phocaeicola_vulgatus"
-res <- process_one_species(sp)
+```{r plotting tree basic}
+plot_tree_basic <- function(
+  tree,
+  tip_df,
+  color_by = NULL,
+  label_tips = TRUE,
+  point_size = 2.5,
+  show_threshold = NULL,
+  palette = NULL   # <-- new optional palette
+) {
 
-genome_metadata <- res$metadata
+  # make completeness numeric if needed
+  if ("completeness" %in% names(tip_df)) {
+    tip_df <- tip_df %>% dplyr::mutate(completeness = as.numeric(completeness))
+  }
+
+  p <- ggtree(tree, size = 0.8)
+  p <- p %<+% tip_df
+
+  if (!is.null(color_by) && color_by %in% names(tip_df)) {
+
+    p <- p + geom_tippoint(aes(color = !!rlang::sym(color_by)), size = point_size)
+
+    # ---- scale logic ----
+
+    # 1) numeric : gradient
+    if (is.numeric(tip_df[[color_by]])) {
+
+      p <- p + scale_color_gradient(
+        low = "white",
+        high = "#08306B",
+        name = paste0(color_by, " (%)")
+      )
+
+    # 2) categorical + palette provided
+    } else if (!is.null(palette)) {
+
+      p <- p + scale_color_manual(
+        values = palette,
+        name   = color_by,
+        drop   = FALSE   # keep all levels in legend
+      )
+
+    # 3) default custom palettes from environment
+    } else if (identical(color_by, "source") && exists("source_colors")) {
+
+      p <- p + scale_color_manual(values = source_colors, name = "Source", drop = FALSE)
+
+    } else if (identical(color_by, "host_order") && exists("host_order_colors")) {
+
+      p <- p + scale_color_manual(values = host_order_colors, name = "Host order", drop = FALSE)
+
+    } else if (identical(color_by, "country_normalized") && exists("country_palette")) {
+
+      p <- p + scale_color_manual(values = country_palette, name = "Country", drop = FALSE)
+
+    }
+
+  } else {
+    p <- p + geom_tippoint(size = point_size)
+  }
+
+  # tip labels
+  if (label_tips) {
+    lab_col <- if ("label_clean" %in% names(tip_df)) "label_clean" else "label"
+    p <- p + geom_tiplab(size = 3, hjust = -0.1, aes(label = .data[[lab_col]]))
+  }
+
+  ani_axis(p, tree, show_threshold = show_threshold)
+}
 ```
+
+
+
+
 ```{r testing phocaeicola, fig.height= 14, fig.width = 10}
-phocaeicola_results <- drep_tree_metadata(genome_metadata, ndb, drop_ids = c("GCA_040912025.1", "GCF_048453085.1", "GCA_048453085.1"))
-
-tree <- phocaeicola_results$tree
-tip_df <- phocaeicola_results$tip_df
-ani_matrix <- phocaeicola_results$ani_matrix
-
-
-p_host_order <- plot_tree_basic(tree, tip_df, color_by = "host_order",
-                          label_tips = TRUE, show_threshold = 99.5)
-p_host_order
+# phocaeicola_results <- drep_tree_metadata(genome_metadata, ndb, drop_ids = c("GCA_040912025.1", "GCF_048453085.1", "GCA_048453085.1"))
+# 
+# tree <- phocaeicola_results$tree
+# tip_df <- phocaeicola_results$tip_df
+# ani_matrix <- phocaeicola_results$ani_matrix
+# 
+# 
+# p_host_order <- plot_tree_basic(tree, tip_df, color_by = "host_order",
+#                           label_tips = TRUE, show_threshold = 99.5)
+# p_host_order
 
 ```
 
@@ -1908,23 +2296,23 @@ drep_stat_analysis <- function(tip_df, ani_matrix, host_type_colors, host_order_
 
 
 ```{r testing drep_stat_analysis function}
-res <- drep_stat_analysis(
-  tip_df = tip_df,
-  ani_matrix = ani_matrix,
-  host_type_colors = host_type_colors,
-  host_order_colors = host_order_colors
-)
-
-# Print stats
-res$permanova$adonis
-res$permanova$dispersion
-res$pairwise$wilcox_within$test
-res$pairwise$wilcox_cross_vs_within$test
-
-# Plot
-print(res$pcoa$by_host_type)
-print(res$pcoa$by_host_order)
-print(res$pairwise$boxplot)
+# res <- drep_stat_analysis(
+#   tip_df = tip_df,
+#   ani_matrix = ani_matrix,
+#   host_type_colors = host_type_colors,
+#   host_order_colors = host_order_colors
+# )
+# 
+# # Print stats
+# res$permanova$adonis
+# res$permanova$dispersion
+# res$pairwise$wilcox_within$test
+# res$pairwise$wilcox_cross_vs_within$test
+# 
+# # Plot
+# print(res$pcoa$by_host_type)
+# print(res$pcoa$by_host_order)
+# print(res$pairwise$boxplot)
 
 # Save plots:
 # ggplot2::ggsave("pcoa_host_type.png", res$pcoa$by_host_type, width = 6, height = 5, dpi = 300)
@@ -1932,7 +2320,7 @@ print(res$pairwise$boxplot)
 
 ```
 
-## FUNCTIONAL ANALYSIS: KEGG, AMR, VF, CAZY, DEFENSE, GIFTS
+## FUNCTIONAL ANALYSIS: KEGG, AMR, VF, CAZY
 ### Create annotation matrices
 ```{r make_annotation_matrices}
 #testing with hafnia
@@ -1943,14 +2331,37 @@ hp <- res$metadata
 genome_annotations <- res$annotations
 genome_metadata <- hp
 
-
+# Make annotation matrix - checks if annotation columns are empty and keeps running
 
 make_annotation_matrix <- function(genome_annotations, column) {
-  genome_annotations %>%
-    filter(!is.na(.data[[column]])) %>%
-    count(genome, annotation = .data[[column]]) %>%
+  # Basic validation 
+  if (is.null(genome_annotations) || !is.data.frame(genome_annotations) || nrow(genome_annotations) == 0) {
+    message(sprintf("make_annotation_matrix(): annotations are empty or NULL; returning empty matrix for column '%s'.", column))
+    return(tibble::tibble(genome = character()))
+  }
+
+  if (!column %in% names(genome_annotations)) {
+    message(sprintf("Column '%s' not found in annotations; skipping and returning genome-only matrix.", column))
+    # Try to extract genomes if present; else return empty
+    genomes <- if ("genome" %in% names(genome_annotations)) unique(genome_annotations$genome) else character()
+    return(tibble::tibble(genome = genomes))
+  }
+
+  # Filter to non-NA in the requested column
+  out <- genome_annotations %>%
+    dplyr::filter(!is.na(.data[[column]]))
+
+  if (nrow(out) == 0) {
+    message(sprintf("Column '%s' exists but has no non-NA values; returning genome-only matrix.", column))
+    genomes <- if ("genome" %in% names(genome_annotations)) unique(genome_annotations$genome) else character()
+    return(tibble::tibble(genome = genomes))
+  }
+
+  # Build the wide binary matrix (counts; you can coerce to 0/1 later if needed)
+  out %>%
+    dplyr::count(genome, annotation = .data[[column]]) %>%
     tidyr::pivot_wider(
-      names_from = annotation,
+      names_from  = annotation,
       values_from = n,
       values_fill = 0
     )
@@ -1965,122 +2376,133 @@ vf_mat   <- make_annotation_matrix(genome_annotations, "vf")
 
 ### Run Fisher tests on proportions
 ```{r fisher}
-run_fisher_tests <- function(mat, metadata, annotation_name = "feature") {
+## general fisher function
+## Runs Fisher tests comparing the proportion of MAGs containing a gene (KEGG, AMR, CAZy, VF) between two groups (ie: human vs wild or any other)
+
   # mat: wide matrix with columns: genome, <annotation columns...>
   # metadata: data frame with columns ID, host_type
   # annotation_name: name for the long column (e.g., "kegg", "amr")
 
-  # checks
-  if (!"genome" %in% names(mat)) {
-    stop("Input 'mat' must contain a 'genome' column.")
-  }
-  if (!all(c("ID_clean", "host_type") %in% names(metadata))) {
-    stop("Input 'metadata' must contain columns 'ID_clean' and 'host_type'.")
+run_fisher_tests_general <- function(
+  mat,
+  metadata,
+  group_col = "host_type",   
+  annotation_name = "feature"
+) {
+  # --- Safety checks ---------------------------------------------------------
+  if (is.null(mat) || !is.data.frame(mat) || nrow(mat) == 0) return(tibble::tibble())
+  if (!"genome" %in% names(mat)) return(tibble::tibble())
+  feature_cols <- setdiff(names(mat), "genome")
+  if (length(feature_cols) == 0) return(tibble::tibble())
+
+  if (is.null(metadata) || !is.data.frame(metadata) || nrow(metadata) == 0) return(tibble::tibble())
+  if (!all(c("ID_clean", group_col) %in% names(metadata))) {
+    stop(paste0("metadata must contain ID_clean and ", group_col))
   }
 
-  # Presence/absence conversion (keep genome as-is; non-NA and non-zero -> 1 else 0)
+  # Require exactly two groups (e.g., human_adj vs wild)
+  host_groups <- unique(metadata[[group_col]])
+  if (length(host_groups) != 2) {
+    stop(paste0("'", group_col, "' must contain exactly 2 groups for Fisher testing. Found: ",
+                paste(host_groups, collapse = ", ")))
+  }
+  g1 <- host_groups[1]
+  g2 <- host_groups[2]
+
+  # --- Presence/absence ------------------------------------------------------
   pa <- mat %>%
-    dplyr::mutate(
-      dplyr::across(
-        -genome,
-        ~ as.integer(!is.na(.) & . != 0)
-      )
-    )
+    dplyr::mutate(dplyr::across(-genome, ~ as.integer(!is.na(.) & . != 0)))
 
-  # Wide -> long
   pa_long <- pa %>%
     tidyr::pivot_longer(
       cols = -genome,
-      names_to = annotation_name,   # creates a column with this exact name
+      names_to = annotation_name,
       values_to = "present"
     ) %>%
     dplyr::filter(present == 1L) %>%
-    dplyr::select(genome, dplyr::all_of(annotation_name)) %>%  # keep genome + annotation
-    dplyr::distinct()
+    dplyr::distinct(genome, .data[[annotation_name]])
 
-  # Attach host_type
-  pa_with_host <- pa_long %>%
-    dplyr::left_join(
-      metadata %>% dplyr::select(ID_clean, host_type),
-      by = c("genome" = "ID_clean")
-    )
+  if (nrow(pa_long) == 0) return(tibble::tibble())
 
-  # Count how many MAGs present in each annotation by host_type
-  pa_mag_counts <- pa_with_host %>%
-    dplyr::group_by(host_type, .data[[annotation_name]]) %>%
+  # Attach group column
+  pa_with_group <- pa_long %>%
+    dplyr::left_join(metadata %>% dplyr::select(ID_clean, all_of(group_col)),
+                     by = c("genome" = "ID_clean"))
+
+  if (all(is.na(pa_with_group[[group_col]]))) return(tibble::tibble())
+
+  # Count presence by group
+  pa_counts <- pa_with_group %>%
+    dplyr::group_by(.data[[group_col]], .data[[annotation_name]]) %>%
     dplyr::summarise(n_mags = dplyr::n(), .groups = "drop")
 
-  # Totals per host_type (denominator)
-  total_mags_per_host_type <- metadata %>%
-    dplyr::group_by(host_type) %>%
+  # Totals per group
+  totals <- metadata %>%
+    dplyr::group_by(.data[[group_col]]) %>%
     dplyr::summarise(total_mags = dplyr::n_distinct(ID_clean), .groups = "drop")
 
-  # Proportions + absences
-  pa_mag_proportions <- pa_mag_counts %>%
-    dplyr::left_join(total_mags_per_host_type, by = "host_type") %>%
-    dplyr::mutate(
-      proportion = n_mags / total_mags,
-      absent     = total_mags - n_mags
-    )
+  # Add proportions + absences
+  pa_props <- pa_counts %>%
+    dplyr::left_join(totals, by = group_col) %>%
+    dplyr::mutate(absent = total_mags - n_mags)
 
-  # Build the wide counts matrix (animal vs human)
-  pa_matrix <- pa_mag_proportions %>%
-    dplyr::select(dplyr::all_of(annotation_name), host_type, n_mags, absent) %>%
+  # Spread into contingency table
+  wide <- pa_props %>%
+    dplyr::select(.data[[annotation_name]], all_of(group_col), n_mags, absent) %>%
     tidyr::pivot_wider(
-      names_from  = host_type,
+      names_from  = all_of(group_col),
       values_from = c(n_mags, absent),
       values_fill = 0
     )
 
-  # Sanity check for expected host groups (animal/human)
-  required_cols <- c(
-    annotation_name,
-    "n_mags_animal", "absent_animal",
-    "n_mags_human",  "absent_human"
-  )
-  if (!all(required_cols %in% names(pa_matrix))) {
-    stop(
-      "Expected columns missing in pa_matrix: ",
-      paste(setdiff(required_cols, names(pa_matrix)), collapse = ", "),
-      "\nCheck that metadata$host_type contains 'animal' and 'human' and that both have genomes."
-    )
+  # Expect: n_mags_<g1>, absent_<g1>, n_mags_<g2>, absent_<g2>
+  expected_cols <- c(annotation_name,
+                     paste0("n_mags_", g1), paste0("absent_", g1),
+                     paste0("n_mags_", g2), paste0("absent_", g2))
+  if (!all(expected_cols %in% names(wide))) {
+    missing <- setdiff(expected_cols, names(wide))
+    stop("Missing expected columns: ", paste(missing, collapse=", "))
   }
 
-  # Fisher exact test per row (2x2)
-  results <- pa_matrix %>%
+  # Fisher test
+  results <- wide %>%
     dplyr::rowwise() %>%
     dplyr::mutate(
       ft = list(stats::fisher.test(
         matrix(
-          c(n_mags_animal, absent_animal,
-            n_mags_human,  absent_human),
+          c(.data[[paste0("n_mags_", g1)]],
+            .data[[paste0("absent_", g1)]],
+            .data[[paste0("n_mags_", g2)]],
+            .data[[paste0("absent_", g2)]]),
           nrow = 2, byrow = TRUE
         )
       )),
       p_value    = ft$p.value,
       odds_ratio = unname(ft$estimate),
-      log2_or = log2(odds_ratio),
       conf_low   = ft$conf.int[1],
-      conf_high  = ft$conf.int[2]
+      conf_high  = ft$conf.int[2],
+      log_or     = log(odds_ratio),
+      log2_or    = log2(odds_ratio),
+      se_log_or  = (log(conf_high) - log(conf_low)) / (2 * 1.96),
+      se_log2_or = se_log_or / log(2)
     ) %>%
     dplyr::ungroup() %>%
     dplyr::select(-ft) %>%
     dplyr::mutate(
-      p_adj       = stats::p.adjust(p_value, method = "BH"),
-      prop_animal = n_mags_animal / (n_mags_animal + absent_animal),
-      prop_human  = n_mags_human  / (n_mags_human  + absent_human),
-      diff_prop   = prop_human - prop_animal
+      p_adj       = p.adjust(p_value, method = "BH"),
+      prop_g1     = .data[[paste0("n_mags_", g1)]] /
+                    (.data[[paste0("n_mags_", g1)]] + .data[[paste0("absent_", g1)]]),
+      prop_g2     = .data[[paste0("n_mags_", g2)]] /
+                    (.data[[paste0("n_mags_", g2)]] + .data[[paste0("absent_", g2)]]),
+      diff_prop   = prop_g2 - prop_g1
     )
 
   return(results)
 }
+
 ```
 
 
-```{r testing running fisher tests}
-kegg_fisher <- run_fisher_tests(kegg_mat, genome_metadata, annotation_name="kegg")
-amr_fisher <- run_fisher_tests(amr_mat, genome_metadata, annotation_name="amr")
-```
 
 ### Volcano plot
 ```{r plotting volcano plot}
@@ -2099,13 +2521,18 @@ plot_volcano <- function(df, feature_col) {
       data = . %>% filter(sig) %>% slice_max(nl10, n = 10),
       aes(label = .data[[feature_col]])
     ) +
+    labs(
+      title = paste("Volcano plot -", feature_col) ,
+      x = "log2(Odds Ratio)",
+      y = "-log10(adj. p-value)"
+    ) +
     theme_minimal()
+
 }
 
-plot_volcano(kegg_fisher, "kegg")
-plot_volcano(amr_fisher, "amr")
 
 ```
+
 ```{r pca_test}
 
 run_pca <- function(mat) {
@@ -2121,48 +2548,72 @@ pca_amr  <- run_pca(amr_mat)
 
 ```
 
-### PERMANOVA on presence/absence matrix´
-To check if the groups (animal vs human-sourced MAGs) have differences overall.
+### PERMANOVA on presence/absence matrix
+To check if the groups (ie: wild animal vs human-sourced MAGs) have differences in overall presence/absence composition.
 
 ```{r permanova functional matrix}
-pa_permanova <- function(mat, metadata) {
+pa_permanova <- function(mat, metadata, host_levels = NULL) {
+  
+  #mat - which functional matrix we want to test (ie:KEGG, VF...)
+  #metadata- the genome metadata
+  #host_levels- which host_type_2 we are comparing (ie: wild, human)
+  
   mat <- mat %>%
   column_to_rownames("genome")
 
+  #convert count matrx to presence/absence
   pa <- (mat > 0) * 1
 
   
   # remove zero-variance KOs
   pa_nz <- pa[, colSums(pa) > 0 & colSums(pa) < nrow(pa)]
   
-  # Determine the common genomes
-  common_ids <- base::intersect(rownames(pa_nz), metadata$ID)
+  
+  # restrict to selected hosts
+  if (!is.null(host_levels)) {
+      metadata <- metadata %>%
+        dplyr::filter(host_type_2 %in% host_levels) %>%
+        dplyr::mutate(host_type_2 = droplevels(factor(host_type_2)))
+    }
+  
+    
+  # determine the common genomes
+  common_ids <- base::intersect(rownames(pa_nz), metadata$ID_clean)
   
   # Report what will be kept/dropped
   message("# common: ", length(common_ids))
-  message("# in KEGG only: ", length(setdiff(rownames(pa_nz), metadata$ID)))
-  message("# in metadata only: ", length(setdiff(metadata$ID, rownames(pa_nz))))
+  message("# in KEGG only: ", length(setdiff(rownames(pa_nz), metadata$ID_clean)))
+  message("# in metadata only: ", length(setdiff(metadata$ID_clean, rownames(pa_nz))))
+  
+  
+  
+  if (length(common_ids) < 3) {
+    message("Too few genomes after filtering")
+    return(NULL)
+  }
+
   
   # Subset to the intersection (and keep order identical)
   pa_nz <- pa_nz[common_ids, , drop = FALSE]
   
   meta <- metadata %>%
-    dplyr::filter(ID %in% common_ids) %>%
-    dplyr::distinct(ID, .keep_all = TRUE) %>%
-    tibble::column_to_rownames("ID") %>%
+    dplyr::filter(ID_clean %in% common_ids) %>%
+    dplyr::distinct(ID_clean, .keep_all = TRUE) %>%
+    tibble::column_to_rownames("ID_clean") %>%
     .[common_ids, , drop = FALSE]
   
   stopifnot(identical(rownames(meta), rownames(pa_nz)))
   
   # Prepare variables for PERMANOVA
-  required_vars <- c("genome_size", "completeness", "host_type")
+  required_vars <- c("genome_size", "completeness", "host_type_2")
   
-  # Coerce types as needed
+  # Coerce types
   meta <- meta %>%
     dplyr::mutate(
       genome_size  = as.numeric(genome_size),
       completeness = as.numeric(completeness),
-      host_type    = as.factor(host_type)
+      host_type_2    = as.factor(host_type_2) 
+      #country_normalized = as.factor(country_normalized)
     )
   
   # Align on complete cases (adonis2 drops NAs otherwise)
@@ -2179,39 +2630,472 @@ pa_permanova <- function(mat, metadata) {
   meta  <- meta[!empty, , drop = FALSE]
 }
   message("Remaining genomes: ", nrow(pa_nz))
-  # Distance, dispersion, PERMANOVA
+  
+  
+  #####-----------------------------------------------------------
+  ### Distance, dispersion, PERMANOVA
+  
+  ## Distance
   dist_pa <- suppressWarnings(
   suppressMessages(
     vegan::vegdist(pa_nz, method = "jaccard", binary = TRUE)
   )
 )
 
+  ## Beta-dispersion
+  
   betadisp_results <- suppressWarnings(
     suppressMessages(
-      vegan::betadisper(dist_pa, meta$host_type)
+      vegan::betadisper(dist_pa, meta$host_type_2)
     )
   )
 
+  ## Tidy so it prints nice :)
+  tidy_betadisper <- function(bd) {
+  # ANOVA table
+  an <- as.data.frame(anova(bd))
+  an$term <- rownames(an)
+  rownames(an) <- NULL
   
+  # Group mean dispersions
+  means <- data.frame(
+    group = names(bd$group),
+    mean_distance = bd$means
+  )
   
+  list(
+    anova_table = an,
+    group_means = means
+  )
+}
+## PERMANOVA 
+###controlling for genome size and completeness, then seeing how much variance is explained by host type
  permanova_results <- vegan::adonis2(
-    dist_pa ~ genome_size + completeness + host_type,
+    dist_pa ~ genome_size + completeness + host_type_2  ,
     data = meta,
     permutations = 999,
     by = "margin"
   )
  
+ tidy_permanova <- function(ad) {
+  df <- as.data.frame(ad)
+  df$term <- rownames(df)
+  rownames(df) <- NULL
+  df
+}
+ 
+ 
+ ## return-----------------------------------
  results <- list(
-    dist           = dist_pa,
-    betadisper     = betadisp_results,
-    permanova      = permanova_results,
-    pa_nz = pa_nz)
+  dist           = dist_pa,
+  betadisper_raw = betadisp_results,
+  betadisper     = tidy_betadisper(betadisp_results),
+  permanova_raw  = permanova_results,
+  permanova      = tidy_permanova(permanova_results),
+  pa_nz          = pa_nz
+)
  
   return(results)
 }
 
-results <-pa_permanova(kegg_mat, genome_metadata)
+results <-pa_permanova(kegg_mat, genome_metadata, host_levels=c("human", "wild"))
 results$permanova
+
+```
+
+## GIFTs
+
+### Plotting GIFTs
+```{r gift pcoa plots}
+gift_pcoa_plots <- function(genome_gifts, genome_metadata) {
+  # Convert the GIFTs into a matrix of functional elements per genome (row)
+  gift_pcoa <- genome_gifts %>%
+    to.elements(., GIFT_db) %>%
+    as.data.frame() %>%
+    vegdist(method="euclidean") %>%
+    pcoa() #principal component analysis
+    
+    #Extract eigenvalues (variance explained by first 10 axes)
+    gift_pcoa_rel_eigen <- gift_pcoa$values$Relative_eig[1:10]
+    
+    
+    # Get genome positions
+    gift_pcoa_vectors <- gift_pcoa$vectors %>% #extract vectors
+      as.data.frame() %>% 
+     dplyr::select(Axis.1,Axis.2) # keep the first 2 axes
+    
+    
+    gift_pcoa_eigenvalues <- gift_pcoa$values$Eigenvalues[c(1,2)]
+    
+    
+    #For the black arrows: Functional group loadings
+    # covariance between each functional trait and pcoa axis scores
+    #scale with the eigenvectors
+    gift_pcoa_gifts <- cov(genome_gifts, scale(gift_pcoa_vectors)) %*%
+      diag((gift_pcoa_eigenvalues/(nrow(genome_gifts)-1))^(-0.5)) %>%
+      as.data.frame() %>% 
+      dplyr::rename(Axis.1=1,Axis.2=2) %>% 
+      rownames_to_column(var="label") %>% 
+      #get function summary vectors
+      mutate(func=substr(label,1,3)) %>% 
+      group_by(func) %>% #grouping by function
+      summarise(Axis.1=mean(Axis.1),
+                Axis.2=mean(Axis.2)) %>% 
+      dplyr::rename(label=func) %>% 
+      filter(!label %in% c("S01","S02","S03"))
+      
+  
+    set.seed(101)
+scale <- 20 # scale for vector loadings (to make arrows visible)
+arrows_plot <- gift_pcoa_vectors %>% 
+  rownames_to_column(var="ID") %>% 
+  left_join(genome_metadata, by="ID") %>%
+  ggplot() +
+      #genome positions
+      scale_color_manual(values=host_type_colors)+
+      geom_point(aes(x=Axis.1,y=Axis.2, color = host_type), 
+                 alpha=0.9, shape=16) +
+      scale_size_continuous(range = c(0.1,5)) +
+      #loading positions
+      geom_segment(data=gift_pcoa_gifts, 
+                   aes(x=0, y=0, xend=Axis.1 * scale, yend=Axis.2 * scale),
+                    arrow = arrow(length = unit(0.3, "cm"), 
+                    type = "open", 
+                    angle = 25),
+                    linewidth = 0.5, 
+                    color = "black") +
+     #Primary and secondary scale adjustments
+     scale_x_continuous(name = paste0("PCoA1 (",round(gift_pcoa_rel_eigen[1]*100, digits = 2), " %)"),
+                      sec.axis = sec_axis(~ . / scale, name = "Loadings on PCoA1")
+            ) +
+     scale_y_continuous(name = paste0("PCoA2 (",round(gift_pcoa_rel_eigen[2]*100, digits = 2), " %)"),
+                      sec.axis = sec_axis(~ . / scale, name = "Loadings on PCoA2")
+            ) +
+    geom_label_repel(data = gift_pcoa_gifts,
+                     aes(label = label, x = Axis.1 * scale, y = Axis.2 * scale),
+                     segment.color = 'transparent') +
+    xlim(-0.8,1) + 
+    ylim(-1,1.5) +
+    theme_minimal() + 
+  
+  labs(
+    x = paste0("PCoA1 (", round(gift_pcoa_rel_eigen[1]*100, 2), " %)"),
+    y = paste0("PCoA2 (", round(gift_pcoa_rel_eigen[2]*100, 2), " %)"))
+  
+  centroids <- gift_pcoa_vectors %>%
+  rownames_to_column(var = "ID") %>%
+  left_join(genome_metadata, by = "ID") %>%
+  group_by(host_type) %>%
+  summarise(
+    Axis.1 = mean(Axis.1, na.rm = TRUE),
+    Axis.2 = mean(Axis.2, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+big_plot <- gift_pcoa_vectors %>% 
+  rownames_to_column(var = "ID") %>% 
+  left_join(genome_metadata, by = "ID") %>%
+  ggplot(aes(x = Axis.1, y = Axis.2, color = host_type)) +
+  geom_point(size = 3, alpha = 0.9) +
+  scale_color_manual(values = host_type_colors) +
+
+  labs(
+    x = paste0("PCoA1 (", round(gift_pcoa_rel_eigen[1] * 100, 2), " %)"),
+    y = paste0("PCoA2 (", round(gift_pcoa_rel_eigen[2] * 100, 2), " %)")
+  ) +
+
+  coord_cartesian(xlim = c(-0.6, 1), ylim = c(-1, 1)) +
+
+  theme_minimal(base_size = 16) +
+  theme(
+    axis.title = element_text(size = 14, face = "bold"),
+    axis.text  = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text  = element_text(size = 14),
+    panel.grid.minor = element_blank()
+  )
+
+big_order_plot <- gift_pcoa_vectors %>% 
+  rownames_to_column(var = "ID") %>% 
+  left_join(genome_metadata, by = "ID") %>%
+  ggplot(aes(x = Axis.1, y = Axis.2, color = host_order)) +
+  geom_point(size = 3, alpha = 0.9) +
+  scale_color_manual(values = host_order_colors) +
+
+  labs(
+    x = paste0("PCoA1 (", round(gift_pcoa_rel_eigen[1] * 100, 2), " %)"),
+    y = paste0("PCoA2 (", round(gift_pcoa_rel_eigen[2] * 100, 2), " %)")
+  ) +
+
+  coord_cartesian(xlim = c(-0.6, 1), ylim = c(-1, 1)) +
+
+  theme_minimal(base_size = 16) +
+  theme(
+    axis.title = element_text(size = 14, face = "bold"),
+    axis.text  = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text  = element_text(size = 14),
+    panel.grid.minor = element_blank()
+  )
+
+results <- list(
+    arrows_plot     = arrows_plot,
+    big_plot        = big_plot,
+    big_order_plot  = big_order_plot,
+    gift_pcoa_vectors = gift_pcoa_vectors)
+ 
+  return(results)
+}
+```
+
+
+```{r gift plots}
+plot_gifts <- function(GIFTs_elements, metadata_with_cluster) { 
+cluster <- GIFTs_elements %>%
+    as.data.frame() %>%
+    rownames_to_column(var="MAG")%>%
+    pivot_longer(!MAG,names_to="trait",values_to="gift") %>%
+    left_join(metadata_with_cluster, by = join_by(MAG == ID_clean)) %>%
+    mutate(functionid = substr(trait, 1, 3)) %>%
+    mutate(trait = case_when(
+      trait %in% GIFT_db$Code_element ~ GIFT_db$Element[match(trait, GIFT_db$Code_element)],
+      TRUE ~ trait
+    )) %>%
+    mutate(functionid = case_when(
+      functionid %in% GIFT_db$Code_function ~ GIFT_db$Function[match(functionid, GIFT_db$Code_function)],
+      TRUE ~ functionid
+    )) %>%
+    mutate(trait=factor(trait,levels=unique(GIFT_db$Element))) %>%
+    mutate(functionid=factor(functionid,levels=unique(GIFT_db$Function))) %>%
+    ggplot(aes(x=MAG,y=trait,fill=gift)) +
+        geom_tile(colour="white", linewidth=0.2)+
+        scale_fill_gradientn(colours=rev(c("#d53e4f", "#f46d43", "#fdae61", "#fee08b", "#e6f598", "#abdda4", "#ddf1da")))+
+        facet_grid(functionid ~ cluster, scales="free",space="free") +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size=6),
+              strip.text.y = element_text(angle = 0)
+              ) +
+        labs(y="Traits",x="Samples",fill="GIFT")
+  
+  
+  
+  host_type <- GIFTs_elements %>%
+    as.data.frame() %>%
+    rownames_to_column(var="MAG")%>%
+    pivot_longer(!MAG,names_to="trait",values_to="gift") %>%
+    left_join(metadata_with_cluster, by = join_by(MAG == ID_clean)) %>%
+    mutate(functionid = substr(trait, 1, 3)) %>%
+    mutate(trait = case_when(
+      trait %in% GIFT_db$Code_element ~ GIFT_db$Element[match(trait, GIFT_db$Code_element)],
+      TRUE ~ trait
+    )) %>%
+    mutate(functionid = case_when(
+      functionid %in% GIFT_db$Code_function ~ GIFT_db$Function[match(functionid, GIFT_db$Code_function)],
+      TRUE ~ functionid
+    )) %>%
+    mutate(trait=factor(trait,levels=unique(GIFT_db$Element))) %>%
+    mutate(functionid=factor(functionid,levels=unique(GIFT_db$Function))) %>%
+    ggplot(aes(x=MAG,y=trait,fill=gift)) +
+        geom_tile(colour="white", linewidth=0.2)+
+        scale_fill_gradientn(colours=rev(c("#d53e4f", "#f46d43", "#fdae61", "#fee08b", "#e6f598", "#abdda4", "#ddf1da")))+
+        facet_grid(functionid ~ host_type, scales="free",space="free") +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size=6),
+              strip.text.y = element_text(angle = 0)
+              ) +
+        labs(y="Traits",x="Samples",fill="GIFT")
+
+  antibiotic <-
+    GIFTs_elements %>%
+  melt() %>%
+  dplyr::rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
+  inner_join(GIFT_db, by = "Code_element") %>%
+  filter(str_starts(Code_element, "D09")) %>%
+  left_join(metadata_with_cluster, by = join_by(Genome == ID)) %>%
+  mutate(cluster = factor(cluster)) %>%
+  droplevels() %>%
+  arrange(cluster, Genome) %>%
+  mutate(trait = Element) %>%
+  # Ensure trait is a factor to maintain order
+  mutate(trait = factor(trait, levels = rev(unique(GIFT_db$Element)))) %>%
+  ggplot( aes(x = Genome, y = trait)) +
+  # Heatmap
+  geom_tile(aes(fill = GIFT), color = "white") +
+  scale_fill_gradientn(colours = brewer.pal(7, "YlGnBu"), name = "GIFT Score") +
+  
+  # Start a new fill scale for the host_type bar
+  new_scale_fill() +
+  
+  # Add the host_type bar at the very top or bottom
+  geom_tile(aes(y = -0.5, fill = host_type), height = 0.5) +
+  scale_fill_manual(values = host_type_colors) +
+  
+  facet_grid(~ cluster, scales = "free_x", space = "free_x") +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  
+  results <- list(
+    host_type   = host_type,
+    cluster     = cluster,
+    antibiotic  = antibiotic)
+ 
+  return(results)
+  
+}
+```
+
+### Differences in GIFTs
+```{r checking_diff_GIFTs}
+#### Differences between clusters formed in PCoA
+
+gift_stats <- function(GIFTs_elements,
+                       metadata_with_cluster,
+                       GIFT_db,
+                       host_type_colors,
+                       host_class_colors) {
+
+  suppressWarnings({
+    
+    
+    # PREPARE DATA –––––––––––––––––––––––––––––––
+  
+    gift_cols <- setdiff(colnames(GIFTs_elements),
+                         c("genome", "cluster", "host_type"))
+    
+    gift_df <- GIFTs_elements %>%
+      as.data.frame() %>%
+      tibble::rownames_to_column("ID_clean") %>%
+      left_join(
+        metadata_with_cluster %>% distinct(ID_clean, .keep_all = TRUE),
+        by = "ID_clean"
+      )
+    
+    
+   
+    # KRUSKAL-WALLIS (CLUSTERS) ––––––––––––––––––––––––––––––––
+    
+    kw_p <- sapply(gift_cols, function(g) {
+      kruskal.test(gift_df[[g]] ~ gift_df$cluster)$p.value
+    })
+    
+    kruskal_table <- tibble(
+      GIFT = gift_cols,
+      p_value = kw_p,
+      p_adj = p.adjust(kw_p, "BH")
+    )
+    
+    
+   
+    # PAIRWISE WILCOXON (CLUSTERS) –––––––––––––––––––––––––––––––
+
+    pairwise_sig_table <- map_df(gift_cols, function(g) {
+      pw <- pairwise.wilcox.test(gift_df[[g]],
+                                 gift_df$cluster,
+                                 p.adjust.method = "BH",
+                                 exact = FALSE)$p.value
+      
+      as.data.frame(as.table(pw)) %>%
+        filter(!is.na(Freq), Freq < 0.05) %>%
+        rename(group1 = Var1, group2 = Var2, p_adj = Freq) %>%
+        mutate(GIFT = g)
+    })
+    
+    
+
+    # CLUSTER DIFFERENCE PLOT ––––––––––––––––––––––––––––––––
+    
+    cluster_diff_plot <- NULL
+    
+    if (nrow(pairwise_sig_table) > 0) {
+      cluster_diff_plot <- GIFTs_elements %>%
+        melt() %>%
+        rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
+        inner_join(GIFT_db, by = "Code_element") %>%
+        filter(Code_element %in% pairwise_sig_table$GIFT) %>%
+        distinct(Genome, Code_element, .keep_all = TRUE) %>%
+        left_join(metadata_with_cluster, by = join_by(Genome == ID_clean)) %>%
+        ggplot(aes(x = Genome, y = Element, fill = GIFT)) +
+        geom_tile(color = "white", linewidth = 0.2) +
+        scale_fill_gradientn(limits = c(0, 1),
+          colours = RColorBrewer::brewer.pal(7, "YlGnBu")
+        ) +
+        new_scale_fill() +
+        geom_tile(aes(y = -0.5, fill = host_type), height = 0.3) +
+        scale_fill_manual(values = host_type_colors) +
+        facet_grid(~ cluster, scales = "free_x", space = "free_x") +
+        theme(axis.text.x =
+                element_text(angle = 45, hjust = 1, size = 4)) +
+        labs(y = "Trait", x = "Genome", fill = "GIFT")
+    }
+    
+    
+    
+    # HOST-TYPE WILCOXON  ––––––––––––––––––––––––––––––––
+    
+    w_p <- sapply(gift_cols, function(g) {
+      wilcox.test(gift_df[[g]] ~ gift_df$host_type,
+                  exact = FALSE)$p.value
+    })
+    
+    w_adj <- p.adjust(w_p, "BH")
+    
+    # Effect size (median difference)
+    effect_size <- sapply(gift_cols, function(g) {
+      median(gift_df[[g]][gift_df$host_type == "human"]) -
+        median(gift_df[[g]][gift_df$host_type == "animal"])
+    })
+    
+    wilcox_res_host_type <- tibble(
+      GIFT = gift_cols,
+      p_value = w_p,
+      p_adj = w_adj,
+      effect = effect_size
+    ) %>%
+      filter(p_adj < 0.05)
+    
+    
+    
+    # HOST TYPE DIFFERENCE PLOT --------------------
+    
+    host_type_diff_plot <- NULL
+    
+    if (nrow(wilcox_res_host_type) > 0) {
+      host_type_diff_plot <- GIFTs_elements %>%
+        melt() %>%
+        rename(Genome = Var1, Code_element = Var2, GIFT = value) %>%
+        inner_join(GIFT_db, by = "Code_element") %>%
+        filter(Code_element %in% wilcox_res_host_type$GIFT) %>%
+        distinct(Genome, Code_element, .keep_all = TRUE) %>%
+        left_join(metadata_with_cluster, by = join_by(Genome == ID_clean)) %>%
+        ggplot(aes(x = Genome, y = Element, fill = GIFT)) +
+        geom_tile(color = "white", linewidth = 0.2) +
+        scale_fill_gradientn(limits = c(0, 1),
+          colours = RColorBrewer::brewer.pal(7, "YlGnBu")
+        ) +
+        new_scale_fill() +
+        geom_tile(aes(y = -0.5, fill = host_class), height = 0.3) +
+        scale_fill_manual(values = host_class_colors) +
+        facet_grid(~ host_type, scales = "free_x", space = "free_x") +
+        theme(axis.text.x = element_blank()) +
+        labs(y = "Trait", x = "Genome", fill = "GIFT")
+    }
+    
+    
+    #–––––––––––––––––––––––––––––––––
+    # RETURN ALL RESULTS
+  
+    list(
+      # cluster analysis
+      kruskal_table = kruskal_table,
+      pairwise_sig_table = pairwise_sig_table,
+      cluster_diff_plot = cluster_diff_plot,
+      
+      # host-type analysis
+      wilcox_res_host_type = wilcox_res_host_type,
+      host_type_diff_plot = host_type_diff_plot
+    )
+  })
+}
 
 ```
 

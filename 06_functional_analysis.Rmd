@@ -1,0 +1,4313 @@
+# Functional analysis
+
+```{r load data funct}
+load("data/intermediate_analysis/data.Rdata")
+
+
+analysis_results <- readRDS("data/intermediate_analysis/functional_analysis_results.rds")
+
+permanova_all      <- analysis_results$permanova
+betadisper_all     <- analysis_results$betadisper
+kegg_fisher_total  <- analysis_results$fisher$kegg
+amr_fisher_total   <- analysis_results$fisher$amr
+vf_fisher_total    <- analysis_results$fisher$vf
+cazy_fisher_total  <- analysis_results$fisher$cazy
+
+
+
+functional_results <- readRDS( "data/intermediate_analysis/fisher_results.rds")
+
+
+
+kegg_annot_df <- functional_results$kegg
+amr_df        <- functional_results$amr
+vf_df_annot   <- functional_results$vf
+cazy_annot    <- functional_results$cazy
+```
+
+
+
+```{r total_genome_annotations}
+total_genome_annotations <- purrr::map_df(
+  names(species_data),
+  ~ species_data[[.x]]$annotations %>%
+      dplyr::select(-start, -end) %>%   # remove problematic columns
+      dplyr::mutate(bacterial_species = .x)
+)
+```
+
+```{r vf_data}
+vf_data <- total_genome_annotations %>% dplyr::select(vf, vf_type) %>% unique()
+```
+
+
+
+
+```{r testing kegg count between hosts}
+#count KEGG annotations per MAG within each species
+kegg_counts_meta <- total_genome_annotations %>%
+  dplyr::filter(!is.na(kegg))%>%
+  dplyr::left_join(
+    total_genome_metadata %>%
+      dplyr::select(ID, host_type),         
+    join_by(genome == ID)
+  ) %>%
+  dplyr::group_by(bacterial_species, genome, host_type)%>%
+  dplyr::summarise(n_kegg = dplyr::n(), .groups = "drop") %>%
+  filter(!is.na(host_type))
+
+# Run test per species
+kegg_host_tests <- kegg_counts_meta %>%
+  split(.$bacterial_species) %>%
+  map_df(function(df) {
+    if (length(unique(df$host_type)) < 2) {
+      return(tibble(
+        bacterial_species = unique(df$bacterial_species),
+        p_value = NA,
+        test = "Not enough groups"
+      ))
+    }
+    wt <- wilcox.test(n_kegg ~ host_type, data = df)
+
+    tibble(
+      species = unique(df$bacterial_species),
+      p_value = wt$p.value,
+      median_human  = median(df$n_kegg[df$host_type == "human"]),
+      median_animal = median(df$n_kegg[df$host_type == "animal"]),
+      test = "Wilcoxon rank-sum"
+    )
+  })
+
+
+kegg_host_tests
+
+```
+
+
+```{r kegg_hosts_p }
+kegg_host_tests %>% filter(p_value < 0.05)
+```
+
+
+
+
+### PERMANOVA
+```{r functional analysis permanova pcoa}
+## ============================================================
+## Host contrasts (pairwise PERMANOVA)
+## ============================================================
+
+host_contrasts <- list(
+  human_vs_wild     = c("human", "wild"),
+  wild_vs_domestic  = c("domestic", "wild"),
+  human_vs_domestic = c("human", "domestic")
+)
+
+## ===========================================================
+## Helpers to tidy PERMANOVA / betadisper
+## ===========================================================
+
+.extract_permanova_rows <- function(permanova_obj, species, matrix_name) {
+  if (is.null(permanova_obj)) return(tibble::tibble())
+  df <- as.data.frame(permanova_obj)
+  df$term <- rownames(df)
+  rownames(df) <- NULL
+  df$species <- species
+  df$matrix_name <- matrix_name
+  tibble::as_tibble(df)
+}
+
+.extract_betadisper_rows <- function(betadisper_obj, species, matrix_name) {
+  if (is.null(betadisper_obj)) return(tibble::tibble())
+
+  an <- as.data.frame(anova(betadisper_obj))
+  an$term <- rownames(an)
+  rownames(an) <- NULL
+
+  an$species     <- species
+  an$matrix_name <- matrix_name
+  an$type        <- "anova"
+
+  tibble::as_tibble(an)
+}
+
+## ============================================================
+## Accumulators
+## ============================================================
+
+permanova_rows  <- list()
+betadisper_rows <- list()
+
+## ============================================================
+## MAIN LOOP
+## ============================================================
+
+for (sp in species_list) {
+
+  message("Processing species: ", sp)
+
+  genome_annotations <- species_data[[sp]]$annotations
+  genome_metadata    <- species_data[[sp]]$metadata
+
+  ## ------------------------------------------------------------
+  ## Build functional matrices
+  ## ------------------------------------------------------------
+
+  mats <- list(
+    KEGG = make_annotation_matrix(genome_annotations, "kegg"),
+    AMR  = make_annotation_matrix(genome_annotations, "resistance_target"),
+    VF   = make_annotation_matrix(genome_annotations, "vf"),
+    CAZY = make_annotation_matrix(genome_annotations, "cazy")
+  )
+
+  ## ============================================================
+  ## PERMANOVA: pairwise host contrasts
+  ## ============================================================
+
+  for (contrast_name in names(host_contrasts)) {
+
+    host_levels <- host_contrasts[[contrast_name]]
+
+    for (nm in names(mats)) {
+
+      obj <- tryCatch(
+        pa_permanova(
+          mats[[nm]],
+          genome_metadata,
+          host_levels = host_levels
+        ),
+        error = function(e) {
+          message("[", sp, " | ", nm, " | ", contrast_name, "] failed: ", e$message)
+          NULL
+        }
+      )
+
+      if (is.null(obj)) next
+
+      ## ---- PERMANOVA ------------------------------------------
+      pr <- .extract_permanova_rows(obj$permanova, sp, nm)
+      if (nrow(pr) > 0) {
+        pr$contrast <- contrast_name
+        permanova_rows[[length(permanova_rows) + 1]] <- pr
+      }
+
+      ## ---- Betadisper -----------------------------------------
+      br <- .extract_betadisper_rows(obj$betadisper_raw, sp, nm)
+      if (nrow(br) > 0) {
+        br$contrast <- contrast_name
+        betadisper_rows[[length(betadisper_rows) + 1]] <- br
+      }
+    }
+  }
+
+ 
+}
+
+## ============================================================
+## Bind results
+## ============================================================
+
+permanova_all  <- dplyr::bind_rows(permanova_rows)
+betadisper_all <- dplyr::bind_rows(betadisper_rows)
+
+## Quick check
+print(permanova_all, n = 20)
+print(betadisper_all, n = 20)
+
+
+```
+
+```{r pcoas, eval = FALSE}
+ ## ========================================
+  ## PCoA: One PCoA per matrix (all hosts)
+  ## =======================================
+
+  for (nm in names(mats)) {
+
+    obj_all <- tryCatch(
+      pa_permanova(
+        mats[[nm]],
+        genome_metadata,
+        host_levels = NULL   # <- ALL hosts
+      ),
+      error = function(e) NULL
+    )
+
+    if (is.null(obj_all)) next
+
+    dist <- obj_all$dist
+    meta <- obj_all$metadata
+
+    ## ---- PCoA ------------------------------------------------
+    pcoa_res <- ape::pcoa(dist, correction = "cailliez")
+
+    # Number of available axes
+    n_axes <- ncol(pcoa_res$vectors)
+    
+    message("[", sp, " | ", nm, "] PCoA axes available: ", n_axes)
+    
+    if (n_axes < 2) {
+      message("[", sp, " | ", nm, "] Only one PCoA axis; skipping ordination plot")
+      next
+    }
+    
+    # If we are here, PC1 and PC2 DEFINITELY exist
+    var_exp <- round(100 * pcoa_res$values$Rel_corr_eig[1:2], 1)
+    
+    pcoa_df <- data.frame(
+      PC1 = pcoa_res$vectors[, 1],
+      PC2 = pcoa_res$vectors[, 2],
+      host_type_2 = meta$host_type_2,
+      stringsAsFactors = FALSE
+    )
+    
+    p <- ggplot(pcoa_df, aes(PC1, PC2, color = host_type_2)) +
+      geom_point(size = 2, alpha = 0.8) +
+      theme_minimal() +
+      labs(
+        title = paste("PCoA of", nm, "matrix –", sp),
+        x = paste0("PC1 (", var_exp[1], "%)"),
+        y = paste0("PC2 (", var_exp[2], "%)")
+      )
+    
+    print(p)
+  }
+```
+
+
+
+```{r allpermanova_host_type}
+permaniva_sig <- permanova_all %>%filter(term == "3") %>% dplyr::select(-Df, -SumOfSqs)
+
+permaniva_sig
+```
+
+```{r tree_order}
+tree_data <- ggtree(pruned)$data
+tree_order <- tree_data %>%
+  filter(isTip) %>%
+  arrange(y) %>%
+  pull(label)
+
+```
+
+
+
+```{r figure, fig.height = 4, fig.width = 10}
+
+
+permaniva_sig_hw <- permaniva_sig %>%
+  mutate(species = species %>%
+           str_replace("^enterococcus_hirae$", "enterococcus_b_hirae"))
+
+permaniva_sig_hw <- permaniva_sig_hw %>%
+  mutate(
+    contrast = factor(
+      contrast,
+      levels = c("human_vs_wild", "wild_vs_domestic", "human_vs_domestic"),
+      labels = c("H vs W", "W vs D", "H vs D")
+    ),
+    matrix_name = factor(
+      matrix_name,
+      levels = c("KEGG", "AMR", "VF", "CAZY")
+    )
+  )
+
+
+
+tree_data <- ggtree(pruned)$data
+tree_order <- tree_data %>%
+  filter(isTip) %>%
+  arrange(y) %>%
+  pull(label)
+
+permaniva_sig_hw <- permaniva_sig_hw %>%
+  mutate(species = factor(species, levels = tree_order))
+
+
+p_tree <- ggtree(pruned) +
+  theme_tree2() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+
+p_dot_hw <- permaniva_sig_hw %>%
+  mutate(p_sig = ifelse(`Pr(>F)` <= 0.05, `Pr(>F)`, NA_real_)) %>%
+  ggplot(aes(
+    x = matrix_name,
+    y = species,
+    color = p_sig,
+    size  = R2
+  )) +
+
+  geom_point() +
+
+  facet_grid(
+    . ~ contrast,
+    scales = "free_x",
+    space  = "free_x"
+  ) +
+
+  scale_color_viridis_c(
+    limits = c(0, 0.05),
+    option = "plasma",
+    na.value = "grey70"
+  ) +
+
+  scale_size(
+    limits = c(0, 0.20),
+    range = c(1.5, 6)
+  ) +
+
+  theme_minimal(base_size = 13) +
+  labs(
+    x = NULL,
+    y = NULL,
+    size  = expression(R^2),
+    color = "Pr(>F) (≤ 0.05 shown)"
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.major.y = element_blank(),
+    panel.spacing.x = unit(1, "lines"),
+    strip.background = element_blank(),
+    strip.text.x = element_text(size = 11, face = "bold"),
+    plot.margin = margin(l = 0)
+  )
+
+
+p_final_hw <- (p_tree | p_dot_hw) +
+  plot_annotation(
+    title = "PERMANOVA Host type effects"
+  )
+
+
+p_final_hw
+```
+
+
+
+
+
+```{r kegg count analysis}
+kegg_per_genome <- total_genome_annotations %>%
+  filter(!is.na(kegg)) %>%
+  group_by(genome) %>%
+  summarise(kegg_count = n(), .groups = "drop")
+
+kegg_summary <- kegg_per_genome %>%
+  left_join(total_genome_metadata, by = c("genome" = "ID")) %>%
+  group_by(host_type_2) %>%
+  summarise(
+    mean_kegg = mean(kegg_count, na.rm = TRUE),
+    median_kegg = median(kegg_count, na.rm = TRUE),
+    n_genomes = n(),
+    .groups = "drop"
+  )
+
+kegg_test <- kegg_per_genome %>%
+  left_join(total_genome_metadata, by = c("genome" = "ID"))
+
+ggplot(kegg_test, aes(x = host_type_2, y = kegg_count)) +
+  geom_boxplot() +
+  geom_jitter(aes(color = completeness), width = 0.2, alpha = 0.6) +
+  scale_color_viridis_c()
+
+ggplot(kegg_test, aes(x = host_type_2, y = kegg_count)) +
+  geom_boxplot() +
+  geom_jitter(aes(color = bacterial_species), width = 0.2, alpha = 0.6) 
+
+kruskal.test(kegg_count ~ host_type_2, data = kegg_test)
+
+pairwise.wilcox.test(
+  kegg_test$kegg_count,
+  kegg_test$host_type_2,
+  p.adjust.method = "BH"
+)
+
+```
+
+
+
+```{r amr count analysis}
+amr_per_genome <- total_genome_annotations %>%
+  filter(resistance_type == "AMR",
+    !is.na(resistance_target)) %>%
+  group_by(genome) %>%
+  summarise(amr_count = n(), .groups = "drop")
+
+amr_summary <- amr_per_genome %>%
+  left_join(total_genome_metadata, by = c("genome" = "ID")) %>%
+  group_by(host_type_2) %>%
+  summarise(
+    mean_amr = mean(amr_count, na.rm = TRUE),
+    median_amr = median(amr_count, na.rm = TRUE),
+    n_genomes = n(),
+    .groups = "drop"
+  )
+
+amr_test <- amr_per_genome %>%
+  left_join(total_genome_metadata, by = c("genome" = "ID")) 
+
+ggplot(amr_test, aes(x = host_type_2, y = amr_count)) +
+  geom_boxplot() +
+  geom_jitter(aes(color = completeness), width = 0.2, alpha = 0.6) +
+  scale_color_viridis_c()
+
+kruskal.test(amr_count ~ host_type_2, data = amr_test)
+
+pairwise.wilcox.test(
+  amr_test$amr_count,
+  amr_test$host_type_2,
+  p.adjust.method = "BH"
+)
+
+```
+
+
+
+```{r vf_count_analysis}
+
+vf_per_genome <- total_genome_annotations %>%
+  filter(!is.na(vf)) %>%
+  group_by(genome) %>%
+  summarise(vf_count = n(), .groups = "drop")
+
+vf_summary <- vf_per_genome %>%
+  left_join(total_genome_metadata, by = c("genome" = "ID")) %>%
+  group_by(host_type_2) %>%
+  summarise(
+    mean_kegg = mean(vf_count, na.rm = TRUE),
+    median_kegg = median(vf_count, na.rm = TRUE),
+    n_genomes = n(),
+    .groups = "drop"
+  )
+
+vf_test <- vf_per_genome %>%
+  left_join(total_genome_metadata, by = c("genome" = "ID")) 
+
+ggplot(vf_test, aes(x = host_type_2, y = vf_count)) +
+  geom_boxplot() +
+  geom_jitter(aes(color = completeness), width = 0.2, alpha = 0.6) +
+  scale_color_viridis_c()
+
+
+kruskal.test(vf_count ~ host_type_2, data = vf_test)
+
+pairwise.wilcox.test(
+  vf_test$vf_count,
+  vf_test$host_type_2,
+  p.adjust.method = "BH"
+)
+```
+
+
+
+
+```{r amr different per group}
+amr_presence <- total_genome_annotations %>%
+  filter(resistance_type == "AMR", !is.na(resistance_target)) %>%
+  distinct(genome, resistance_target) %>%
+  left_join(total_genome_metadata, by = c("genome" = "ID"))
+
+amr_sets <- amr_presence %>%
+  group_by(host_type_2) %>%
+  summarise(amr_list = list(unique(resistance_target)))
+
+amr_freq <- amr_presence %>%
+  group_by(host_type_2, resistance_target) %>%
+  summarise(n = n(), .groups = "drop")
+
+chisq.test(table(amr_presence$resistance_target, amr_presence$host_type_2))
+
+human_amr     <- amr_sets$amr_list[[which(amr_sets$host_type_2 == "human")]]
+domestic_amr  <- amr_sets$amr_list[[which(amr_sets$host_type_2 == "domestic")]]
+wild_amr      <- amr_sets$amr_list[[which(amr_sets$host_type_2 == "wild")]]
+
+Reduce(intersect, list(human_amr, domestic_amr, wild_amr))
+
+human_only <- setdiff(human_amr, union(domestic_amr, wild_amr))
+domestic_only <- setdiff(domestic_amr, union(human_amr, wild_amr))
+wild_only <- setdiff(wild_amr, union(human_amr, domestic_amr))
+
+human_only
+domestic_only
+wild_only
+
+amr_binary <- amr_presence %>%
+  distinct(host_type_2, resistance_target) %>%
+  mutate(present = 1) %>%
+  pivot_wider(
+    names_from = host_type_2,
+    values_from = present,
+    values_fill = 0
+  )
+
+UpSetR::upset(
+  as.data.frame(amr_binary[, -1]),  # remove resistance_target column
+  sets = c("human", "domestic", "wild"),
+  order.by = "freq"
+)
+
+
+
+```
+
+
+
+
+
+### Fisher
+```{r functional analysis fisher}
+# Prepare empty containers
+kegg_fisher_all <- list()
+amr_fisher_all  <- list()
+vf_fisher_all   <- list()
+cazy_fisher_all <- list()
+
+# Volcano plots (nested by contrast)
+volcano_plots <- list(
+  kegg = list(),
+  amr  = list(),
+  vf   = list(),
+  cazy = list()
+)
+
+ann_list <- vector("list", length(species_list))
+names(ann_list) <- species_list
+
+
+for (sp in species_list) {
+
+  message("Running Fisher tests for species: ", sp)
+
+  genome_annotations <- species_data[[sp]]$annotations
+  genome_metadata    <- species_data[[sp]]$metadata
+
+  ann_list[[sp]] <- dplyr::mutate(genome_annotations, species = sp)
+
+  # Build matrices
+  mats <- list(
+    kegg = make_annotation_matrix(genome_annotations, "kegg"),
+    amr  = make_annotation_matrix(genome_annotations, "resistance_target"),
+    vf   = make_annotation_matrix(genome_annotations, "vf"),
+    cazy = make_annotation_matrix(genome_annotations, "cazy")
+  )
+
+  for (contrast_name in names(host_contrasts)) {
+
+    host_levels <- host_contrasts[[contrast_name]]
+
+    # Subset metadata for the contrast
+    meta_sub <- genome_metadata %>%
+      dplyr::filter(host_type_2 %in% host_levels) %>%
+      dplyr::mutate(host_type_2 = droplevels(factor(host_type_2)))
+
+    # Fisher requires exactly 2 groups
+    if (nlevels(meta_sub$host_type_2) != 2) {
+      message("[", sp, " | ", contrast_name, "] skipped: not exactly 2 host groups")
+      next
+    }
+
+    for (nm in names(mats)) {
+
+      fisher_res <- tryCatch(
+        run_fisher_tests_general(
+          mat = mats[[nm]],
+          metadata = meta_sub,
+          group_col = "host_type_2",
+          annotation_name = nm
+        ),
+        error = function(e) {
+          message("[", sp, " | ", nm, " | ", contrast_name, "] Fisher failed: ", e$message)
+          NULL
+        }
+      )
+
+      if (is.null(fisher_res) || nrow(fisher_res) == 0) next
+
+      # Add identifiers
+      fisher_res$species  <- sp
+      fisher_res$contrast <- contrast_name
+
+      # Accumulate
+      if (nm == "kegg") kegg_fisher_all[[length(kegg_fisher_all) + 1]] <- fisher_res
+      if (nm == "amr")  amr_fisher_all[[length(amr_fisher_all) + 1]]  <- fisher_res
+      if (nm == "vf")   vf_fisher_all[[length(vf_fisher_all) + 1]]   <- fisher_res
+      if (nm == "cazy") cazy_fisher_all[[length(cazy_fisher_all) + 1]] <- fisher_res
+
+      # Volcano plot (optional)
+      volcano_plots[[nm]][[paste(sp, contrast_name, sep = "_")]] <-
+        plot_volcano(fisher_res, nm)
+    }
+  }
+}
+
+
+
+```
+
+
+
+
+
+```{r bind the rows}
+kegg_fisher_total        <- dplyr::bind_rows(kegg_fisher_all)
+amr_fisher_total         <- dplyr::bind_rows(amr_fisher_all)
+vf_fisher_total          <- dplyr::bind_rows(vf_fisher_all)
+cazy_fisher_total        <- dplyr::bind_rows(cazy_fisher_all)
+
+```
+
+
+
+```{r save functional_results}
+# analysis_results <- list(
+#   permanova      = permanova_all,
+#   betadisper     = betadisper_all,
+#   fisher = list(
+#     kegg = kegg_fisher_total,
+#     amr  = amr_fisher_total,
+#     vf   = vf_fisher_total,
+#     cazy = cazy_fisher_total
+#   ),
+#   host_contrasts = host_contrasts
+# )
+# 
+# saveRDS(
+#   analysis_results,
+#   file = "data/intermediate_analysis/functional_analysis_results.rds"
+# )
+# 
+
+
+
+analysis_results <- readRDS("data/intermediate_analysis/functional_analysis_results.rds")
+
+permanova_all      <- analysis_results$permanova
+betadisper_all     <- analysis_results$betadisper
+kegg_fisher_total  <- analysis_results$fisher$kegg
+amr_fisher_total   <- analysis_results$fisher$amr
+vf_fisher_total    <- analysis_results$fisher$vf
+cazy_fisher_total  <- analysis_results$fisher$cazy
+
+```
+
+```{r save in rdata}
+# save( betadisper_all,
+#   kegg_fisher_total,
+#   amr_fisher_total,
+#   vf_fisher_total,
+#   cazy_fisher_total,
+#   file = "data/intermediate_analysis/data.RData"
+# )
+```
+
+
+
+```{r testing keggs totals, fig.height = 10, fig.width = 20}
+prepare_volcano_df <- function(df, tree_order) {
+  df %>%
+    mutate(
+      ##Fix enterococcus hirae name mismatch
+      species = dplyr::case_when(
+        species == "enterococcus_hirae" ~ "enterococcus_b_hirae",
+        TRUE ~ species
+      ),
+
+      ## VOLCANO METRICS
+      neg_log10_padj = -log10(pmax(p_adj, 1e-300)),
+      sig = p_adj <= 0.05,
+
+      ## order factors
+      species = factor(species, levels = tree_order),
+      contrast = factor(
+        contrast,
+        levels = c(
+          "human_vs_wild",
+          "wild_vs_domestic",
+          "human_vs_domestic"
+        ),
+        labels = c(
+          "HumanvsWild",
+          "WildvsDomestic",
+          "HumanvsDomestic"
+        )
+      )
+    )
+}
+
+
+
+plot_volcano_contrasts <- function(df, title_prefix) {
+
+  ggplot(df, aes(x = log2_or, y = neg_log10_padj)) +
+    geom_hline(
+      yintercept = -log10(0.05),
+      linetype = "dashed",
+      color = "grey50"
+    ) +
+    geom_vline(
+      xintercept = 0,
+      linetype = "dotted",
+      color = "grey60"
+    ) +
+    geom_point(
+      aes(color = sig, alpha = sig),
+      size = 1.6
+    ) +
+    scale_color_manual(
+      values = c(
+        `TRUE`  = "#0072B2",  # significant
+        `FALSE` = "grey75"    # not significant
+      ),
+      name = "Adj. p ≤ 0.05"
+    ) +
+    scale_alpha_manual(
+      values = c(`TRUE` = 1, `FALSE` = 0.4),
+      guide = "none"
+    ) +
+    labs(
+      x = "log2(odds ratio)",
+      y = expression(-log[10]("adj. p-value")),
+      title = title_prefix
+    ) +
+    theme_minimal(base_size = 12) +
+    facet_grid(
+      contrast ~ species
+    )
+}
+
+
+get_top_hits <- function(df, feature_col, n = 5) {
+  df %>%
+    filter(sig) %>%                       # only significant features
+    group_by(species, contrast) %>%       # per species × contrast
+    arrange(p_adj) %>%                   
+    slice_head(n = n) %>%                
+    ungroup()
+}
+    
+    
+    
+kegg_df <- prepare_volcano_df(
+  kegg_fisher_total,
+  tree_order = tree_order
+)
+
+kegg_top <- get_top_hits(kegg_df, n = 5)
+
+plot_volcano_contrasts(
+  kegg_df,
+  title_prefix = "KEGG enrichment"
+) +
+  ggrepel::geom_text_repel(
+    data = kegg_top,
+    aes(label = kegg),
+    size = 3,
+    max.overlaps = 8
+  )
+```
+
+
+```{r fisher bacteroides uniformis, fig.height = 8, fig.width = 6}
+species_of_interest <- "bacteroides_uniformis"
+
+kegg_df_sp <- kegg_df %>%
+  filter(species == species_of_interest)
+
+kegg_top_sp <- get_top_hits(kegg_df_sp, "kegg")
+
+plot_volcano_contrasts(
+  kegg_df_sp,
+  title_prefix = "KEGG enrichment – Bacteroides uniformis"
+) +
+  ggrepel::geom_text_repel(
+    data = kegg_top_sp,
+    aes(label = kegg),
+    size = 3
+  )
+```
+
+
+```{r amr fisher,  fig.height = 10, fig.width = 15}
+amr_df <- prepare_volcano_df(
+  amr_fisher_total,
+  tree_order = tree_order
+)
+
+amr_top <- get_top_hits(amr_df, n = 5)
+
+plot_volcano_contrasts(
+  amr_df,
+  title_prefix = "AMR enrichment"
+) +
+  ggrepel::geom_text_repel(
+    data = amr_top,
+    aes(label = amr),
+    size = 3
+  )
+```
+
+
+
+```{r vf fisher,  fig.height = 10, fig.width = 15}
+vf_df <- prepare_volcano_df(
+  vf_fisher_total,
+  tree_order = tree_order
+)
+
+vf_top <- get_top_hits(vf_df, n = 5)
+
+plot_volcano_contrasts(
+  vf_df,
+  title_prefix = "VF enrichment"
+) +
+  ggrepel::geom_text_repel(
+    data = vf_top,
+    aes(label = vf),
+    size = 3
+  )
+```
+
+
+```{r cazy fisher,  fig.height = 10, fig.width = 15}
+cazy_df <- prepare_volcano_df(
+  cazy_fisher_total,
+  tree_order = tree_order
+)
+
+cazy_top <- get_top_hits(cazy_df, n = 5)
+
+plot_volcano_contrasts(
+  cazy_df,
+  title_prefix = "CAZy enrichment"
+) +
+  ggrepel::geom_text_repel(
+    data = cazy_top,
+    aes(label = cazy),
+    size = 3
+  )
+```
+
+```{r volcano by pathways, eval = FALSE}
+#keep only significant KOs 
+sig_df <- kegg_df %>%
+  filter(p_adj < 0.05) %>%
+  mutate(ko = paste0("ko:", kegg))   # (when you download the table they are like this)
+
+# KO -> pathway links (only for sig KOs)
+ko_links <- KEGGREST::keggLink("pathway", "ko") %>%
+  tibble::enframe(name = "ko", value = "pathway") %>%
+  semi_join(sig_df, by = "ko") %>%
+  mutate(
+    pathway_map = sub("^path:(?:ko|map)(\\d{5})$", "path:map\\1", pathway)
+  ) %>%
+  filter(str_detect(pathway_map, "^path:map\\d{5}$")) %>%
+  distinct(ko, pathway_map)
+
+#  One pathway per KO 
+ko_links_one <- ko_links %>%
+  group_by(ko) %>%
+  slice(1) %>%
+  ungroup()
+
+# Fetch pathway info 
+paths <- unique(ko_links_one$pathway_map)
+
+get_info <- function(pid){
+  x <- try(KEGGREST::keggGet(pid)[[1]], silent = TRUE)
+  if (inherits(x, "try-error")) return(tibble(pathway_map=pid, pathway_name=NA, class=NA))
+  tibble(
+    pathway_map = pid,
+    pathway_name = x$NAME[[1]],
+    class = ifelse(is.null(x$CLASS), NA, x$CLASS[[1]])
+  )
+}
+
+path_info <- bind_rows(lapply(paths, get_info))
+
+# high-level category
+path_info <- path_info %>%
+  mutate(category = sub(";.*$", "", class))
+
+
+
+```
+
+```{r pathway kegg mapping}
+#join annotations to kegg fisher results
+ko_links_one_clean <- ko_links_one %>%
+  mutate(ko_clean = sub("^ko:", "", ko))
+
+kegg_annot_df <- kegg_df %>%
+  left_join(ko_links_one_clean, by = c("kegg" = "ko_clean")) %>%
+  left_join(path_info, by = "pathway_map")
+
+```
+
+
+
+```{r volcano plot colorful, fig.height=6, fig.width = 15, eval = FALSE}
+
+kegg_categories <- sort(unique(na.omit(kegg_annot_df$category)))
+
+kegg_colors <- c(
+  NS = "grey75",
+  setNames(
+    RColorBrewer::brewer.pal(length(kegg_categories), "Set2"),
+    kegg_categories
+  )
+)
+
+plot_kegg_volcano_by_pathway <- function(df, title_prefix) {
+
+  ggplot(df, aes(x = log2_or, y = neg_log10_padj)) +
+    geom_hline(
+      yintercept = -log10(0.05),
+      linetype = "dashed",
+      color = "grey50"
+    ) +
+    geom_vline(
+      xintercept = 0,
+      linetype = "dotted",
+      color = "grey60"
+    ) +
+    geom_point(
+      aes(
+        color = ifelse(sig, category, "NS"),
+        alpha = sig
+      ),
+      size = 1.6
+    ) +
+    scale_color_manual(
+      values = kegg_colors,
+      name = "KEGG class"
+    ) +
+    scale_alpha_manual(
+      values = c(`TRUE` = 1, `FALSE` = 0.35),
+      guide = "none"
+    ) +
+    labs(
+      x = "log2(odds ratio)",
+      y = expression(-log("adj p-value")),
+      title = title_prefix
+    ) +
+    theme_minimal(base_size = 12) +
+    facet_grid(
+      contrast ~ species
+    )
+}
+
+plot_kegg_volcano_by_pathway(
+  kegg_annot_df,
+  title_prefix = "KEGG enrichment by pathway"
+)
+
+```
+
+
+```{r bacteroides colored, fig.height = 10, fig.width = 7}
+kegg_annot_df %>%
+  filter(species == "phocaeicola_vulgatus") %>%
+  plot_kegg_volcano_by_pathway(
+    title_prefix = "KEGG enrichment by pathway – Phocaeicola vulgatus"
+  )
+```
+
+
+
+### Virulence factors
+
+```{r vf_volcano, fig.height = 5, fig.width = 15}
+
+vf_df <- prepare_volcano_df(
+  vf_fisher_total,
+  tree_order = tree_order
+)
+
+vf_df_annot <- vf_df %>%
+  left_join(vf_data, by = "vf") %>%
+  mutate(
+    color_group = ifelse(sig, vf_type, "nonsig")
+  )
+
+vf_types <- sort(unique(na.omit(vf_df_annot$vf_type)))
+
+vf_colors <- c(
+  nonsig = "grey70",
+  setNames(
+    RColorBrewer::brewer.pal(
+      min(8, length(vf_types)),
+      "Set1"
+    ),
+    vf_types[seq_len(min(8, length(vf_types)))]
+  )
+)
+
+
+plot_vf_volcano_by_type <- function(df, title_prefix) {
+
+  ggplot(df, aes(x = log2_or, y = neg_log10_padj)) +
+    geom_hline(
+      yintercept = -log10(0.05),
+      linetype = "dashed",
+      color = "grey50"
+    ) +
+    geom_vline(
+      xintercept = 0,
+      linetype = "dotted",
+      color = "grey60"
+    ) +
+    geom_point(
+      aes(color = color_group, alpha = sig),
+      size = 1.6
+    ) +
+    scale_color_manual(
+      values = vf_colors,
+      name = "VF type"
+    ) +
+    scale_alpha_manual(
+      values = c(`TRUE` = 1, `FALSE` = 0.35),
+      guide = "none"
+    ) +
+    labs(
+      x = "log2(odds ratio)",
+      y = expression(-log("adj p-value")),
+      title = title_prefix
+    ) +
+    theme_minimal(base_size = 12) +
+    facet_grid(
+      contrast ~ species
+    )
+}
+
+
+plot_vf_volcano_by_type(
+  vf_df_annot,
+  title_prefix = "VF enrichment by VF type"
+)
+
+```
+```{r bacteroides vf, fig.height = 9, fig.width = 6}
+vf_df_annot %>%
+  filter(species == "phocaeicola_vulgatus") %>%
+  plot_vf_volcano_by_type(
+    title_prefix = "VF enrichment by type – Phocaeicola vulgatus"
+  )
+```
+
+##### CAZY
+```{r cazy data}
+library(readxl)
+faminfo <- read_excel("data/FamInfo.txt.04232020.xls")
+activities <- read_tsv("data/CAZyDB.07302020.fam-activities.txt", comment = "#",
+                       col_names = c("family", "activity"))
+substrates <- read_tsv("data/fam-substrate-mapping-08012023.tsv")
+
+```
+
+```{r cazy annot}
+cazy_df <- prepare_volcano_df(
+  cazy_fisher_total,
+  tree_order = tree_order
+)
+
+
+cazy_parsed <- cazy_df %>%
+  mutate(
+    cazy_clean = stringr::str_trim(cazy),
+
+    # CAZy class: GH, GT, PL, CE, AA, CBM
+    cazy_class = stringr::str_extract(cazy_clean, "^[A-Za-z]+"),
+
+    # Family number
+    remainder = stringr::str_remove(cazy_clean, "^[A-Za-z]+"),
+    cazy_family = stringr::str_extract(remainder, "^\\d+"),
+
+    # Canonical family ID (e.g. GH13, PL7)
+    cazy_family_id = paste0(cazy_class, cazy_family)
+  )
+
+
+
+cazy_annot <- cazy_parsed %>%
+  left_join(substrates, by = c("cazy_family_id" = "Family"))
+```
+
+
+
+```{r cazy volcano coloured, fig.height = 8, fig.width = 14}
+
+
+cazy_annot <- cazy_annot %>%
+  mutate(
+    color_group = ifelse(sig, cazy_class, "nonsig")
+  )
+
+cazy_types <- sort(unique(na.omit(cazy_annot$cazy_class)))
+
+cazy_colors <- c(
+  nonsig = "grey70",
+  setNames(
+    RColorBrewer::brewer.pal(
+      min(8, length(cazy_types)),
+      "Set2"
+    ),
+    cazy_types[seq_len(min(8, length(cazy_types)))]
+  )
+)
+
+
+
+plot_cazy_volcano_by_class <- function(df, title_prefix) {
+
+  ggplot(df, aes(x = log2_or, y = neg_log10_padj)) +
+    geom_hline(
+      yintercept = -log10(0.05),
+      linetype = "dashed",
+      color = "grey50"
+    ) +
+    geom_vline(
+      xintercept = 0,
+      linetype = "dotted",
+      color = "grey60"
+    ) +
+    geom_point(
+      aes(color = color_group, alpha = sig),
+      size = 1.6
+    ) +
+    scale_color_manual(
+      values = cazy_colors,
+      name = "CAZy class"
+    ) +
+    scale_alpha_manual(
+      values = c(`TRUE` = 1, `FALSE` = 0.35),
+      guide = "none"
+    ) +
+    labs(
+      x = "log2(odds ratio)",
+      y = expression(-log("adj p-value")),
+      title = title_prefix
+    ) +
+    theme_minimal(base_size = 12) +
+    facet_grid(
+      contrast ~ species
+    )
+}
+
+
+
+cazy_top <- cazy_annot %>%
+  filter(sig) %>%
+  group_by(species, contrast) %>%
+  arrange(p_adj) %>%
+  slice_head(n = 5) %>%
+  ungroup()
+
+plot_cazy_volcano_by_class(
+  cazy_annot,
+  title_prefix = "CAZy enrichment by class"
+) +
+  ggrepel::geom_text_repel(
+    data = cazy_top,
+    aes(label = cazy),
+    size = 3,
+    max.overlaps = 8
+  )
+
+
+
+
+plot_cazy_volcano_by_class(
+  cazy_annot,
+  title_prefix = "CAZy enrichment by class"
+)
+
+
+```
+
+
+```{r bacteroides_uniformis_cazy}
+cazy_sp <- cazy_annot %>%
+  filter(species == "bacteroides_uniformis")
+
+plot_cazy_volcano_by_class(
+  cazy_sp,
+  title_prefix = "CAZy enrichment by class – Bacteroides uniformis"
+)
+
+```
+
+```{r one species all comparisons, fig.height = 8, fig.width = 8}
+species_of_interest <- "bacteroides_uniformis"
+
+kegg_df_sp <- kegg_annot_df %>%
+  filter(species == species_of_interest)
+
+kegg_top_sp <- kegg_df_sp %>%
+  filter(sig) %>%
+  group_by(contrast) %>%
+  arrange(p_adj) %>%
+  slice_head(n = 5) %>%
+  ungroup()
+
+p_kegg <- plot_kegg_volcano_by_pathway(
+  kegg_df_sp,
+  title_prefix = paste("KEGG –", species_of_interest)
+) +
+  ggrepel::geom_text_repel(
+    data = kegg_top_sp,
+    aes(label = kegg),
+    size = 3,
+    max.overlaps = 8
+  )
+
+p_kegg
+
+amr_df_sp <- amr_df %>%
+  filter(species == species_of_interest)
+
+amr_top_sp <- amr_df_sp %>%
+  filter(sig) %>%
+  group_by(contrast) %>%
+  arrange(p_adj) %>%
+  slice_head(n = 5) %>%
+  ungroup()
+
+p_amr <- plot_volcano_contrasts(
+  amr_df_sp,
+  title_prefix = paste("AMR –", species_of_interest)
+) +
+  ggrepel::geom_text_repel(
+    data = amr_top_sp,
+    aes(label = amr),
+    size = 3
+  )
+
+p_amr
+
+
+vf_df_sp <- vf_df_annot %>%
+  filter(species == species_of_interest)
+
+vf_top_sp <- vf_df_sp %>%
+  filter(sig) %>%
+  group_by(contrast) %>%
+  arrange(p_adj) %>%
+  slice_head(n = 5) %>%
+  ungroup()
+
+p_vf <- plot_vf_volcano_by_type(
+  vf_df_sp,
+  title_prefix = paste("VF –", species_of_interest)
+) +
+  ggrepel::geom_text_repel(
+    data = vf_top_sp,
+    aes(label = vf),
+    size = 3
+  )
+
+p_vf
+
+
+cazy_df_sp <- cazy_annot %>%
+  filter(species == species_of_interest)
+
+cazy_top_sp <- cazy_df_sp %>%
+  filter(sig) %>%
+  group_by(contrast) %>%
+  arrange(p_adj) %>%
+  slice_head(n = 5) %>%
+  ungroup()
+
+p_cazy <- plot_cazy_volcano_by_class(
+  cazy_df_sp,
+  title_prefix = paste("CAZy –", species_of_interest)
+) +
+  ggrepel::geom_text_repel(
+    data = cazy_top_sp,
+    aes(label = cazy),
+    size = 3
+  )
+
+p_cazy
+
+
+
+```
+```{r patchworking, fig.height = 8, fig.width = 12}
+library(patchwork)
+
+
+
+small_legend <- theme(
+  legend.text = element_text(size = 7),
+  legend.title = element_text(size = 8),
+  legend.key.size = unit(0.35, "cm"),
+  legend.spacing.y = unit(0.1, "cm")
+)
+
+p_kegg <- p_kegg +
+  labs(title = "KEGG") +
+  small_legend
+
+p_amr <- p_amr +
+  labs(title = "AMR") +
+  small_legend
+
+p_vf <- p_vf +
+  labs(title = "VF") +
+  small_legend
+
+p_cazy <- p_cazy +
+  labs(title = "CAZy") +
+  small_legend
+
+(p_kegg | p_amr | p_vf | p_cazy) +
+  plot_layout(guides = "collect") &
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 7),
+    legend.title = element_text(size = 8),
+    legend.key.size = unit(0.35, "cm")
+  )
+
+```
+```{r all species in a loop,  fig.height = 8, fig.width = 13}
+
+kegg_annot_df <- kegg_annot_df %>%
+  mutate(species = recode(
+    species,
+    "enterococcus_b_hirae" = "enterococcus_hirae"
+  ))
+
+amr_df <- amr_df %>%
+  mutate(species = recode(
+    species,
+    "enterococcus_b_hirae" = "enterococcus_hirae"
+  ))
+
+vf_df_annot <- vf_df_annot %>%
+  mutate(species = recode(
+    species,
+    "enterococcus_b_hirae" = "enterococcus_hirae"
+  ))
+
+cazy_annot <- cazy_annot %>%
+  mutate(species = recode(
+    species,
+    "enterococcus_b_hirae" = "enterococcus_hirae"
+  ))
+
+
+make_functional_patchwork <- function(species_of_interest) {
+
+  ## ---------- KEGG ----------
+  kegg_df_sp <- kegg_annot_df %>%
+    filter(species == species_of_interest)
+
+  kegg_top_sp <- kegg_df_sp %>%
+    filter(sig) %>%
+    group_by(contrast) %>%
+    arrange(p_adj) %>%
+    slice_head(n = 5) %>%
+    ungroup()
+
+  p_kegg <- plot_kegg_volcano_by_pathway(
+    kegg_df_sp,
+    title_prefix = paste("KEGG –", species_of_interest)
+  ) +
+    ggrepel::geom_text_repel(
+      data = kegg_top_sp,
+      aes(label = kegg),
+      size = 3,
+      max.overlaps = 8
+    )
+
+
+  ## ---------- AMR ----------
+  amr_df_sp <- amr_df %>%
+    filter(species == species_of_interest)
+
+  amr_top_sp <- amr_df_sp %>%
+    filter(sig) %>%
+    group_by(contrast) %>%
+    arrange(p_adj) %>%
+    slice_head(n = 5) %>%
+    ungroup()
+
+  p_amr <- plot_volcano_contrasts(
+    amr_df_sp,
+    title_prefix = paste("AMR –", species_of_interest)
+  ) +
+    ggrepel::geom_text_repel(
+      data = amr_top_sp,
+      aes(label = amr),
+      size = 3
+    )
+
+
+  ## ---------- VF ----------
+  vf_df_sp <- vf_df_annot %>%
+    filter(species == species_of_interest)
+
+  vf_top_sp <- vf_df_sp %>%
+    filter(sig) %>%
+    group_by(contrast) %>%
+    arrange(p_adj) %>%
+    slice_head(n = 5) %>%
+    ungroup()
+
+  p_vf <- plot_vf_volcano_by_type(
+    vf_df_sp,
+    title_prefix = paste("VF –", species_of_interest)
+  ) +
+    ggrepel::geom_text_repel(
+      data = vf_top_sp,
+      aes(label = vf),
+      size = 3
+    )
+
+
+  ## ---------- CAZy ----------
+  cazy_df_sp <- cazy_annot %>%
+    filter(species == species_of_interest)
+
+  cazy_top_sp <- cazy_df_sp %>%
+    filter(sig) %>%
+    group_by(contrast) %>%
+    arrange(p_adj) %>%
+    slice_head(n = 5) %>%
+    ungroup()
+
+  p_cazy <- plot_cazy_volcano_by_class(
+    cazy_df_sp,
+    title_prefix = paste("CAZy –", species_of_interest)
+  ) +
+    ggrepel::geom_text_repel(
+      data = cazy_top_sp,
+      aes(label = cazy),
+      size = 3
+    )
+
+
+  ## ---------- Legend theme ----------
+  small_legend <- theme(
+    legend.text = element_text(size = 7),
+    legend.title = element_text(size = 8),
+    legend.key.size = unit(0.35, "cm")
+  )
+
+    p_kegg <- p_kegg +
+      labs(title = "KEGG") +
+      small_legend
+    
+    p_amr <- p_amr +
+      labs(title = "AMR") +
+      small_legend
+    
+    p_vf <- p_vf +
+      labs(title = "VF") +
+      small_legend
+    
+    p_cazy <- p_cazy +
+      labs(title = "CAZy") +
+      small_legend
+
+
+  ## ---------- Final patchwork ----------
+  final_plot <-
+    (p_kegg | p_amr | p_vf | p_cazy) +
+    plot_layout(guides = "collect") &
+    theme(
+      legend.position = "right",
+      plot.title = element_text(size = 14, face = "bold")
+    )
+
+  final_plot
+}
+
+
+# patchwork_plots <- purrr::set_names(
+#   lapply(species_list, make_functional_patchwork),
+#   species_list
+# )
+# 
+# purrr::walk(patchwork_plots, print)
+# 
+
+
+for (sp in species_list) {
+
+  p <- make_functional_patchwork(sp)
+
+  print(p)
+
+  ggsave(
+    paste0("plots/functional_enrichment_", sp, ".pdf"),
+    plot = p,
+    width = 13,
+    height = 8
+  )
+}
+
+
+```
+
+
+
+```{r save functional_results_2}
+# fisher_results <- list(
+#   kegg = kegg_annot_df,
+#   amr  = amr_df,
+#   vf   = vf_df_annot,
+#   cazy = cazy_annot,
+#   species = species_list,
+#   info = list(
+#     created = Sys.time(),
+#     description = "Functional enrichment input tables for volcano plots"
+#   )
+# )
+# 
+# saveRDS(
+#   fisher_results,
+#   file = "data/intermediate_analysis/fisher_results.rds"
+# )
+
+
+
+
+
+functional_results <- readRDS( "data/intermediate_analysis/fisher_results.rds")
+
+
+
+kegg_annot_df <- functional_results$kegg
+amr_df        <- functional_results$amr
+vf_df_annot   <- functional_results$vf
+cazy_annot    <- functional_results$cazy
+
+```
+
+
+
+### ZOOM-IN - quorum sensing
+```{r quorum sensing}
+qs_df <- kegg_annot_df %>%
+  filter(
+    pathway_map == "path:map02024"
+  ) %>%
+  mutate(
+    sig_lab = ifelse(sig, "Adj p ≤ 0.05", "n.s.")
+  )
+
+
+ggplot(qs_df, aes(
+  x = log2_or,
+  y = ko,
+  color = species
+)) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
+  geom_point(aes(alpha = sig), size = 2.5) +
+  facet_wrap(~ contrast) +
+  scale_alpha_manual(values = c("TRUE" = 1, "FALSE" = 0.05)) +
+  labs(
+    title = "Quorum sensing genes show host-associated enrichment",
+    x = "log2(odds ratio)",
+    y = "Quorum sensing KOs",
+    alpha = "Significant"
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.text.y = element_text(size = 7)
+  )
+
+```
+```{r top pathways for zoomin, fig.width = 10, fig.height = 7}
+top_pathways <- kegg_annot_df %>%
+  filter(
+    sig,
+    !is.na(pathway_map)
+  ) %>%
+  group_by(pathway_map, pathway_name) %>%
+  summarise(
+    n_sig = n(),
+    mean_abs_log2_or = mean(abs(log2_or), na.rm = TRUE),
+    score = n_sig * mean_abs_log2_or,
+    .groups = "drop"
+  ) %>%
+  arrange(desc(score)) %>%
+  slice_head(n = 20)
+
+top20_df <- kegg_annot_df %>%
+  semi_join(top_pathways, by = "pathway_map") %>%
+  mutate(
+    sig_lab = ifelse(sig, "Adj p ≤ 0.05", "n.s.")
+  )
+
+top20_summary <- top20_df %>%
+  group_by(pathway_name, species, contrast) %>%
+  summarise(
+    mean_log2_or = mean(log2_or, na.rm = TRUE),
+    n_sig = sum(sig),
+    .groups = "drop"
+  )
+
+
+ggplot(top20_summary, aes(
+  x = mean_log2_or,
+  y = pathway_name,
+  color = species,
+  size = n_sig
+)) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
+  geom_point(alpha = 0.8) +
+  facet_wrap(~ contrast) +
+  labs(
+    title = "Top 20 KEGG pathways enriched across host contrasts",
+    x = "Mean log2(odds ratio)",
+    y = NULL,
+    size = "Significant KOs"
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.text.y = element_text(size = 7)
+  )
+```
+```{r for_20_pathways}
+plot_kegg_pathway_breakdown <- function(pathway_id, pathway_label) {
+
+  df <- kegg_annot_df %>%
+    filter(pathway_map == pathway_id) %>%
+    mutate(
+      sig_lab = ifelse(sig, "Adj p ≤ 0.05", "n.s.")
+    )
+
+  # Guard against empty or tiny pathways
+  if (nrow(df) == 0) {
+    return(NULL)
+  }
+
+  ggplot(df, aes(
+    x = log2_or,
+    y = ko,
+    color = species
+  )) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
+    geom_point(aes(alpha = sig), size = 2.5) +
+    facet_wrap(~ contrast) +
+    scale_alpha_manual(values = c("TRUE" = 1, "FALSE" = 0.05)) +
+    labs(
+      title = pathway_label,
+      subtitle = pathway_id,
+      x = "log2(odds ratio)",
+      y = "KEGG ortholog",
+      alpha = "Significant"
+    ) +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.text.y = element_text(size = 7)
+    )
+}
+
+plots_by_pathway <- purrr::pmap(
+  list(
+    top_pathways$pathway_map,
+    top_pathways$pathway_name
+  ),
+  plot_kegg_pathway_breakdown
+)
+
+# Drop NULLs just in case
+plots_by_pathway <- purrr::compact(plots_by_pathway)
+
+purrr::walk(plots_by_pathway, print)
+
+```
+
+
+
+## META-ANALYSIS
+
+### Human vs wild
+```{r metaanalysis for all keggs}
+# Prep totals and basic filters 
+df_hw <- kegg_fisher_total %>%
+  filter(contrast == "human_vs_wild") %>%
+  mutate(
+    tot_wild  = n_mags_wild  + absent_wild,
+    tot_human = n_mags_human + absent_human
+  ) %>%
+  filter(tot_wild > 0, tot_human > 0) %>%
+  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild))
+
+#  Low-bias screen 
+min_informative_species <- 8
+min_total_events <- 10
+
+kegg_keep_hw <- df_hw %>%
+  group_by(kegg) %>%
+  summarise(
+    n_species_inform = n(),
+    total_events = sum(n_mags_wild + n_mags_human),
+    .groups = "drop"
+  ) %>%
+  filter(
+    n_species_inform >= min_informative_species,
+    total_events >= min_total_events
+  ) %>%
+  dplyr::select(kegg)
+
+df_hw_screened <- df_hw %>%
+  inner_join(kegg_keep_hw, by = "kegg")
+
+# Split by KEGG
+kegg_split_hw <- split(df_hw_screened, df_hw_screened$kegg)
+
+# Effect size pooling
+# MH with random effects; Human vs wild 
+run_mh_random_hw <- function(dat) {
+  meta::metabin(
+    # Human as experimental (so OR>1 => more prevalent in Human)
+    event.e = dat$n_mags_human,
+    n.e     = dat$tot_human,
+    event.c = dat$n_mags_wild,
+    n.c     = dat$tot_wild,
+
+    studlab = dat$species,
+    sm      = "OR",
+    method  = "MH",
+
+    common  = FALSE,          # do not compute fixed/common summary
+    random  = TRUE,           # compute random-effects summary
+    method.tau       = "REML",
+    method.random.ci = "HK",  # Hartung–Knapp
+
+    prediction = TRUE,
+
+    # remoev continuity correction
+    method.incr = "only0",
+    incr =0.5
+  )
+}
+
+mh_hw <- lapply(kegg_split_hw, run_mh_random_hw)
+
+# Collect pooled results + FDR 
+mh_hw_table <- bind_rows(lapply(names(mh_hw), function(k) {
+  m <- mh_hw[[k]]
+  data.frame(
+    kegg = k,
+    contrast = "human_vs_wild",
+    n_species = m$k,
+    logOR_random = m$TE.random,
+    se_random = m$seTE.random,
+    OR_random = exp(m$TE.random),
+    ci_low_random = exp(m$lower.random),
+    ci_high_random = exp(m$upper.random),
+    p_random = m$pval.random,
+    I2_percent = m$I2,
+    tau2_REML = m$tau^2,
+    stringsAsFactors = FALSE
+  )
+})) %>%
+  mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
+
+```
+
+
+
+```{r keggs where ci does not include_1, fig.height = 10, fig.width = 13}
+mh_re_table_ci <- mh_hw_table %>%
+  dplyr::filter(ci_low_random > 1 | ci_high_random <1) %>%
+  dplyr::arrange(p_adj_fdr, p_random) 
+
+
+mgen_ci <- metagen(
+  TE   = mh_re_table_ci$logOR_random,   
+  seTE = mh_re_table_ci$se_random,
+  studlab = mh_re_table_ci$kegg,
+  sm = "OR",
+  common = FALSE, 
+  random = FALSE
+)
+
+
+meta::forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (Human vs Wild)",
+  leftlabs = c("KEGG pathway"),
+  sortvar = mh_re_table_ci$p_adj_fdr,
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+
+
+```
+
+```{r metaanalysis for all keggs_human_wild_cont}
+# Prep totals and basic filters 
+df_hw <- kegg_fisher_total %>%
+  filter(contrast == "human_vs_wild") %>%
+  mutate(
+    tot_wild  = n_mags_wild  + absent_wild,
+    tot_human = n_mags_human + absent_human
+  ) %>%
+  filter(tot_wild > 0, tot_human > 0) %>%
+  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) %>%
+  filter(!grepl("^K02[89]", kegg))   # ribosomal protein KOs
+
+#%>%filter((n_mags_human < tot_human) & (n_mags_wild < tot_wild))
+
+#  Low-bias screen 
+min_informative_species <- 8
+min_total_events <- 10
+
+kegg_keep_hw <- df_hw %>%
+  group_by(kegg) %>%
+  summarise(
+    n_species_inform = n(),
+    total_events = sum(n_mags_wild + n_mags_human),
+    .groups = "drop"
+  ) %>%
+  filter(
+    n_species_inform >= min_informative_species,
+    total_events >= min_total_events
+  ) %>%
+  dplyr::select(kegg)
+
+df_hw_screened <- df_hw %>%
+  inner_join(kegg_keep_hw, by = "kegg")
+
+# Split by KEGG
+kegg_split_hw <- split(df_hw_screened, df_hw_screened$kegg)
+
+# Effect size pooling
+# MH with random effects; Human vs wild 
+run_mh_random_hw <- function(dat) {
+  meta::metabin(
+    # Human as experimental (so OR>1 => more prevalent in Human)
+    event.e = dat$n_mags_human,
+    n.e     = dat$tot_human,
+    event.c = dat$n_mags_wild,
+    n.c     = dat$tot_wild,
+
+    studlab = dat$species,
+    sm      = "OR",
+    method  = "MH",
+
+    common  = FALSE,          # do not compute fixed/common summary
+    random  = TRUE,           # compute random-effects summary
+    method.tau       = "REML",
+    method.random.ci = "HK",  # Hartung–Knapp
+
+    prediction = TRUE,
+
+    # remoev continuity correction
+    method.incr = "only0",
+    incr =0.5
+  )
+}
+
+mh_hw <- lapply(kegg_split_hw, run_mh_random_hw)
+
+# Collect pooled results + FDR 
+mh_hw_table <- bind_rows(lapply(names(mh_hw), function(k) {
+  m <- mh_hw[[k]]
+  data.frame(
+    kegg = k,
+    contrast = "human_vs_wild",
+    n_species = m$k,
+    logOR_random = m$TE.random,
+    se_random = m$seTE.random,
+    OR_random = exp(m$TE.random),
+    ci_low_random = exp(m$lower.random),
+    ci_high_random = exp(m$upper.random),
+    p_random = m$pval.random,
+    I2_percent = m$I2,
+    tau2_REML = m$tau^2,
+    stringsAsFactors = FALSE
+  )
+})) %>%
+  mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
+
+```
+
+
+
+```{r keggs where ci does not include_1, fig.height = 10, fig.width = 13}
+mh_re_table_ci <- mh_hw_table %>%
+  dplyr::filter(ci_low_random > 1 | ci_high_random <1) %>%
+  dplyr::arrange(p_adj_fdr, p_random) 
+
+
+mgen_ci <- metagen(
+  TE   = mh_re_table_ci$logOR_random,   
+  seTE = mh_re_table_ci$se_random,
+  studlab = mh_re_table_ci$kegg,
+  sm = "OR",
+  common = FALSE, 
+  random = FALSE
+)
+
+
+meta::forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (Human vs Wild)",
+  leftlabs = c("KEGG pathway"),
+  sortvar = mh_re_table_ci$p_adj_fdr,
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+
+
+```
+
+
+```{r forest plot individual keggs, fig.height = 6, fid.width = 10}
+# Forest plot (Human on right, Wild on left)
+forest_one_kegg <- function(kegg_id, xlim = NULL, at = NULL) {
+
+  m <- mh_hw[[kegg_id]]
+  if (is.null(m)) stop("KEGG not found in mh_hw: ", kegg_id)
+
+  xlab_txt <- "Odds ratio (Human vs Wild)"
+
+  # Columns potentially available in metabin object
+  wanted_leftcols <- c("studlab", "event.e", "n.e", "event.c", "n.c")
+  wanted_leftlabs <- c("Species", "Events H", "N H", "Events W", "N W")
+
+  available <- intersect(wanted_leftcols, names(m$data))
+
+  # Always include studlab
+  leftcols_use <- c("studlab", setdiff(available, "studlab"))
+  leftlabs_use <- wanted_leftlabs[
+    match(leftcols_use, wanted_leftcols)
+  ]
+
+  meta::forest(
+    m,
+    overall     = TRUE,
+    prediction  = TRUE,
+    sortvar     = NULL,
+    leftcols    = leftcols_use,
+    leftlabs    = leftlabs_use,
+    rightlabs   = c("OR", "95% CI"),
+    xlab        = xlab_txt,
+    xlim        = xlim,
+    at          = at,
+    xlog        = TRUE,   # IMPORTANT for ORs
+    digits      = 2,
+    main        = paste0("KEGG: ", kegg_id)
+  )
+}
+
+#individual analyses of each of these keggs:
+keggs <- mh_re_table_ci %>% dplyr::pull(kegg)
+
+for (k in keggs) {
+  forest_one_kegg(
+    kegg_id = k,
+    xlim    = c(0.1, 10),
+    at      = c(0.1, 0.25, 1, 4, 10)
+  )
+}
+```
+
+
+```{r manual lookup of keggs}
+kegg_search_info <- tibble::tibble(
+  kegg = c(
+    
+    "K18799","K03436","K01356","K07461","K13573","K03580","K09144",
+    "K07497","K03798","K07317","K03427","K06871","K02935","K02864",
+    "K07485","K07493","K01183","K22886","K06113","K02965","K02890",
+    "K01580","K02886","K02994","K02933","K02982","K02946","K02892",
+    "K02926","K02907","K01154","K02954","K03279","K03046","K00571",
+
+    
+    "K07459","K03741","K07448","K08884","K08217","K07482","K07455",
+    "K18220","K20922","K07339",
+    "K21029","K18909","K16566","K00980","K16702","K12453","K06919",
+    
+    "K18234", "K03076", "K15773"
+  ),
+
+  description = c(
+    
+    "O-antigen flippase wzxB",
+    "DeoR family transcriptional regulator",
+    "Repressor LexA",
+    "Putative endonuclease",
+    "Proteasome accessory factor C",
+    "ATP-dependent helicase HepA",
+    "Nucleotidyl transferase AbiEii/AbiGii toxin-family protein",
+    "Putative transposase",
+    "Cell division protease FtsH",
+    "Adenine-specific DNA methyltransferase",
+    "Type I restriction enzyme M protein",
+    "Uncharacterized protein",
+    "Ribosomal protein L7/L12",
+    "Ribosomal protein L10",
+    "Transposase",
+    "Putative transposase",
+    "Chitinase",
+    "Protein lysine acetyltransferase",
+    "Arabinan endo-1,5-alpha-L-arabinosidase",
+    "Small subunit ribosomal protein S19",
+    "Large subunit ribosomal protein L22",
+    "Glutamate decarboxylase",
+    "Large subunit ribosomal protein L2",
+    "Small subunit ribosomal protein S8",
+    "Large subunit ribosomal protein L6",
+    "Small subunit ribosomal protein S3",
+    "Small subunit ribosomal protein S10",
+    "Large subunit ribosomal protein L23",
+    "Large subunit ribosomal protein L4",
+    "Large subunit ribosomal protein L30",
+    "Type I restriction enzyme, S subunit",
+    "Small subunit ribosomal protein S14",
+    "UDP-glucose:(galactosyl)LPS alpha-1,2-glucosyltransferase",
+    "DNA-directed RNA polymerase subunit beta'",
+    "Site-specific DNA-methyltransferase",
+    "ATP-dependent endonuclease OLD family protein",
+    "Arsenate reductase",
+    "Type IV restriction system protein Mrr",
+    "Serine/threonine protein kinase",
+    "Macrolide efflux protein",
+    "IS30 family transposase",
+    "Recombination protein RecT",
+    "Ribosomal protection tetracycline resistance protein",
+    "Polysaccharide biosynthesis protein",
+    "mRNA interferase toxin HicA",
+    "Uncharacterized protein",
+    "MarR family transcriptional regulator",
+    "Exopolysaccharide biosynthesis protein ExoY",
+    "Glycerol-3-phosphate cytidylyltransferase",
+    "Exopolysaccharide biosynthesis glycosyltransferase",
+    "CDP-paratose synthetase",
+    "Putative DNA replication protein",
+    "Virginiamycin A acetyltransferase",
+    "Preprotein translocase subunit SecY",
+    "HTH-type transcriptional regulator / antitoxin HipB"
+  ),
+
+  extra_info = c(
+    "",
+    "fructose operon transcriptional repressor",
+    "serine endopeptidase, SOS response regulator",
+    "",
+    "pafC",
+    "",
+    "Type IV TA system toxin",
+    "",
+    "metallo-endopeptidase",
+    "Type II R-M system",
+    "adenine-specific DNA methyltransferase",
+    "function unknown",
+    "large subunit",
+    "large subunit",
+    "",
+    "",
+    "",
+    "",
+    "abnA",
+    "RP-S19, RSM19, rpsS",
+    "RP-L22, MRPL22, rplV",
+    "Early infantile epileptic encephalopathy",
+    "ribosome",
+    "RP-S8, MRPS8, rpsH",
+    "RP-L6, MRPL6, rplF",
+    "RP-S3, rpsC",
+    "RP-S10, rpsJ",
+    "RP-L23, MRPL23, rplW",
+    "RP-L4, MRPL4, rplD",
+    "RP-L30, MRPL30, rpmD",
+    "Type I R-M system specificity subunit",
+    "RP-S14, MRPS14, rpsN",
+    "waaJ, rfaJ",
+    "rpoC",
+    "adenine-specific",
+    "DNA damage response",
+    "arsC, thioredoxin-dependent",
+    "restriction-modification system",
+    "protein phosphorylation",
+    "MFS transporter",
+    "mobile genetic element",
+    "homologous recombination",
+    "tetM / tetO",
+    "biofilm-associated",
+    "Type II toxin–antitoxin system",
+    "function unknown",
+    "mepR, antibiotic resistance regulation",
+    "exopolysaccharide synthesis",
+    "tagD",
+    "amsE",
+    "rfbS",
+    "replication / repair",
+    "vat",
+    "",
+    ""
+    
+  )
+)
+
+
+kegg_search_info
+```
+```{r wild human with kegginfo, fig.height = 6, fig.width = 10}
+mh_hw_table_annot <- mh_hw_table %>%
+  dplyr::left_join(
+    kegg_search_info,
+    by = "kegg"
+  ) %>%
+  dplyr::mutate(
+    studlab_desc = ifelse(
+      is.na(description),
+      kegg,
+      paste0(kegg, ": ", description)
+    )
+  )
+
+mh_re_table_ci <- mh_hw_table_annot %>%
+  dplyr::filter(ci_low_random > 1 | ci_high_random < 1) %>%
+  dplyr::arrange(p_adj_fdr, p_random)
+
+mgen_ci <- metagen(
+  TE   = mh_re_table_ci$logOR_random,
+  seTE = mh_re_table_ci$se_random,
+  studlab = mh_re_table_ci$studlab_desc,
+  sm = "OR",
+  common = FALSE,
+  random = FALSE
+)
+
+meta::forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (Human vs Wild)",
+  leftlabs = c("KEGG pathway"),
+  sortvar = mh_re_table_ci$p_adj_fdr,
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+```
+
+
+
+
+
+
+
+
+```{r forest plot individual keggs, fig.height = 6, fid.width = 10}
+#individual analyses of each of these keggs:
+keggs <- mh_re_table_ci %>% dplyr::pull(kegg)
+
+for (k in keggs) {
+  forest_one_kegg(
+    kegg_id = k,
+    xlim    = c(0.1, 10),
+    at      = c(0.1, 0.25, 1, 4, 10)
+  )
+}
+```
+
+
+
+
+
+### Risk difference meta-analysis
+```{r risk difference}
+run_random_hw_rd <- function(dat) {
+  meta::metabin(
+    event.e = dat$n_mags_human,
+    n.e     = dat$tot_human,
+    event.c = dat$n_mags_wild,
+    n.c     = dat$tot_wild,
+
+    studlab = dat$species,
+
+    sm      = "RD",        #  RISK DIFFERENCE
+    method  = "MH",
+
+    common  = FALSE,
+    random  = TRUE,
+
+    method.tau       = "REML",
+    method.random.ci = "HK",
+
+    prediction = TRUE
+  )
+}
+
+mh_hw_rd <- lapply(kegg_split_hw, run_random_hw_rd)
+
+mh_hw_rd_table <- bind_rows(lapply(names(mh_hw_rd), function(k) {
+  m <- mh_hw_rd[[k]]
+  data.frame(
+    kegg = k,
+    contrast = "human_vs_wild",
+    n_species = m$k,
+    RD_random      = m$TE.random,
+    se_random      = m$seTE.random,
+    ci_low_random  = m$lower.random,
+    ci_high_random = m$upper.random,
+    p_random       = m$pval.random,
+    I2_percent     = m$I2,
+    tau2_REML      = m$tau^2,
+    stringsAsFactors = FALSE
+  )
+})) %>%
+  mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
+
+
+mh_hw_rd_ci <- mh_hw_rd_table %>%
+  filter(ci_low_random > 0 | ci_high_random < 0)
+
+
+
+mh_hw_rd_ci$kegg_I2 <- paste0(
+  mh_hw_rd_ci$kegg,
+  "  (I²=",
+  round(100* mh_hw_rd_ci$I2_percent, 2),
+  "%)"
+)
+
+mgen_rd <- meta::metagen(
+  TE   = mh_hw_rd_ci$RD_random,
+  seTE = mh_hw_rd_ci$se_random,
+  studlab = mh_hw_rd_ci$kegg_I2,
+  sm = "RD",
+  common = FALSE,
+  random = FALSE
+)
+
+meta::forest(
+  mgen_rd,
+  backtransf = FALSE,
+  xlab = "Prevalence difference (Human − Wild)"
+)
+
+# meta::forest(
+#   mgen_rd,
+#   backtransf = FALSE,
+#   xlab = "Prevalence difference (Human − Wild)",
+#   leftcols = c("studlab", "I2"),
+#   leftlabs = c("KEGG", expression(I^2~"%")),
+#   col.square = "black",
+#   col.diamond = "black",
+#   col.diamond.lines = "black"
+# )
+
+```
+
+
+
+
+
+### Domestic vs wild
+
+```{r metaanalysis for all keggs_w_d}
+# Prep totals and basic filters 
+df_dw <- kegg_fisher_total %>%
+  filter(contrast == "wild_vs_domestic") %>%
+  mutate(
+    tot_wild  = n_mags_wild  + absent_wild,
+    tot_domestic = n_mags_domestic + absent_domestic
+  ) %>%
+  filter(tot_wild > 0, tot_domestic > 0) %>%
+  filter((n_mags_domestic < tot_domestic) & (n_mags_wild < tot_wild))
+
+#  Low-bias screen 
+min_informative_species <- 4
+min_total_events <- 10
+
+kegg_keep_dw <- df_dw %>%
+  group_by(kegg) %>%
+  summarise(
+    n_species_inform = n(),
+    total_events = sum(n_mags_wild + n_mags_domestic),
+    .groups = "drop"
+  ) %>%
+  filter(
+    n_species_inform >= min_informative_species,
+    total_events >= min_total_events
+  ) %>%
+  dplyr::select(kegg)
+
+df_dw_screened <- df_dw %>%
+  inner_join(kegg_keep_dw, by = "kegg")
+
+# Split by KEGG
+kegg_split_dw <- split(df_dw_screened, df_dw_screened$kegg)
+
+# Effect size pooling
+# MH with random effects; domestic vs wild 
+run_mh_random_dw <- function(dat) {
+  meta::metabin(
+    # domestic as experimental (so OR>1 => more prevalent in domestic)
+    event.e = dat$n_mags_domestic,
+    n.e     = dat$tot_domestic,
+    event.c = dat$n_mags_wild,
+    n.c     = dat$tot_wild,
+
+    studlab = dat$species,
+    sm      = "OR",
+    method  = "MH",
+
+    common  = FALSE,          # do not compute fixed/common summary
+    random  = TRUE,           # compute random-effects summary
+    method.tau       = "REML",
+    method.random.ci = "HK",  # Hartung–Knapp
+
+    prediction = TRUE,
+
+    # remoev continuity correction
+    method.incr = "only0"
+  )
+}
+
+mh_dw <- lapply(kegg_split_dw, run_mh_random_dw)
+
+# Collect pooled results + FDR 
+mh_dw_table <- bind_rows(lapply(names(mh_dw), function(k) {
+  m <- mh_dw[[k]]
+  data.frame(
+    kegg = k,
+    contrast = "domestic_vs_wild",
+    n_species = m$k,
+    logOR_random = m$TE.random,
+    se_random = m$seTE.random,
+    OR_random = exp(m$TE.random),
+    ci_low_random = exp(m$lower.random),
+    ci_high_random = exp(m$upper.random),
+    p_random = m$pval.random,
+    I2_percent = m$I2,
+    tau2_REML = m$tau^2,
+    stringsAsFactors = FALSE
+  )
+})) %>%
+  mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
+
+```
+
+
+
+```{r keggs where ci does not include_1_h_d, fig.height = 5, fig.width = 7}
+mh_re_table_ci <- mh_dw_table %>%
+  dplyr::filter(ci_low_random > 1 | ci_high_random <1) %>%
+  dplyr::arrange(p_adj_fdr, p_random) 
+
+
+mgen_ci <- metagen(
+  TE   = mh_re_table_ci$logOR_random,   
+  seTE = mh_re_table_ci$se_random,
+  studlab = mh_re_table_ci$kegg,
+  sm = "OR",
+  common = FALSE, 
+  random = FALSE
+)
+
+
+meta::forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (domestic vs Wild)",
+  leftlabs = c("KEGG pathway"),
+  sortvar = mh_re_table_ci$p_adj_fdr,
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+
+
+```
+
+```{r wild domestic with kegginfo, fig.height = 6, fig.width = 10}
+mh_dw_table_annot <- mh_dw_table %>%
+  dplyr::left_join(
+    kegg_search_info,
+    by = "kegg"
+  ) %>%
+  dplyr::mutate(
+    studlab_desc = ifelse(
+      is.na(description),
+      kegg,
+      paste0(kegg, ": ", description)
+    )
+  )
+
+mh_re_table_ci <- mh_dw_table_annot %>%
+  dplyr::filter(ci_low_random > 1 | ci_high_random < 1) %>%
+  dplyr::arrange(p_adj_fdr, p_random)
+
+mgen_ci <- metagen(
+  TE   = mh_re_table_ci$logOR_random,
+  seTE = mh_re_table_ci$se_random,
+  studlab = mh_re_table_ci$studlab_desc,
+  sm = "OR",
+  common = FALSE,
+  random = FALSE
+)
+
+meta::forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (Domestic vs Wild)",
+  leftlabs = c("KEGG pathway"),
+  sortvar = mh_re_table_ci$p_adj_fdr,
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+```
+
+
+### Human vs domestic
+
+```{r metaanalysis for all keggs_hd}
+# Prep totals and basic filters 
+df_dw <- kegg_fisher_total %>%
+  filter(contrast == "human_vs_domestic") %>%
+  mutate(
+    tot_domestic  = n_mags_domestic  + absent_domestic,
+    tot_human = n_mags_human + absent_human
+  ) %>%
+  filter(tot_domestic > 0, tot_human > 0) %>%
+  filter((n_mags_human < tot_human) & (n_mags_domestic < tot_domestic))
+
+#  Low-bias screen 
+min_informative_species <- 4
+min_total_events <- 10
+
+kegg_keep_dw <- df_dw %>%
+  group_by(kegg) %>%
+  summarise(
+    n_species_inform = n(),
+    total_events = sum(n_mags_domestic + n_mags_human),
+    .groups = "drop"
+  ) %>%
+  filter(
+    n_species_inform >= min_informative_species,
+    total_events >= min_total_events
+  ) %>%
+  select(kegg)
+
+df_dw_screened <- df_dw %>%
+  inner_join(kegg_keep_dw, by = "kegg")
+
+# Split by KEGG
+kegg_split_dw <- split(df_dw_screened, df_dw_screened$kegg)
+
+# Effect size pooling
+# MH with random effects; human vs domestic 
+run_mh_random_dw <- function(dat) {
+  meta::metabin(
+    # human as experimental (so OR>1 => more prevalent in human)
+    event.e = dat$n_mags_human,
+    n.e     = dat$tot_human,
+    event.c = dat$n_mags_domestic,
+    n.c     = dat$tot_domestic,
+
+    studlab = dat$species,
+    sm      = "OR",
+    method  = "MH",
+
+    common  = FALSE,          # do not compute fixed/common summary
+    random  = TRUE,           # compute random-effects summary
+    method.tau       = "REML",
+    method.random.ci = "HK",  # Hartung–Knapp
+
+    prediction = TRUE,
+
+    # remoev continuity correction
+    method.incr = "only0"
+  )
+}
+
+mh_dw <- lapply(kegg_split_dw, run_mh_random_dw)
+
+# Collect pooled results + FDR 
+mh_dw_table <- bind_rows(lapply(names(mh_dw), function(k) {
+  m <- mh_dw[[k]]
+  data.frame(
+    kegg = k,
+    contrast = "human_vs_domestic",
+    n_species = m$k,
+    logOR_random = m$TE.random,
+    se_random = m$seTE.random,
+    OR_random = exp(m$TE.random),
+    ci_low_random = exp(m$lower.random),
+    ci_high_random = exp(m$upper.random),
+    p_random = m$pval.random,
+    I2_percent = m$I2,
+    tau2_REML = m$tau^2,
+    stringsAsFactors = FALSE
+  )
+})) %>%
+  mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
+
+```
+
+
+
+```{r keggs where ci does not include_1_h_d, fig.height = 5, fig.width = 7}
+mh_re_table_ci <- mh_dw_table %>%
+  dplyr::filter(ci_low_random > 1 | ci_high_random <1) %>%
+  dplyr::arrange(p_adj_fdr, p_random) 
+
+
+mgen_ci <- metagen(
+  TE   = mh_re_table_ci$logOR_random,   
+  seTE = mh_re_table_ci$se_random,
+  studlab = mh_re_table_ci$kegg,
+  sm = "OR",
+  common = FALSE, 
+  random = FALSE
+)
+
+
+meta::forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (human vs domestic)",
+  leftlabs = c("KEGG pathway"),
+  sortvar = mh_re_table_ci$p_adj_fdr,
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+
+
+```
+
+```{r human domestic with kegginfo, fig.height = 6, fig.width = 10}
+mh_dw_table_annot <- mh_dw_table %>%
+  dplyr::left_join(
+    kegg_search_info,
+    by = "kegg"
+  ) %>%
+  dplyr::mutate(
+    studlab_desc = ifelse(
+      is.na(description),
+      kegg,
+      paste0(kegg, ": ", description)
+    )
+  )
+
+mh_re_table_ci <- mh_dw_table_annot %>%
+  dplyr::filter(ci_low_random > 1 | ci_high_random < 1) %>%
+  dplyr::arrange(p_adj_fdr, p_random)
+
+mgen_ci <- metagen(
+  TE   = mh_re_table_ci$logOR_random,
+  seTE = mh_re_table_ci$se_random,
+  studlab = mh_re_table_ci$studlab_desc,
+  sm = "OR",
+  common = FALSE,
+  random = FALSE
+)
+
+meta::forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (Human vs Domestic)",
+  leftlabs = c("KEGG pathway"),
+  sortvar = mh_re_table_ci$p_adj_fdr,
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+```
+### Meta-analysis with VF
+#### Human vs wild
+```{r metaanalysis for all vfs}
+# Prep totals and basic filters 
+df_hw <- vf_fisher_total %>%
+  filter(contrast == "human_vs_wild") %>%
+  mutate(
+    tot_wild  = n_mags_wild  + absent_wild,
+    tot_human = n_mags_human + absent_human
+  ) %>%
+  filter(tot_wild > 0, tot_human > 0) %>%
+  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild))
+
+#  Low-bias screen 
+min_informative_species <- 4
+min_total_events <- 10
+
+vf_keep_hw <- df_hw %>%
+  group_by(vf) %>%
+  summarise(
+    n_species_inform = n(),
+    total_events = sum(n_mags_wild + n_mags_human),
+    .groups = "drop"
+  ) %>%
+  filter(
+    n_species_inform >= min_informative_species,
+    total_events >= min_total_events
+  ) %>%
+  dplyr::select(vf)
+
+df_hw_screened <- df_hw %>%
+  inner_join(vf_keep_hw, by = "vf")
+
+# Split by vf
+vf_split_hw <- split(df_hw_screened, df_hw_screened$vf)
+
+# Effect size pooling
+# MH with random effects; Human vs wild 
+run_mh_random_hw <- function(dat) {
+  meta::metabin(
+    # Human as experimental (so OR>1 => more prevalent in Human)
+    event.e = dat$n_mags_human,
+    n.e     = dat$tot_human,
+    event.c = dat$n_mags_wild,
+    n.c     = dat$tot_wild,
+
+    studlab = dat$species,
+    sm      = "OR",
+    method  = "MH",
+
+    common  = FALSE,          # do not compute fixed/common summary
+    random  = TRUE,           # compute random-effects summary
+    method.tau       = "REML",
+    method.random.ci = "HK",  # Hartung–Knapp
+
+    prediction = TRUE,
+
+   
+    method.incr = "only0"
+  )
+}
+
+mh_hw <- lapply(vf_split_hw, run_mh_random_hw)
+
+# Collect pooled results + FDR 
+mh_hw_table <- bind_rows(lapply(names(mh_hw), function(k) {
+  m <- mh_hw[[k]]
+  data.frame(
+    vf = k,
+    contrast = "human_vs_wild",
+    n_species = m$k,
+    logOR_random = m$TE.random,
+    se_random = m$seTE.random,
+    OR_random = exp(m$TE.random),
+    ci_low_random = exp(m$lower.random),
+    ci_high_random = exp(m$upper.random),
+    p_random = m$pval.random,
+    I2_percent = m$I2,
+    tau2_REML = m$tau^2,
+    stringsAsFactors = FALSE
+  )
+})) %>%
+  mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
+
+```
+
+
+
+```{r keggs where ci does not include_1, fig.height = 10, fig.width = 13}
+mh_re_table_ci <- mh_hw_table %>%
+  dplyr::filter(ci_low_random > 1 | ci_high_random <1) %>%
+  dplyr::arrange(p_adj_fdr, p_random) 
+
+
+mgen_ci <- metagen(
+  TE   = mh_re_table_ci$logOR_random,   
+  seTE = mh_re_table_ci$se_random,
+  studlab = mh_re_table_ci$vf,
+  sm = "OR",
+  common = FALSE, 
+  random = FALSE
+)
+
+
+meta::forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (Human vs Wild)",
+  leftlabs = c("VF"),
+  sortvar = mh_re_table_ci$p_adj_fdr,
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+
+
+```
+
+
+```{r check vf name}
+library(readxl)
+vf_data <- read_excel("data/VFs.xls")
+```
+
+
+```{r human wild with vfinfo, fig.height = 6, fig.width = 10}
+mh_hw_table_annot <- mh_hw_table %>%
+  dplyr::left_join(
+    vf_data,
+    join_by ("vf" == "VFID")
+  ) %>%
+  dplyr::mutate(
+    studlab_desc = ifelse(
+      is.na(VF_Name),
+      vf,
+      paste0(vf, ": ", VF_Name)
+    )
+  )
+
+mh_re_table_ci <- mh_hw_table_annot %>%
+  dplyr::filter(ci_low_random > 1 | ci_high_random < 1) %>%
+  dplyr::arrange(p_adj_fdr, p_random)
+
+mgen_ci <- metagen(
+  TE   = mh_re_table_ci$logOR_random,
+  seTE = mh_re_table_ci$se_random,
+  studlab = mh_re_table_ci$studlab_desc,
+  sm = "OR",
+  common = FALSE,
+  random = FALSE
+)
+
+meta::forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (Human vs Wild)",
+  leftlabs = c("Virulence Factor"),
+  sortvar = mh_re_table_ci$p_adj_fdr,
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+```
+
+#### Human vs domestic
+```{r metaanalysis for all vfs_hd}
+# Prep totals and basic filters 
+df_hw <- vf_fisher_total %>%
+  filter(contrast == "human_vs_domestic") %>%
+  mutate(
+    tot_domestic  = n_mags_domestic  + absent_domestic,
+    tot_human = n_mags_human + absent_human
+  ) %>%
+  filter(tot_domestic > 0, tot_human > 0) %>%
+  filter((n_mags_human < tot_human) | (n_mags_domestic < tot_domestic))
+
+#  Low-bias screen 
+min_informative_species <- 2
+min_total_events <- 10
+
+vf_keep_hw <- df_hw %>%
+  group_by(vf) %>%
+  summarise(
+    n_species_inform = n(),
+    total_events = sum(n_mags_domestic + n_mags_human),
+    .groups = "drop"
+  ) %>%
+  filter(
+    n_species_inform >= min_informative_species,
+    total_events >= min_total_events
+  ) %>%
+  dplyr::select(vf)
+
+df_hw_screened <- df_hw %>%
+  inner_join(vf_keep_hw, by = "vf")
+
+# Split by vf
+vf_split_hw <- split(df_hw_screened, df_hw_screened$vf)
+
+# Effect size pooling
+# MH with random effects; Human vs domestic 
+run_mh_random_hw <- function(dat) {
+  meta::metabin(
+    # Human as experimental (so OR>1 => more prevalent in Human)
+    event.e = dat$n_mags_human,
+    n.e     = dat$tot_human,
+    event.c = dat$n_mags_domestic,
+    n.c     = dat$tot_domestic,
+
+    studlab = dat$species,
+    sm      = "OR",
+    method  = "MH",
+
+    common  = FALSE,          # do not compute fixed/common summary
+    random  = TRUE,           # compute random-effects summary
+    method.tau       = "REML",
+    method.random.ci = "HK",  # Hartung–Knapp
+
+    prediction = TRUE,
+
+    # remoev continuity correction
+    method.incr = "only0"
+  )
+}
+
+mh_hw <- lapply(vf_split_hw, run_mh_random_hw)
+
+# Collect pooled results + FDR 
+mh_hw_table <- bind_rows(lapply(names(mh_hw), function(k) {
+  m <- mh_hw[[k]]
+  data.frame(
+    vf = k,
+    contrast = "human_vs_domestic",
+    n_species = m$k,
+    logOR_random = m$TE.random,
+    se_random = m$seTE.random,
+    OR_random = exp(m$TE.random),
+    ci_low_random = exp(m$lower.random),
+    ci_high_random = exp(m$upper.random),
+    p_random = m$pval.random,
+    I2_percent = m$I2,
+    tau2_REML = m$tau^2,
+    stringsAsFactors = FALSE
+  )
+})) %>%
+  mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
+
+```
+
+
+
+```{r vfs where ci does not include_1_vf_hd, fig.height = 10, fig.width = 13}
+mh_hw_table_annot <- mh_hw_table %>%
+  dplyr::left_join(
+    vf_data,
+    join_by ("vf" == "VFID")
+  ) %>%
+  dplyr::mutate(
+    studlab_desc = ifelse(
+      is.na(VF_Name),
+      vf,
+      paste0(vf, ": ", VF_Name)
+    )
+  )
+
+mh_re_table_ci <- mh_hw_table_annot %>%
+  dplyr::filter(ci_low_random > 1 | ci_high_random < 1) %>%
+  dplyr::arrange(p_adj_fdr, p_random)
+
+mgen_ci <- metagen(
+  TE   = mh_re_table_ci$logOR_random,
+  seTE = mh_re_table_ci$se_random,
+  studlab = mh_re_table_ci$studlab_desc,
+  sm = "OR",
+  common = FALSE,
+  random = FALSE
+)
+
+meta::forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (Human vs Domestic)",
+  leftlabs = c("Virulence Factor"),
+  sortvar = mh_re_table_ci$p_adj_fdr,
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+
+```
+```{r forest plot individual vfs_hd, fig.height = 6, fid.width = 10}
+# Forest plot (Human on right, Wild on left)
+forest_one_vf <- function(vf_id, xlim = NULL, at = NULL) {
+
+  m <- mh_hw[[vf_id]]
+  if (is.null(m)) stop("vf not found in mh_hw: ", vf_id)
+
+  xlab_txt <- "Odds ratio (Human vs Wild)"
+
+  # Columns potentially available in metabin object
+  wanted_leftcols <- c("studlab", "event.e", "n.e", "event.c", "n.c")
+  wanted_leftlabs <- c("Species", "Events H", "N H", "Events W", "N W")
+
+  available <- intersect(wanted_leftcols, names(m$data))
+
+  # Always include studlab
+  leftcols_use <- c("studlab", setdiff(available, "studlab"))
+  leftlabs_use <- wanted_leftlabs[
+    match(leftcols_use, wanted_leftcols)
+  ]
+
+  meta::forest(
+    m,
+    overall     = TRUE,
+    prediction  = TRUE,
+    sortvar     = NULL,
+    leftcols    = leftcols_use,
+    leftlabs    = leftlabs_use,
+    rightlabs   = c("OR", "95% CI"),
+    xlab        = xlab_txt,
+    xlim        = xlim,
+    at          = at,
+    xlog        = TRUE,   # IMPORTANT for ORs
+    digits      = 2,
+    main        = paste0("VF: ", vf_id)
+  )
+}
+
+#individual analyses of each of these vf:
+vfs <- mh_re_table_ci %>% dplyr::pull(vf)
+
+for (k in vfs) {
+  forest_one_vf(
+    vf_id = k,
+    xlim    = c(0.1, 10),
+    at      = c(0.1, 0.25, 1, 4, 10)
+  )
+}
+```
+
+
+
+
+#### Domestic vs wild
+```{r metaanalysis for all vfs_dw}
+# Prep totals and basic filters 
+df_hw <- vf_fisher_total %>%
+  filter(contrast == "wild_vs_domestic") %>%
+  mutate(
+    tot_wild  = n_mags_wild  + absent_wild,
+    tot_domestic = n_mags_domestic + absent_domestic
+  ) %>%
+  filter(tot_wild > 0, tot_domestic > 0) %>%
+  filter((n_mags_domestic < tot_domestic) | (n_mags_wild < tot_wild))
+
+#  Low-bias screen 
+min_informative_species <- 3
+min_total_events <- 10
+
+vf_keep_hw <- df_hw %>%
+  group_by(vf) %>%
+  summarise(
+    n_species_inform = n(),
+    total_events = sum(n_mags_wild + n_mags_domestic),
+    .groups = "drop"
+  ) %>%
+  filter(
+    n_species_inform >= min_informative_species,
+    total_events >= min_total_events
+  ) %>%
+  dplyr::select(vf)
+
+df_hw_screened <- df_hw %>%
+  inner_join(vf_keep_hw, by = "vf")
+
+# Split by vf
+vf_split_hw <- split(df_hw_screened, df_hw_screened$vf)
+
+# Effect size pooling
+# MH with random effects; domestic vs wild 
+run_mh_random_hw <- function(dat) {
+  meta::metabin(
+    # domestic as experimental (so OR>1 => more prevalent in domestic)
+    event.e = dat$n_mags_domestic,
+    n.e     = dat$tot_domestic,
+    event.c = dat$n_mags_wild,
+    n.c     = dat$tot_wild,
+
+    studlab = dat$species,
+    sm      = "OR",
+    method  = "MH",
+
+    common  = FALSE,          # do not compute fixed/common summary
+    random  = TRUE,           # compute random-effects summary
+    method.tau       = "REML",
+    method.random.ci = "HK",  # Hartung–Knapp
+
+    prediction = TRUE,
+
+    # remoev continuity correction
+    method.incr = "only0"
+  )
+}
+
+mh_hw <- lapply(vf_split_hw, run_mh_random_hw)
+
+# Collect pooled results + FDR 
+mh_hw_table <- bind_rows(lapply(names(mh_hw), function(k) {
+  m <- mh_hw[[k]]
+  data.frame(
+    vf = k,
+    contrast = "domestic_vs_wild",
+    n_species = m$k,
+    logOR_random = m$TE.random,
+    se_random = m$seTE.random,
+    OR_random = exp(m$TE.random),
+    ci_low_random = exp(m$lower.random),
+    ci_high_random = exp(m$upper.random),
+    p_random = m$pval.random,
+    I2_percent = m$I2,
+    tau2_REML = m$tau^2,
+    stringsAsFactors = FALSE
+  )
+})) %>%
+  mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
+
+```
+
+
+
+```{r vfs where ci does not include_1_vf_hd, fig.height = 10, fig.width = 13}
+mh_hw_table_annot <- mh_hw_table %>%
+  dplyr::left_join(
+    vf_data,
+    join_by ("vf" == "VFID")
+  ) %>%
+  dplyr::mutate(
+    studlab_desc = ifelse(
+      is.na(VF_Name),
+      vf,
+      paste0(vf, ": ", VF_Name)
+    )
+  )
+
+mh_re_table_ci <- mh_hw_table_annot %>%
+  dplyr::filter(ci_low_random > 1 | ci_high_random < 1) %>%
+  dplyr::arrange(p_adj_fdr, p_random)
+
+mgen_ci <- metagen(
+  TE   = mh_re_table_ci$logOR_random,
+  seTE = mh_re_table_ci$se_random,
+  studlab = mh_re_table_ci$studlab_desc,
+  sm = "OR",
+  common = FALSE,
+  random = FALSE
+)
+
+meta::forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (domestic vs Wild)",
+  leftlabs = c("Virulence Factor"),
+  sortvar = mh_re_table_ci$p_adj_fdr,
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+
+```
+```{r forest plot individual vfs_hd, fig.height = 6, fid.width = 10}
+# Forest plot (Human on right, Wild on left)
+forest_one_vf <- function(vf_id, xlim = NULL, at = NULL) {
+
+  m <- mh_hw[[vf_id]]
+  if (is.null(m)) stop("vf not found in mh_hw: ", vf_id)
+
+  xlab_txt <- "Odds ratio (Human vs Wild)"
+
+  # Columns potentially available in metabin object
+  wanted_leftcols <- c("studlab", "event.e", "n.e", "event.c", "n.c")
+  wanted_leftlabs <- c("Species", "Events H", "N H", "Events W", "N W")
+
+  available <- intersect(wanted_leftcols, names(m$data))
+
+  # Always include studlab
+  leftcols_use <- c("studlab", setdiff(available, "studlab"))
+  leftlabs_use <- wanted_leftlabs[
+    match(leftcols_use, wanted_leftcols)
+  ]
+
+  meta::forest(
+    m,
+    overall     = TRUE,
+    prediction  = TRUE,
+    sortvar     = NULL,
+    leftcols    = leftcols_use,
+    leftlabs    = leftlabs_use,
+    rightlabs   = c("OR", "95% CI"),
+    xlab        = xlab_txt,
+    xlim        = xlim,
+    at          = at,
+    xlog        = TRUE,   # IMPORTANT for ORs
+    digits      = 2,
+    main        = paste0("VF: ", vf_id)
+  )
+}
+
+#individual analyses of each of these vf:
+vfs <- mh_re_table_ci %>% dplyr::pull(vf)
+
+for (k in vfs) {
+  forest_one_vf(
+    vf_id = k,
+    xlim    = c(0.1, 10),
+    at      = c(0.1, 0.25, 1, 4, 10)
+  )
+}
+```
+
+## Hierarchical GLMM
+
+```{r make the matrices}
+make_glmm_long <- function(mat, metadata, species_name, annotation_type) {
+
+  # mat: wide matrix from make_annotation_matrix()
+  # metadata: genome metadata table
+  # annotation_col: column name for annotation ("kegg", "amr", etc.)
+  # annotation_type: label ("KEGG", "AMR", "VF", "CAZy")
+
+  if (ncol(mat) <= 1) return(tibble::tibble())
+
+  # 1. Convert counts to presence/absence
+  pa <- mat %>%
+    dplyr::mutate(
+      dplyr::across(-genome, ~ as.integer(. != 0))
+    )
+
+  # 2. Pivot to long format 
+  pa_long <- pa %>%
+    tidyr::pivot_longer(
+      cols = -genome,
+      names_to  = "annotation",
+      values_to = "present"
+    )
+
+  # 3. Join metadata
+
+   out <- pa_long %>%
+      dplyr::left_join(
+        metadata %>%
+          dplyr::select(
+            genome        = ID_clean,
+            host_type_2,
+            completeness
+          ),
+        by = "genome"
+      ) %>%
+      dplyr::mutate(
+        species = species_name,
+        annotation_type = annotation_type
+      )
+
+
+  # 4. Drop rows with missing critical info
+  out %>%
+    dplyr::filter(
+      !is.na(host_type_2),
+      !is.na(completeness)
+    )
+}
+
+
+glmm_tables <- list()
+
+for (sp in species_list) {
+
+  message("Processing species: ", sp)
+
+  genome_annotations <- species_data[[sp]]$annotations
+  genome_metadata    <- species_data[[sp]]$metadata
+
+  mats <- list(
+    KEGG = make_annotation_matrix(genome_annotations, "kegg"),
+    AMR  = make_annotation_matrix(genome_annotations, "resistance_target"),
+    VF   = make_annotation_matrix(genome_annotations, "vf"),
+    CAZy = make_annotation_matrix(genome_annotations, "cazy")
+  )
+
+  glmm_tables[[sp]] <- purrr::imap(
+    mats,
+    ~ make_glmm_long(
+        mat            = .x,
+        metadata       = genome_metadata,
+        species_name   = sp,
+        annotation_type = .y
+      )
+  )
+}
+```
+```{r combine}
+kegg_glmm <- purrr::map_dfr(glmm_tables, "KEGG")
+amr_glmm  <- purrr::map_dfr(glmm_tables, "AMR")
+vf_glmm   <- purrr::map_dfr(glmm_tables, "VF")
+cazy_glmm <- purrr::map_dfr(glmm_tables, "CAZy")
+```
+
+
+
+```{r check distribution}
+
+ggplot(kegg_glmm, aes(x = factor(present))) +
+  geom_bar() +
+  labs(
+    x = "Presence / Absence",
+    y = "Number of observations",
+    title = "Distribution of KEGG presence (row-wise)"
+  )+theme_bw()
+
+ggplot(vf_glmm, aes(x = factor(present))) +
+  geom_bar() +
+  labs(
+    x = "Presence / Absence",
+    y = "Number of observations",
+    title = "Distribution of VF presence (row-wise)"
+  )+theme_bw()
+
+
+```
+```{r kegg checks}
+kegg_by_genome <- kegg_glmm %>%
+  dplyr::group_by(genome, host_type_2, species) %>%
+  dplyr::summarise(
+    n_kegg = sum(present),
+    .groups = "drop"
+  )
+
+ggplot(kegg_by_genome, aes(x = n_kegg)) +
+  geom_histogram(bins = 50) +
+  labs(
+    x = "Number of KEGG annotations per genome",
+    y = "Number of genomes",
+    title = "KEGG richness per genome"
+  )+ theme_bw()
+
+
+
+vf_by_genome <- vf_glmm %>%
+  dplyr::group_by(genome, host_type_2, species) %>%
+  dplyr::summarise(
+    n_vf = sum(present),
+    .groups = "drop"
+  )
+
+ggplot(vf_by_genome, aes(x = n_vf)) +
+  geom_histogram(bins = 50) +
+  labs(
+    x = "Number of VF annotations per genome",
+    y = "Number of genomes",
+    title = "VF richness per genome"
+  )+ theme_bw()
+
+```
+
+
+For each KO, does the probability of being present in a MAG differ by host type (wild / domestic / human), consistently across bacterial species, after correcting for MAG completeness?
+
+-Done in cluster
+
+```{r load_vf_glmm_resutls}
+vf_fixed  <- read_csv("data/glmm_results/vf_glmm_fixed_effects.csv")
+vf_contr  <- read_csv("data/glmm_results/vf_glmm_host_contrasts.csv")
+vf_effect <- read_csv("data/glmm_results/vf_glmm_annotation_effects.csv")
+m_vf_2 <- readRDS("data/glmm_results/vf_glmm_model.rds")
+```
+```{r vf_fixed}
+vf_fixed
+```
+```{r vf_host_contrasts}
+vf_contr
+```
+
+```{r vf_annot}
+vf_effect %>% head(10)
+```
+
+
+```{r selecting top vfs}
+vf_top_human <- vf_effect %>%
+  arrange(host_type_2wild) %>%   # more negative = more human-enriched
+  slice_head(n = 15)
+
+vf_top_human
+
+vf_top_wild <- vf_effect %>%
+  arrange(desc(host_type_2wild)) %>%
+  slice_head(n = 15)
+
+vf_top_wild
+
+```
+
+
+```{r load random effects model annotations}
+re_vf <- ranef(m_vf_2, condVar = TRUE)$annotation
+```
+
+
+```{r vf_effects_with_uncertainty}
+
+vf_df <- as.data.frame(re_vf) %>%
+  tibble::rownames_to_column("vf")
+
+postvar <- attr(re_vf, "postVar")
+
+pv_slopes <- postvar[['c("host_type_2human", "host_type_2domestic", "host_type_2wild")']]
+
+
+vf_df <- vf_df %>%
+  mutate(
+    se_human    = sqrt(pv_slopes[1, 1, ]),
+    se_domestic = sqrt(pv_slopes[2, 2, ]),
+    se_wild     = sqrt(pv_slopes[3, 3, ])
+  )
+
+
+vf_df <- vf_df %>%
+  mutate(
+    lo_human = host_type_2human - 1.96 * se_human,  #95% uncertainty interval
+    hi_human = host_type_2human + 1.96 * se_human,
+
+    lo_dom   = host_type_2domestic - 1.96 * se_domestic,
+    hi_dom   = host_type_2domestic + 1.96 * se_domestic,
+
+    lo_wild  = host_type_2wild - 1.96 * se_wild,
+    hi_wild  = host_type_2wild + 1.96 * se_wild
+  )
+
+vf_df2 <- vf_df %>%
+  left_join(vf_data, by = c("vf" = "vf"))
+
+
+vf_human <- vf_df2 %>%
+  filter(hi_wild < 0) %>%
+  arrange(host_type_2wild)
+
+
+vf_wild <- vf_df2 %>%
+  filter(lo_wild > 0) %>%
+  arrange(desc(host_type_2wild))
+
+vf_domestic <- vf_df2 %>%
+  filter(
+    lo_dom > 0,
+    hi_wild > 0,     # optional: distinct from wild
+    hi_human > 0    # optional: distinct from human
+  ) %>%
+  arrange(desc(host_type_2domestic))
+
+
+vf_gradient <- vf_df2  %>%
+  filter(
+    lo_wild > 0,
+    lo_dom  > 0,
+    host_type_2wild > host_type_2domestic,
+    host_type_2domestic > host_type_2human
+  )  %>%
+  arrange(desc(host_type_2wild))
+
+
+
+top_wild <- vf_wild  %>% slice_head(n = 12)
+
+ggplot(top_wild,
+       aes(y = reorder(vf, host_type_2wild),
+           x = exp(host_type_2wild))) +
+  geom_point(size = 2) +
+  geom_errorbarh(
+    aes(
+      xmin = exp(lo_wild),
+      xmax = exp(hi_wild)
+    ),
+    height = 0.2
+  ) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  scale_x_log10() +
+  labs(
+    x = "Odds ratio (Wild vs Human)",
+    y = "Virulence factor"
+  ) +
+  theme_bw()
+
+
+ggplot(top_wild,
+       aes(y = reorder(vf, host_type_2wild),
+           x = exp(host_type_2wild),
+           color = vf_type)) +
+  geom_point(size = 2) +
+  geom_errorbarh(
+    aes(xmin = exp(lo_wild), xmax = exp(hi_wild)),
+    height = 0.2
+  ) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  scale_x_log10() +
+  labs(
+    x = "Odds ratio (Wild vs Human)",
+    y = "Virulence factor",
+    color = "VF functional class"
+  ) +
+  theme_bw()
+
+
+vf_domestic <- vf_df2 %>%
+  filter(lo_dom > 0) %>%
+  arrange(desc(host_type_2domestic))
+
+top_domestic <- vf_domestic %>% slice_head(n = 12)
+
+ggplot(top_domestic,
+       aes(y = reorder(vf, host_type_2domestic),
+           x = exp(host_type_2domestic),
+           color = vf_type)) +
+  geom_point(size = 2) +
+  geom_errorbarh(
+    aes(xmin = exp(lo_dom), xmax = exp(hi_dom)),
+    height = 0.2
+  ) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  scale_x_log10() +
+  labs(
+    x = "Odds ratio (Domestic vs Human)",
+    y = "Virulence factor",
+    color = "VF functional class"
+  ) +
+  theme_bw()
+
+vf_human <- vf_df2 %>%
+  filter(hi_wild < 0) %>%
+  arrange(host_type_2wild)
+
+top_human <- vf_human %>% slice_head(n = 12)
+
+
+ggplot(top_human,
+       aes(y = reorder(vf, -host_type_2wild),
+           x = exp(-host_type_2wild),
+           color = vf_type)) +
+  geom_point(size = 2) +
+  geom_errorbarh(
+    aes(xmin = exp(-hi_wild), xmax = exp(-lo_wild)),
+    height = 0.2
+  ) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  scale_x_log10() +
+  labs(
+    x = "Odds ratio (Human vs Wild)",
+    y = "Virulence factor",
+    color = "VF functional class"
+  ) +
+  theme_bw()
+
+
+
+vf_df2 <- vf_df2 %>%
+  mutate(
+    wild_vs_domestic = host_type_2wild - host_type_2domestic
+  )
+
+```
+```{r human and wild together}
+top_wild <- vf_df2 %>%
+  arrange(desc(host_type_2wild)) %>%
+  slice_head(n = 10)
+
+top_human <- vf_df2 %>%
+  arrange(host_type_2wild) %>%
+  slice_head(n = 10)
+
+top_both <- bind_rows(top_wild, top_human)
+
+ggplot(top_both,
+       aes(
+         y = reorder(vf, host_type_2wild),
+         x = exp(host_type_2wild),
+         color = vf_type
+       )) +
+  geom_point(size = 2) +
+  geom_errorbarh(
+    aes(
+      xmin = exp(lo_wild),
+      xmax = exp(hi_wild)
+    ),
+    height = 0.2
+  ) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  scale_x_log10() +
+  labs(
+    x = "Odds ratio (Wild vs Human, relative to average VF)",
+    y = "Virulence factor",
+    color = "VF functional class"
+  ) +
+  theme_bw()
+
+
+top_domestic <- vf_df2 %>%
+  arrange(desc(host_type_2domestic)) %>%
+  slice_head(n = 10)
+
+top_human_dom <- vf_df2 %>%
+  arrange(host_type_2domestic) %>%
+  slice_head(n = 10)
+
+top_both_domestic <- bind_rows(top_domestic, top_human_dom)
+
+ggplot(top_both_domestic,
+       aes(
+         y = reorder(vf, host_type_2domestic),
+         x = exp(host_type_2domestic),
+         color = vf_type
+       )) +
+  geom_point(size = 2) +
+  geom_errorbarh(
+    aes(
+      xmin = exp(lo_dom),
+      xmax = exp(hi_dom)
+    ),
+    height = 0.2
+  ) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  scale_x_log10() +
+  labs(
+    x = "Odds ratio (Domestic vs Human, relative to average VF)",
+    y = "Virulence factor",
+    color = "VF functional class"
+  ) +
+  theme_bw()
+```
+
+```{r}
+ggplot(vf_df, aes(x = host_type_2wild)) +
+  geom_histogram(bins = 50) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(
+    x = "VF deviation (wild vs human)",
+    y = "Number of virulence factors"
+  ) +
+  theme_bw()
+
+
+ggplot(vf_df2,
+       aes(x = wild_vs_domestic)) +
+  geom_histogram(bins = 40) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(
+    x = "VF deviation (Wild vs Domestic)",
+    y = "Number of virulence factors"
+  ) +
+  theme_bw()
+
+
+```
+
+```{r scattreplot}
+ggplot(vf_df,
+       aes(x = host_type_2wild, y = host_type_2domestic)) +
+  geom_point(alpha = 0.3) +
+  geom_vline(xintercept = 0) +
+  geom_hline(yintercept = 0) +
+  labs(
+    x = "VF deviation: Wild vs Human",
+    y = "VF deviation: Domestic vs Human"
+  ) +
+  theme_bw()
+
+
+ggplot(vf_df2,
+       aes(x = host_type_2wild,
+           y = host_type_2domestic,
+           color = vf_type)) +
+  geom_point(alpha = 0.6) +
+  geom_vline(xintercept = 0) +
+  geom_hline(yintercept = 0) +
+  labs(
+    x = "VF deviation: Wild vs Human",
+    y = "VF deviation: Domestic vs Human",
+    color = "VF functional class"
+  ) +
+  theme_bw()
+```
+
+
+
+
+
+## GLMM with glmmTMB per species
+```{r glmmTMB}
+vf_models <- readRDS("data/glmm_results/vf_glmmTMB_models_by_species.rds")
+vf_effects <- read_csv("data/glmm_results/vf_host_effects_by_species.csv")
+vf_annotation_slopes <- read_csv("data/glmm_results/vf_annotation_random_slopes.csv")
+```
+
+```{r vf_effects}
+vf_effects
+```
+
+```{r host_effects}
+host_effects <- vf_effects %>%
+  filter(term %in% c("host_type_2domestic", "host_type_2wild")) %>%
+  mutate(
+    odds_ratio = exp(estimate),
+    ci_low = exp(estimate - 1.96 * std.error),
+    ci_high = exp(estimate + 1.96 * std.error)
+  )
+
+```
+
+```{r plot_host_efefcts}
+ggplot(host_effects,
+       aes(y = species, x = odds_ratio)) +
+  geom_point() +
+  geom_errorbarh(
+    aes(xmin = ci_low, xmax = ci_high),
+    height = 0.2
+  ) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  facet_wrap(~ term) +
+  scale_x_log10() +
+  labs(
+    x = "Odds ratio (log scale)",
+    y = "Species",
+    title = "Host-associated VF presence by species"
+  ) +
+  theme_bw()
+
+```
+
+```{r random_slopes}
+vf_annotation_slopes
+```
+
+
+
+
+For the VF per-spceis model - not enough information to estimate the random slopes.
+
+```{r}
+
+vf_presence <- vf_fisher_total %>%
+  mutate(present = n_mags_human > 0 | n_mags_wild > 0 | n_mags_domestic > 0)
+
+# 2. Count number of species per VF
+vf_counts <- vf_presence %>%
+  filter(present) %>%
+  dplyr::select(vf, species) %>%
+  distinct() %>%
+  group_by(vf) %>%
+  summarise(n_species = n_distinct(species), .groups = "drop")
+
+# 3. Count how many VFs fall in each category
+vf_distribution <- vf_counts %>%
+  count(n_species)
+
+# 4. Plot
+ggplot(vf_distribution, aes(x = n_species, y = n)) +
+  geom_col(fill = "steelblue") +
+  scale_x_continuous(breaks = 1:10) +
+  labs(
+    x = "Number of species where VF is present",
+    y = "Number of VFs",
+    title = "Distribution of VF presence across species"
+  ) +
+  theme_minimal()
+
+
+
+
+# Count number of species per VF per contrast
+vf_counts <- vf_fisher_total %>%
+  dplyr::select(vf, species, contrast) %>%
+  distinct() %>%
+  group_by(contrast, vf) %>%
+  summarise(n_species = n_distinct(species), .groups = "drop")
+
+# Distribution: how many VFs per species-count, per contrast
+vf_distribution <- vf_counts %>%
+  count(contrast, n_species) %>%
+  complete(contrast, n_species = 1:10, fill = list(n = 0))
+
+# Plot (faceted by contrast)
+ggplot(vf_distribution, aes(x = n_species, y = n)) +
+  geom_col(fill = "steelblue") +
+  facet_wrap(~ contrast) +
+  scale_x_continuous(breaks = 1:10) +
+  labs(
+    x = "Number of species where VF is present",
+    y = "Number of VFs",
+    title = "VF distribution across species (split by contrast)"
+  ) +
+  theme_minimal()
+
+```
+
+## VF glmm TMB model
+```{r}
+vf_model <- readRDS("data/glmm_results/vf_2/vf_glmmTMB_global_model.rds")
+vf_fixed_effects <- read_csv("data/glmm_results/vf_2/vf_glmm_fixed_effects_2.csv")
+vf_annotation_host <- read_csv("data/glmm_results/vf_2/vf_annotation_host_OR_2.csv")
+```
+
+```{r fixed}
+vf_fixed_effects
+```
+
+```{r}
+library(glmmTMB)
+
+vf_model <- up2date(vf_model)
+
+summary(vf_model)
+
+ranef_out <- ranef(vf_model)
+
+vf_re <- ranef_out$cond$annotation %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("annotation")
+
+head(vf_re)
+```
+
+
+
+```{r}
+fixef_host <- fixef(vf_model)$cond
+
+vf_plot_df <- vf_re %>%
+  dplyr::mutate(
+    beta_domestic = fixef_host["host_type_2domestic"] + host_type_2domestic,
+    beta_wild     = fixef_host["host_type_2wild"]     + host_type_2wild,
+    OR_domestic = exp(beta_domestic),
+    OR_wild     = exp(beta_wild)
+  )
+
+```
+
+
+```{r}
+top_domestic <- vf_plot_df %>%
+  dplyr::arrange(desc(OR_domestic)) %>%
+  dplyr::slice_head(n = 20)
+
+
+top_wild <- vf_plot_df %>%
+  dplyr::arrange(desc(OR_wild)) %>%
+  dplyr::slice_head(n = 20)
+```
+
+
+
+
+
+```{r}
+
+ggplot(top_domestic,
+       aes(x = reorder(annotation, OR_domestic),
+           y = OR_domestic)) +
+  geom_point(size = 2) +
+  coord_flip() +
+  geom_hline(yintercept = 1,
+             linetype = "dashed",
+             color = "red") +
+  labs(
+    title = "Top enriched VFs in domestic hosts",
+    x = "Virulence factor (annotation)",
+    y = "Odds ratio (vs human)"
+  ) +
+  theme_minimal()
+
+ggplot(top_wild,
+       aes(x = reorder(annotation, OR_wild),
+           y = OR_wild)) +
+  geom_point(size = 2) +
+  coord_flip() +
+  geom_hline(yintercept = 1,
+             linetype = "dashed",
+             color = "red") +
+  labs(
+    title = "Top enriched VFs in wild hosts",
+    x = "Virulence factor (annotation)",
+    y = "Odds ratio (vs human)"
+  ) +
+  theme_minimal()
+
+```
+```{r}
+
+vf_long <- vf_plot_df %>%
+  dplyr::select(annotation, OR_domestic, OR_wild) %>%
+  pivot_longer(
+    cols = c(OR_domestic, OR_wild),
+    names_to = "host",
+    values_to = "OR"
+  ) %>%
+  dplyr::mutate(
+    host = dplyr::recode(host,
+                         OR_domestic = "domestic",
+                         OR_wild = "wild")
+  )
+
+top_combined <- vf_long %>%
+  dplyr::group_by(host) %>%
+  dplyr::slice_max(OR, n = 15) %>%
+  dplyr::ungroup()
+
+ggplot(top_combined,
+       aes(x = reorder(annotation, OR),
+           y = OR,
+           color = host)) +
+  geom_point(size = 2,
+             position = position_dodge(width = 0.6)) +
+  coord_flip() +
+  geom_hline(yintercept = 1,
+             linetype = "dashed") +
+  labs(
+    title = "Top enriched virulence factors by host type",
+    x = "Annotation",
+    y = "Odds ratio (vs human)"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+ranef_out <- ranef(vf_model, condVar = TRUE)
+vf_re <- ranef_out$cond$annotation
+
+post_var <- attr(vf_re, "condVar")
+
+vf_re_df <- as.data.frame(vf_re) %>%
+  tibble::rownames_to_column("annotation")
+
+term_names <- colnames(vf_re)
+
+idx_dom <- which(term_names == "host_type_2domestic")
+idx_wild <- which(term_names == "host_type_2wild")
+
+get_se <- function(i, term) {
+  sqrt(post_var[term, term, i])
+}
+
+vf_re_df <- vf_re_df %>%
+  dplyr::mutate(
+    se_domestic = sapply(seq_len(nrow(vf_re_df)),
+                         function(i) sqrt(post_var[idx_dom, idx_dom, i])),
+
+    se_wild = sapply(seq_len(nrow(vf_re_df)),
+                     function(i) sqrt(post_var[idx_wild, idx_wild, i]))
+  )
+
+fixef_host <- fixef(vf_model)$cond
+
+vf_plot_df <- vf_re_df %>%
+  dplyr::mutate(
+    beta_domestic = fixef_host["host_type_2domestic"] + host_type_2domestic,
+    beta_wild     = fixef_host["host_type_2wild"]     + host_type_2wild,
+
+    # ORs
+    OR_domestic = exp(beta_domestic),
+    OR_wild     = exp(beta_wild),
+
+    # CIs
+    lower_domestic = exp(beta_domestic - 1.96 * se_domestic),
+    upper_domestic = exp(beta_domestic + 1.96 * se_domestic),
+
+    lower_wild = exp(beta_wild - 1.96 * se_wild),
+    upper_wild = exp(beta_wild + 1.96 * se_wild)
+  )
+
+
+#deriving domestic vs wild
+
+vf_plot_df <- vf_plot_df %>%
+  dplyr::mutate(
+    beta_dw = beta_domestic - beta_wild,
+    OR_dw = exp(beta_dw),
+
+    # Approximate SE (independent assumption)
+    se_dw = sqrt(se_domestic^2 + se_wild^2),
+
+    lower_dw = exp(beta_dw - 1.96 * se_dw),
+    upper_dw = exp(beta_dw + 1.96 * se_dw)
+  )
+
+top_domestic <- vf_plot_df %>%
+  dplyr::arrange(desc(OR_domestic)) %>%
+  dplyr::slice_head(n = 20)
+
+ggplot(top_domestic,
+       aes(x = reorder(annotation, OR_domestic),
+           y = OR_domestic)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = lower_domestic, ymax = upper_domestic),
+                width = 0.2) +
+  coord_flip() +
+  scale_y_log10() +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  labs(title = "Domestic vs Human",
+       y = "Odds ratio",
+       x = "Annotation") +
+  theme_minimal()
+```
+```{r}
+vf_sig <- vf_plot_df %>%
+  dplyr::mutate(
+    sig_domestic = (lower_domestic > 1 | upper_domestic < 1),
+    sig_wild     = (lower_wild > 1 | upper_wild < 1),
+    sig_dw       = (lower_dw > 1 | upper_dw < 1)
+  )
+
+vf_sig %>%
+  summarise(
+    domestic_sig = sum(sig_domestic, na.rm = TRUE),
+    wild_sig = sum(sig_wild, na.rm = TRUE),
+    domestic_vs_wild_sig = sum(sig_dw, na.rm = TRUE)
+  )
+
+
+vf_sig %>%
+  summarise(
+    domestic_enriched = sum(lower_domestic > 1),
+    domestic_depleted = sum(upper_domestic < 1),
+
+    wild_enriched = sum(lower_wild > 1),
+    wild_depleted = sum(upper_wild < 1)
+  )
+```
+
+```{r}
+vf_domestic_sig <- vf_plot_df %>%
+  dplyr::filter(lower_domestic > 1)
+
+vf_wild_sig <- vf_plot_df %>%
+  dplyr::filter(lower_wild > 1)
+
+top_domestic_sig <- vf_domestic_sig %>%
+  dplyr::arrange(desc(OR_domestic)) %>%
+  dplyr::slice_head(n = 20)
+
+top_wild_sig <- vf_wild_sig %>%
+  dplyr::arrange(desc(OR_wild)) %>%
+  dplyr::slice_head(n = 20)
+
+ggplot(top_domestic_sig,
+       aes(x = reorder(annotation, OR_domestic),
+           y = OR_domestic)) +
+  geom_point(size = 2) +
+  geom_errorbar(aes(ymin = lower_domestic, ymax = upper_domestic),
+                width = 0.2) +
+  coord_flip() +
+  scale_y_log10() +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  labs(title = "Significantly enriched VFs (Domestic vs Human)",
+       y = "Odds ratio",
+       x = "Annotation") +
+  theme_minimal()
+
+
+ggplot(top_wild_sig,
+       aes(x = reorder(annotation, OR_wild),
+           y = OR_wild)) +
+  geom_point(size = 2) +
+  geom_errorbar(aes(ymin = lower_wild, ymax = upper_wild),
+                width = 0.2) +
+  coord_flip() +
+  scale_y_log10() +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  labs(title = "Significantly enriched VFs (Wild vs Human)",
+       y = "Odds ratio",
+       x = "Annotation") +
+  theme_minimal()
+```
+```{r}
+#vfs enriched in domestic and wild vs human
+
+vf_both <- vf_plot_df %>%
+  dplyr::filter(
+    lower_domestic > 1,
+    lower_wild > 1
+  )
+nrow(vf_both)
+
+top_both <- vf_both %>%
+  dplyr::arrange(desc(OR_domestic + OR_wild)) %>%
+  dplyr::slice_head(n = 20)
+
+
+
+vf_both_long <- top_both %>%
+  dplyr::select(annotation,
+                OR_domestic, lower_domestic, upper_domestic,
+                OR_wild, lower_wild, upper_wild) %>%
+  pivot_longer(
+    cols = -annotation,
+    names_to = c(".value", "host"),
+    names_pattern = "(OR|lower|upper)_(.*)"
+  )
+
+ggplot(vf_both_long,
+       aes(x = reorder(annotation, OR),
+           y = OR,
+           color = host)) +
+  geom_point(position = position_dodge(width = 0.6), size = 2) +
+  geom_errorbar(aes(ymin = lower, ymax = upper),
+                position = position_dodge(width = 0.6),
+                width = 0.2) +
+  coord_flip() +
+  scale_y_log10() +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  labs(
+    title = "VFs enriched in BOTH domestic and wild (vs human)",
+    y = "Odds ratio",
+    x = "Annotation"
+  ) +
+  theme_minimal()
+
+```
+```{r}
+
+vf_plot_df <- vf_plot_df %>%
+  dplyr::mutate(
+    z_domestic = beta_domestic / se_domestic,
+    p_domestic = 2 * pnorm(-abs(z_domestic)),
+
+    z_wild = beta_wild / se_wild,
+    p_wild = 2 * pnorm(-abs(z_wild)),
+
+    z_dw = beta_dw / se_dw,
+    p_dw = 2 * pnorm(-abs(z_dw))
+  )
+
+vf_plot_df <- vf_plot_df %>%
+  dplyr::mutate(
+    padj_domestic = p.adjust(p_domestic, method = "BH"),
+    padj_wild     = p.adjust(p_wild, method = "BH"),
+    padj_dw       = p.adjust(p_dw, method = "BH")
+  )
+
+vf_plot_df <- vf_plot_df %>%
+  dplyr::mutate(
+    sig_domestic = padj_domestic < 0.05,
+    sig_wild     = padj_wild < 0.05,
+    sig_dw       = padj_dw < 0.05
+  )
+
+```
+
+```{r}
+plot_domestic <- vf_plot_df %>%
+  dplyr::filter(sig_domestic) %>%
+  dplyr::mutate(
+    logOR = log(OR_domestic),
+    lower_log = log(lower_domestic),
+    upper_log = log(upper_domestic),
+    comparison = "Domestic vs Human"
+  )
+
+plot_wild <- vf_plot_df %>%
+  dplyr::filter(sig_wild) %>%
+  dplyr::mutate(
+    logOR = log(OR_wild),
+    lower_log = log(lower_wild),
+    upper_log = log(upper_wild),
+    comparison = "Wild vs Human"
+  )
+
+plot_all <- dplyr::bind_rows(plot_domestic, plot_wild)
+
+ggplot(plot_all,
+       aes(x = logOR,
+           y = reorder(annotation, logOR),
+           color = comparison)) +
+  geom_point(size = 2) +
+  geom_errorbarh(aes(xmin = lower_log, xmax = upper_log),
+                 height = 0.2) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(
+    title = "Host-associated virulence factors",
+    x = "Log odds ratio (0 = no difference)",
+    y = "Annotation"
+  ) +
+  theme_minimal()
+
+```
+```{r}
+ggplot(plot_all,
+       aes(x = logOR,
+           y = reorder(annotation, logOR))) +
+  geom_point(size = 2) +
+  geom_errorbarh(aes(xmin = lower_log, xmax = upper_log),
+                 height = 0.2) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  facet_wrap(~comparison, scales = "free_y") +
+  labs(
+    title = "Host-specific enrichment (significant VFs only)",
+    x = "Log odds ratio",
+    y = "Annotation"
+  ) +
+  theme_minimal()
+```
+
+## kegg-per-spceis
+```{r}
+kegg_models <- readRDS("data/glmm_results/kegg/kegg_glmmTMB_models_by_species.rds")
+kegg_host <- read_csv("data/glmm_results/kegg/kegg_host_effects_by_species.csv")
+kegg_annotation_random <- read_csv("data/glmm_results/kegg/kegg_annotation_random_slopes.csv")
+```
+
+
+
+```{r}
+kegg_host
+```
+
+```{r}
+head(kegg_annotation_random )
+
+
+ggplot(kegg_annotation_random, aes(x = host_type_2domestic)) +
+  geom_histogram(bins = 40) +
+  facet_wrap(~ species, scales = "free") +
+  labs(
+    title = "Distribution of annotation-level random slopes",
+    x = "Random slope (host_type effect deviation)",
+    y = "Count"
+  )
+ggplot(kegg_annotation_random, aes(x = host_type_2wild)) +
+  geom_histogram(bins = 40) +
+  facet_wrap(~ species, scales = "free") +
+  labs(
+    title = "Distribution of annotation-level random slopes",
+    x = "Random slope (host_type effect deviation)",
+    y = "Count"
+  )
+```
+
+
+```{r forests, fig.height = 10, fig.width =15 }
+kegg_fixed_wild <- kegg_host %>%
+  dplyr::filter(term == "host_type_2wild") %>%
+  dplyr::select(species, fixed_wild = estimate)
+
+
+
+kegg_or <- kegg_annotation_random %>%
+  dplyr::left_join(kegg_fixed_wild, by = "species") %>%
+  dplyr::mutate(
+    log_odds_wild = fixed_wild + host_type_2wild,
+    OR_wild_vs_human = exp(log_odds_wild)
+  )
+
+kegg_top <- kegg_or %>%
+  dplyr::mutate(diff_strength = abs(log(OR_wild_vs_human))) %>%
+  dplyr::group_by(species) %>%
+  dplyr::slice_max(diff_strength, n = 15) %>%
+  dplyr::ungroup()
+
+
+ggplot(
+  kegg_top,
+  aes(
+    x = OR_wild_vs_human,
+    y = reorder(annotation, OR_wild_vs_human)
+  )
+) +
+  geom_point() +
+  facet_wrap(~ species, scales = "free_y") +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  scale_x_log10() +
+  labs(
+    title = "Top KEGG annotations differing between wild and human",
+    x = "Odds ratio (wild vs human, log scale)",
+    y = "KEGG annotation"
+  )
+
+```
+
+
+```{r}
+kegg_wild_effects <- purrr::imap_dfr(
+  kegg_models,
+  ~ {
+    re <- ranef(.x)$cond$annotation %>% as.data.frame()
+    
+    fixed <- kegg_host %>%
+      filter(term == "host_type_2wild", species == .y) %>%
+      pull(estimate)
+    
+    tibble(
+      annotation = rownames(re),
+      log_odds = fixed + re$host_type_2wild,
+      species = .y
+    )
+  }
+)
+
+kegg_meta <- kegg_wild_effects %>%
+  group_by(annotation) %>%
+  summarise(
+    mean_log_odds = mean(log_odds, na.rm = TRUE),
+    sd_log_odds = sd(log_odds, na.rm = TRUE),
+    n_species = n(),
+    consistency = mean(log_odds > 0, na.rm = TRUE)
+  ) %>%
+  ungroup() %>%
+  mutate(
+    OR = exp(mean_log_odds)
+  )
+
+kegg_top <- kegg_meta %>%
+  filter(n_species >= 3) %>%   # keep reliable ones
+  mutate(strength = abs(mean_log_odds)) %>%
+  arrange(desc(strength)) %>%
+  slice_head(n = 30)
+
+
+
+ggplot(
+  kegg_top,
+  aes(
+    x = OR,
+    y = reorder(annotation, OR),
+    color = consistency
+  )
+) +
+  geom_point(size = 2) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  scale_x_log10() +
+  scale_color_gradient2(
+    low = "blue",
+    mid = "grey",
+    high = "red",
+    midpoint = 0.5
+  ) +
+  labs(
+    title = "Consistent KEGG enrichment across species (wild vs human)",
+    x = "Odds ratio (log scale)",
+    y = "KEGG annotation",
+    color = "Consistency\n(>0 = wild enriched)"
+  )
+
+
+kegg_top_2 <- kegg_meta %>%
+  filter(n_species >= 3) %>%   # keep reliable ones
+  mutate(strength = abs(mean_log_odds)) %>%
+  arrange(desc(strength)) %>%
+  slice_head(n = 50)
+
+
+ggplot(
+  kegg_top_2,
+  aes(
+    x = OR,
+    y = reorder(annotation, OR),
+    color = consistency
+  )
+) +
+  geom_point(size = 2) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  scale_x_log10() +
+  scale_color_gradient2(
+    low = "blue",
+    mid = "grey",
+    high = "red",
+    midpoint = 0.5
+  ) +
+  labs(
+    title = "Consistent KEGG enrichment across species (wild vs human)",
+    x = "Odds ratio (log scale)",
+    y = "KEGG annotation",
+    color = "Consistency\n(>0 = wild enriched)"
+  )
+
+```
+

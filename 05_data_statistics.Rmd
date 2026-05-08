@@ -1,0 +1,1480 @@
+# Data preparation and statistics
+
+
+## Load all the species data
+```{r Define species and mags to remove list_2, eval = FALSE}
+# ALL SPECIES
+species_list <- c(
+  "lactococcus_lactis",
+  "parabacteroides_goldsteinii",
+  "enterococcus_faecalis",
+  "bacteroides_uniformis",
+  "phocaeicola_vulgatus",
+  "hafnia_paralvei",
+  "citrobacter_braakii",
+  "enterococcus_hirae",
+  "akkermansia_muciniphila",
+  "bacteroides_fragilis"
+)
+
+
+mags_to_remove_list <- list(
+  lactococcus_lactis = c(
+    "GCA_018369575.1.fna","GCA_947063445.1.fna","GCA_947101685.1.fna",
+    "GCA_948698275.1.fna","GCA_937910935.1.fna","GCA_947072755.1.fna",
+    "GCA_948655095.1.fna","GCA_948703095.1.fna","GCA_947041925.1.fna",
+    "GCA_947073355.1.fna","GCA_948675165.1.fna","GCA_948718815.1.fna"
+  ),
+  parabacteroides_goldsteinii = character(0), # none to remove
+  enterococcus_faecalis = character(0),
+  hafnia_paralvei = character(0),
+  bacteroides_uniformis = character(0),
+  phocaeicola_vulgatus = c("GCA_040912025.1", "GCF_048453085.1", "GCA_048453085.1"),
+  citrobacter_braakii = character(0),
+  enterococcus_hirae = character(0),
+  akkermansia_muciniphila = character(0),
+  bacteroides_fragilis = character(0)
+)
+
+species_data <- list()
+
+for (sp in species_list) {
+  species_data[[sp]] <- process_one_species(
+    species        = sp,
+    mags_to_remove = mags_to_remove_list[[sp]]
+  )
+  
+  #recreate_drep_tree(species_data[[sp]]$ndb)
+}
+
+pg <- species_data[["parabacteroides_goldsteinii"]]$metadata
+eh <- species_data[["enterococcus_hirae"]]$metadata
+ef <- species_data[["enterococcus_faecalis"]]$metadata
+pv <- species_data[["phocaeicola_vulgatus"]]$metadata
+am <- species_data[["akkermansia_muciniphila"]]$metadata
+bf <- species_data[["bacteroides_fragilis"]]$metadata
+bu <- species_data[["bacteroides_uniformis"]]$metadata
+ll <- species_data[["lactococcus_lactis"]]$metadata
+hp <- species_data[["hafnia_paralvei"]]$metadata
+cb <- species_data[["citrobacter_braakii"]]$metadata
+
+
+named_list <- list(
+  parabacteroides_goldsteinii = pg,
+  enterococcus_hirae          = eh,
+  enterococcus_faecalis       = ef,
+  phocaeicola_vulgatus        = pv,
+  akkermansia_muciniphila     = am,
+  bacteroides_fragilis        = bf,
+  bacteroides_uniformis       = bu,
+  lactococcus_lactis          = ll,
+  hafnia_paralvei             = hp,
+  citrobacter_braakii         = cb
+)
+
+total_genome_metadata <- dplyr::bind_rows(named_list, .id = "bacterial_species")
+
+
+#total_genome_annotations <- dplyr::bind_rows(
+#   lapply(species_data, `[[`, "annotations"),
+#   .id = "bacterial_species"
+# )
+
+
+```
+
+
+
+## Phylogenetic tree of the 10 bacterial species
+
+```{r load tree and metadata}
+# Tree and metadata from the GTDB Release 226
+
+tree <- read.tree("data/bac120.tree")
+meta <- read_tsv("data/bac120_metadata.tsv.gz")
+```
+
+```{r gtdb tree}
+# Species list
+my_species <- c(
+  "Akkermansia muciniphila",
+  "Bacteroides fragilis",
+  "Bacteroides uniformis",
+  "Citrobacter braakii",
+  "Enterococcus_B hirae",
+  "Enterococcus faecalis",
+  "Hafnia paralvei",
+  "Parabacteroides goldsteinii",
+  "Phocaeicola vulgatus",
+  "Lactococcus lactis")
+
+
+meta <- meta %>%
+  mutate(
+    gtdb_species = str_extract(gtdb_taxonomy, "s__[^;]+") %>% 
+                   str_replace("s__", "")
+  )
+
+
+
+selected_accessions <- meta %>%
+  filter(gtdb_species %in% my_species) %>%
+  pull(accession)
+
+
+```
+
+```{r pruning the tree}
+# prune the GTDB tree to contain only our species
+pruned <- drop.tip(tree, setdiff(tree$tip.label, selected_accessions))
+
+label_map <- meta %>%
+  filter(accession %in% pruned$tip.label) %>%
+  select(accession, gtdb_species) %>%
+  deframe()
+
+pruned$tip.label <- label_map[pruned$tip.label]
+
+pruned$tip.label <- pruned$tip.label %>%
+  str_to_lower() %>%
+  str_replace_all(" ", "_")
+
+
+
+ggtree(pruned) + geom_tiplab(size = 3)
+```
+
+## Phylogenetic tree of the host species
+```{r host tree, fig.height= 8, fig.width = 10}
+
+host_tree <- read.tree("data/host_species_tree.nwk")
+plot(tree, cex = 0.5)
+axisPhylo()
+
+```
+```{r host species tree pretty, fig.height= 8, fig.width = 8}
+host_meta <- total_genome_metadata %>%
+  dplyr::select(host_species, host_class) %>%
+  dplyr::distinct() %>%
+  dplyr::mutate(
+    tip.label = gsub(" ", "_", host_species)
+  ) %>%
+  dplyr::select(tip.label, host_class)
+
+
+
+p <- ggtree(host_tree) %<+% host_meta +
+  geom_tiplab(
+    aes(color = host_class),
+    size = 2.3
+  ) +
+  xlim(0, max(nodeHeights(host_tree)) + 60)+
+  scale_color_manual(
+    values = host_class_colors,
+    name = "Host class"
+  ) +
+  theme_tree2() +
+  xlab("Million years ago (MYA)") +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 10),
+    legend.text  = element_text(size = 9)
+  )
+
+p
+
+host_meta_2 <- total_genome_metadata %>%
+  dplyr::select(host_species, host_type_2) %>%
+  dplyr::distinct() %>%
+  dplyr::mutate(
+    tip.label = gsub(" ", "_", host_species)
+  ) %>%
+  dplyr::select(tip.label, host_type_2)
+
+
+p_host_type <- ggtree(host_tree) %<+% host_meta_2 +
+  geom_tiplab(
+    aes(color = host_type_2),
+    size = 2.3
+  ) +
+  xlim(0, max(nodeHeights(host_tree)) + 60)+
+  scale_color_manual(
+    values = host_type_2_colors,
+    name = "Host Type"
+  ) +
+  theme_tree2() +
+  xlab("Million years ago (MYA)") +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 10),
+    legend.text  = element_text(size = 9)
+  )
+
+p_host_type
+
+```
+
+
+## Data statistics
+
+How many host species, order and classes in the dataset?
+```{r counting species order and class_2}
+total_genome_metadata %>% dplyr::count(host_species)
+
+total_genome_metadata %>% dplyr::count(host_order)
+
+total_genome_metadata %>% dplyr::count(host_class)
+```
+```{r plotting n mags per bacterial species split human and animal}
+counts_mags <- total_genome_metadata %>%
+  filter(!is.na(host_type_2))%>%
+  group_by(bacterial_species, host_type_2)%>%
+  summarize(total = n(),
+            n_mags_domestic = sum(host_type_2 == "domestic"), 
+            n_mags_human = sum(host_type_2 == "human"),
+            n_mags_wild = sum(host_type_2 == "wild"),)
+
+total_genome_metadata$host_type_2 <- factor(
+  total_genome_metadata$host_type_2,
+  levels = c("human", "domestic", "wild")
+)
+
+
+ggplot(counts_mags, aes(x = bacterial_species, y = total, fill = host_type_2))+
+  geom_bar(stat = "identity")+
+  scale_fill_manual(values = host_type_2_colors)+
+  labs(
+    title = "Number of MAGs per Bacterial Species (animal vs human hosts)",
+    x = "Bacterial species",
+    y = "N of MAGs"
+  ) +
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+```
+```{r total_counts_per_species}
+counts_mags_total <- total_genome_metadata %>%
+  group_by(bacterial_species)%>%
+  summarize(total = n())
+
+
+counts_mags_total
+```
+
+
+
+```{r plotting with tree}
+counts_mags <- counts_mags %>%
+  mutate(bacterial_species = bacterial_species %>%
+           str_replace("^enterococcus_hirae$", "enterococcus_b_hirae"))
+
+
+
+tree_data <- ggtree(pruned)$data
+tree_order <- tree_data %>%
+  filter(isTip) %>%
+  arrange(y) %>%
+  pull(label)
+
+counts_mags <- counts_mags %>%
+  mutate(bacterial_species = factor(bacterial_species, levels = tree_order),
+         host_type_2 = factor(host_type_2, levels = c("wild", "domestic", "human")))
+
+
+p_tree <- ggtree(pruned) +
+  theme_tree2() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+
+p_bar <- ggplot(counts_mags, aes(x = bacterial_species, y = total, fill = host_type_2))+
+  geom_bar(stat = "identity")+
+  scale_fill_manual(values = host_type_2_colors, name = "Host Type")+
+  scale_y_continuous(breaks = seq(0, 500, by = 50))+
+  labs(
+    x = NULL,
+    y = "Number of MAGs"
+  ) +
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))+
+  coord_flip()
+
+p_final <- (p_tree | p_bar) +
+  plot_layout(widths = c(1, 2.3)) +
+  plot_annotation(
+    title = "Number of MAGs per Bacterial Species (colored by host type)"
+  )
+
+
+p_final
+```
+
+
+```{r plotting host order_2}
+df_host_species <- total_genome_metadata %>%
+  filter(!is.na(bacterial_species), !is.na(host_species)) %>%
+  distinct(bacterial_species, host_species) %>%
+  count(bacterial_species, name = "n_host_species") %>%
+  mutate(bacterial_species = fct_reorder(bacterial_species, n_host_species))
+
+
+df_host_species_wild <- total_genome_metadata %>%
+  filter(!is.na(bacterial_species), !is.na(host_species), host_type_2 =="wild") %>%
+  distinct(bacterial_species, host_species) %>%
+  count(bacterial_species, name = "n_host_species") %>%
+  mutate(bacterial_species = fct_reorder(bacterial_species, n_host_species))
+
+df_host_species_domestic <- total_genome_metadata %>%
+  filter(!is.na(bacterial_species), !is.na(host_species), host_type_2 =="domestic") %>%
+  distinct(bacterial_species, host_species) %>%
+  count(bacterial_species, name = "n_host_species") %>%
+  mutate(bacterial_species = fct_reorder(bacterial_species, n_host_species))
+
+
+
+ggplot(df_host_species,
+       aes(x = bacterial_species, y = n_host_species)) +
+  geom_col(fill = "#355C7D") +
+  geom_text(aes(label = n_host_species), vjust = -0.3, size = 3) +
+  labs(
+    title = "Number of Host Species per Bacterial Species",
+    x = "Bacterial species",
+    y = "Distinct host species"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+
+
+
+df_order_counts <- total_genome_metadata %>%
+  filter(!is.na(host_order)) %>%
+  count(host_order, name = "n_mags") %>%
+  mutate(host_order = fct_reorder(host_order, n_mags))
+
+ggplot(df_order_counts,
+       aes(x = host_order, y = n_mags)) +
+  geom_col() +
+  scale_fill_manual(values = host_order_colors)+
+  geom_text(aes(label = n_mags), vjust = -0.3, size = 3) +
+  labs(
+    title = "Number of MAGs per Host Order",
+    x = "Host order",
+    y = "MAG count"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+
+```
+```{r average n host species}
+df_host_species %>% 
+  summarise(
+    mean_n = mean(n_host_species, na.rm = TRUE) %>% round(2),
+    sd_n = sd(n_host_species, na.rm = TRUE) %>% round(2),
+  ) %>%
+  unite("Mean number of host species per bacteria", mean_n, sd_n, sep = " ± ") %>%
+  tt()
+
+
+df_host_species_wild %>% 
+  summarise(
+    mean_n = mean(n_host_species, na.rm = TRUE) %>% round(2),
+    sd_n = sd(n_host_species, na.rm = TRUE) %>% round(2),
+  ) %>%
+  unite("Mean number of host species per bacteria", mean_n, sd_n, sep = " ± ") %>%
+  tt()
+
+df_host_species_domestic %>% 
+  summarise(
+    mean_n = mean(n_host_species, na.rm = TRUE) %>% round(2),
+    sd_n = sd(n_host_species, na.rm = TRUE) %>% round(2),
+  ) %>%
+  unite("Mean number of host species per bacteria", mean_n, sd_n, sep = " ± ") %>%
+  tt()
+```
+
+
+```{r how many host species total}
+total_genome_metadata %>% filter(!is.na(host_species))%>%
+  pull(host_species) %>% unique() 
+
+total_genome_metadata %>% filter(!is.na(host_class))%>%
+  pull(host_class) %>% unique() 
+```
+
+
+
+```{r map_2}
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(sf) 
+
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+mag_locations <- total_genome_metadata %>%
+  filter(!is.na(country_normalized)) %>%
+  left_join(
+    world %>%
+      dplyr::select(name, geometry) %>%
+      st_centroid() %>%
+      st_coordinates() %>%
+      as_tibble() %>%
+      bind_cols(world %>% dplyr::select(name)) ,
+    by = c("country" = "name")
+  )
+
+mag_locations%>% dplyr::select(ID, host_type_2, country_normalized)
+
+ggplot(world) +
+  geom_sf(fill = "gray95", color = "gray80") +
+  geom_point(
+    data = mag_locations,
+    aes(x = X, y = Y, color = host_type_2),
+    size = 2.5,
+    alpha = 0.5
+  ) +
+  scale_color_manual(values = host_type_2_colors) +
+  theme_minimal() +
+  labs(color = "Host Type")
+
+```
+
+
+### Mean completeness and contamination
+```{r mean completeness and contamination final_2}
+total_genome_metadata %>% 
+  summarise(
+    mean_c = mean(completeness, na.rm = TRUE) %>% round(2),
+    sd_c = sd(completeness, na.rm = TRUE) %>% round(2),
+    mean_con = mean(contamination, na.rm = TRUE) %>% round(2),
+    sd_con = sd(contamination, na.rm = TRUE) %>% round(2)
+  ) %>%
+  unite("Completeness", mean_c, sd_c, sep = " ± ") %>%
+  unite("Contamination", mean_con, sd_con, sep = " ± ") %>%
+  tt()
+```
+
+
+
+```{r plot completeness}
+ggplot(total_genome_metadata, aes(x= bacterial_species, y = completeness))+
+  geom_violin()
+  #facet_grid(~bacterial_species)
+
+ggplot(total_genome_metadata,
+       aes(x = host_type_2, y = completeness, color = host_type_2)) +
+
+  geom_boxplot(
+    outlier.shape = NA,
+    alpha = 0.3,
+    width = 0.55
+  ) +
+
+  geom_jitter(
+    width = 0.18,
+    alpha = 0.35,
+    size = 1
+  ) +
+
+  scale_color_manual(values = host_type_2_colors) +
+
+  labs(
+    title = "MAG Completeness by Host Type",
+    x = "Host Type",
+    y = "Completeness (%)"
+  ) +
+
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+
+
+ggplot(total_genome_metadata,
+       aes(x = host_type_2, y = contamination, color = host_type_2)) +
+
+  geom_boxplot(
+    outlier.shape = NA,
+    alpha = 0.3,
+    width = 0.55
+  ) +
+
+  geom_jitter(
+    width = 0.18,
+    alpha = 0.35,
+    size = 1
+  ) +
+
+  scale_color_manual(values = host_type_2_colors) +
+
+  labs(
+    title = "MAG Contamination by Host Type",
+    x = "Host Type",
+    y = "Contamination (%)"
+  ) +
+
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+```
+
+
+
+```{r is completeness and contamination different between bacteria}
+kruskal_test(total_genome_metadata,
+                   completeness ~ bacterial_species)
+
+pairwise.wilcox.test(total_genome_metadata$completeness, total_genome_metadata$bacterial_species, p.adjust.method = "fdr")
+
+kruskal_test(total_genome_metadata,
+                   contamination ~ bacterial_species)
+```
+```{r general completeness contaminaton }
+#Is completeness and contamination different across host types?
+
+kruskal.test(completeness ~ host_type_2, data = total_genome_metadata)
+kruskal.test(contamination ~ host_type_2, data = total_genome_metadata)
+
+#Between which host types?
+
+
+pairwise.wilcox.test(
+  total_genome_metadata$completeness,
+  total_genome_metadata$host_type_2,
+  p.adjust.method = "BH"
+)
+
+pairwise.wilcox.test(
+  total_genome_metadata$contamination,
+  total_genome_metadata$host_type_2,
+  p.adjust.method = "BH"
+)
+
+
+#How much different?
+
+
+summary_tbl <- total_genome_metadata %>%
+  group_by(host_type_2) %>%
+  summarise(
+    n = n(),
+    completeness_median = median(completeness, na.rm = TRUE),
+    completeness_IQR = IQR(completeness, na.rm = TRUE),
+    contamination_median = median(contamination, na.rm = TRUE),
+    contamination_IQR = IQR(contamination, na.rm = TRUE)
+  ) %>%
+  arrange(host_type_2)
+
+summary_tbl
+
+
+
+```
+
+```{r general completeness contaminaton human vs wild}
+total_genome_metadata_2 <- total_genome_metadata %>% filter(host_type_2 %in% c("wild", "human"))
+
+wilcox.test(contamination ~ host_type_2, data = total_genome_metadata_2)
+wilcox.test(completeness   ~ host_type_2, data = total_genome_metadata_2)
+
+
+summary_tbl <- total_genome_metadata_2 %>%
+  group_by(host_type_2) %>%
+  summarise(
+    n = n(),
+    completeness_median = median(completeness, na.rm = TRUE),
+    completeness_IQR    = IQR(completeness, na.rm = TRUE),
+    contamination_median = median(contamination, na.rm = TRUE),
+    contamination_IQR    = IQR(contamination, na.rm = TRUE)
+  ) %>%
+  arrange(host_type_2)
+
+summary_tbl
+
+```
+
+
+
+```{r violin plots bacteria completeness}
+total_genome_metadata %>%
+ggplot(aes(x= bacterial_species, y = completeness))+
+  geom_violin()+ 
+  geom_point()+
+  labs(y = "Completeness", x = "Bacterial Species")+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+
+
+total_genome_metadata %>%
+ggplot(aes(x= bacterial_species, y = contamination))+
+  geom_violin()+ 
+  geom_point()+
+  labs(y = "Contamination", x = "Bacterial Species")+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+
+total_genome_metadata %>%
+ggplot(aes(x= bacterial_species, y = completeness))+
+  geom_violin()+ 
+  geom_point()+
+  facet_grid(~host_type)+
+  labs(y = "Completeness", x = "Bacterial Species")+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+```
+
+Testing the differences in completeness and contamination between host types taking the different counts of bacterial species into account:
+
+Does host type explain genome quality differences after accounting for species-level differences?
+
+```{r statistics testing host type compelteness}
+# Completeness model
+m_comp <- lmer(completeness ~ host_type_2 + (1 | bacterial_species),
+               data = total_genome_metadata)
+
+summary(m_comp)
+anova(m_comp)
+
+# Contamination model
+m_cont <- lmer(contamination ~ host_type_2 + (1 | bacterial_species),
+               data = total_genome_metadata)
+
+summary(m_cont)
+anova(m_cont)
+
+```
+```{r means completeness and contamination}
+emmeans(m_comp, pairwise ~ host_type_2)
+emmeans(m_cont, pairwise ~ host_type_2)
+```
+
+
+Prepare the order of the host for the plots (so that orders are grouped by class):
+
+```{r order_preparation}
+
+  tax_map <- tibble::tibble(
+  host_species = c(
+    # Humans / lab / livestock / pets
+    "Homo sapiens",
+    "Mus musculus",
+    "Rattus norvegicus",
+    "Sus scrofa",
+    "Bos taurus",
+    "Canis lupus familiaris",
+    "Equus caballus",
+    "Oryctolagus cuniculus",
+    "Capra hircus",
+
+    # Birds
+    "Gallus gallus",
+    "Cathartes aura",
+    "Columba livia",
+    "Spheniscus magellanicus",
+
+    # Insects
+    "Drosophila melanogaster",
+    "Bombyx mori",
+
+    # Fish
+    "Danio rerio",
+    "Oncorhynchus mykiss",
+    "Oreochromis niloticus",
+
+    # Marine mammals / pinnipeds
+    "Balaenoptera acutorostrata",
+    "Arctocephalus australis",
+
+    # Extinct
+    "Mammuthus primigenius",
+    
+    #More
+    "Loxodonta africana",
+    "Elephas maximus",
+    "Felis catus",
+    "Canis lupus",
+    "Phascolarctos cinereus",
+    
+    "Grasshopper",
+    "Termite",
+    "Macaca fascicularis",
+    "Rhinolophus capensis",
+    "Fish",
+    
+    #Final (from total_genome_metadata)
+    "Zophobas morio",
+    "Mustela putorius",
+    "Ovis aries",
+    "Corallus caninus",
+    "Meles meles",
+    "Clanga pomarina",
+    "Buteo buteo",
+    "Accipiter gentilis",
+    "Chelonia mydas",
+    "Grampus griseus",
+    "Sterna trudeaui",
+    "Rhodnius prolixus",
+    "Turdus merula",
+    "Curruca curruca",
+    "Columba palumbus",
+    "Delichon urbicum",
+    "Chloris chloris",
+    "Hirundo rustica",
+    "Ciconia ciconia",
+    "Anas platyrhynchos",
+    "Grus grus",
+    "Apis mellifera",
+    "Coragyps atratus",
+    "Pseudoscops clamator",
+    "Pandion haliaetus",
+    "Sycanus bifidus",
+    "Eocanthecona furcellata",
+    "Arma custos",
+    "Corvus frugilegus",
+    "Milvus milvus",
+    "Vulpes zerda"
+
+
+  ),
+  tax_host_order = c(
+    # Humans / lab / livestock / pets
+    "Primates",
+    "Rodentia",
+    "Rodentia",
+    "Artiodactyla",
+    "Artiodactyla",
+    "Carnivora",
+    "Perissodactyla",
+    "Lagomorpha",
+    "Artiodactyla",
+
+    # Birds
+    "Galliformes",
+    "Accipitriformes",
+    "Columbiformes",
+    "Sphenisciformes",
+
+    # Insects
+    "Diptera",
+    "Lepidoptera",
+
+    # Fish
+    "Cypriniformes",
+    "Salmoniformes",
+    "Cichliformes",
+
+    # Marine mammals / pinnipeds
+    "Artiodactyla",      # (Cetartiodactyla)
+    "Carnivora",
+
+    # Extinct
+    "Proboscidea",
+    
+    #More
+    "Proboscidea",
+    "Proboscidea",
+    "Carnivora",
+    "Carnivora",
+    "Diprotodontia",
+    
+    
+    "Orthoptera",     # Grasshopper
+    "Blattodea",      # Termite (termites now placed within Blattodea; Isoptera as infraorder)
+    "Primates",       # Macaca fascicularis
+    "Chiroptera",     # Rhinolophus capensis (horseshoe bat)
+    NA_character_,    # Fish (no single order fits all fish)
+    
+    #Final (from total_genome_metadata)
+    "Coleoptera",          # Zophobas morio
+    "Carnivora",           # Mustela putorius
+    "Artiodactyla",        # Ovis aries
+    "Squamata",            # Corallus caninus
+    "Carnivora",           # Meles meles
+    "Accipitriformes",     # Clanga pomarina
+    "Accipitriformes",     # Buteo buteo
+    "Accipitriformes",     # Accipiter gentilis
+    "Testudines",          # Chelonia mydas
+    "Artiodactyla",        # Grampus griseus
+    "Charadriiformes",     # Sterna trudeaui
+    "Hemiptera",           # Rhodnius prolixus
+    "Passeriformes",       # Turdus merula
+    "Passeriformes",       # Curruca curruca
+    "Columbiformes",       # Columba palumbus
+    "Passeriformes",       # Delichon urbicum
+    "Passeriformes",       # Chloris chloris
+    "Passeriformes",       # Hirundo rustica
+    "Ciconiiformes",       # Ciconia ciconia
+    "Anseriformes",        # Anas platyrhynchos
+    "Gruiformes",          # Grus grus
+    "Hymenoptera",         # Apis mellifera
+    "Cathartiformes",      # Coragyps atratus
+    "Strigiformes",        # Pseudoscops clamator
+    "Accipitriformes",     # Pandion haliaetus
+    "Hemiptera",           # Sycanus bifidus
+    "Hemiptera",           # Eocanthecona furcellata
+    "Hemiptera",           # Arma custos
+    "Passeriformes",       # Corvus frugilegus
+    "Accipitriformes",     # Milvus milvus
+    "Carnivora"            # Vulpes zerda
+
+
+  ),
+  tax_host_class = c(
+    # Humans / lab / livestock / pets
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+
+    # Birds
+    "Aves",
+    "Aves",
+    "Aves",
+    "Aves",
+
+    # Insects
+    "Insecta",
+    "Insecta",
+
+    # Fish
+    "Actinopterygii",
+    "Actinopterygii",
+    "Actinopterygii",
+
+    # Marine mammals / pinnipeds
+    "Mammalia",
+    "Mammalia",
+
+    # Extinct and more
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    "Mammalia",
+    
+        
+    "Insecta",        # Grasshopper
+    "Insecta",        # Termite
+    "Mammalia",       # Macaca fascicularis
+    "Mammalia",       # Rhinolophus capensis
+    "Actinopterygii",  # Fish (bony fishes; safe default for generic "fish")
+
+    #Final (from total_genome_metadata)
+    "Insecta",        # Zophobas morio
+    "Mammalia",       # Mustela putorius
+    "Mammalia",       # Ovis aries
+    "Reptilia",       # Corallus caninus
+    "Mammalia",       # Meles meles
+    "Aves",           # Clanga pomarina
+    "Aves",           # Buteo buteo
+    "Aves",           # Accipiter gentilis
+    "Reptilia",       # Chelonia mydas
+    "Mammalia",       # Grampus griseus
+    "Aves",           # Sterna trudeaui
+    "Insecta",        # Rhodnius prolixus
+    "Aves",           # Turdus merula
+    "Aves",           # Curruca curruca
+    "Aves",           # Columba palumbus
+    "Aves",           # Delichon urbicum
+    "Aves",           # Chloris chloris
+    "Aves",           # Hirundo rustica
+    "Aves",           # Ciconia ciconia
+    "Aves",           # Anas platyrhynchos
+    "Aves",           # Grus grus
+    "Insecta",        # Apis mellifera
+    "Aves",           # Coragyps atratus
+    "Aves",           # Pseudoscops clamator
+    "Aves",           # Pandion haliaetus
+    "Insecta",        # Sycanus bifidus
+    "Insecta",        # Eocanthecona furcellata
+    "Insecta",        # Arma custos
+    "Aves",           # Corvus frugilegus
+    "Aves",           # Milvus milvus
+    "Mammalia"        # Vulpes zerda
+
+  )
+)
+
+order_to_class <- tax_map %>%
+  dplyr::select(host_order = tax_host_order,
+                host_class = tax_host_class) %>%
+  distinct()
+
+legend_order <- order_to_class %>%
+  dplyr::mutate(
+    host_class = factor(host_class,
+      levels = c("Mammalia", "Aves", "Reptilia",
+                 "Actinopterygii", "Insecta", "Amphibia", NA)
+    )
+  ) %>%
+  dplyr::arrange(host_class) %>%
+  dplyr::pull(host_order)
+
+```
+
+
+
+
+```{r genome_quality_plot_3, message=FALSE, warning=FALSE, fig.height=6, fig.width=10, fig.fullwidth=TRUE}
+#Generate quality biplot
+genome_biplot <- total_genome_metadata %>%
+  dplyr::select(c(ID,completeness,contamination, host_type_2)) %>%
+  ggplot(aes(x=completeness, y=contamination, color = host_type_2)) +
+  scale_color_manual(values = host_type_2_colors, name = "Host Type") +
+  geom_point(alpha=0.7, size = 4) +
+  xlim(c(90,100)) +
+  ylim(c(2.5,0)) +
+  labs(y= "Contamination", x = "Completeness") +
+  theme_classic() +
+  theme(
+    legend.position = "left",
+    axis.text.y = element_text(size=12),
+    axis.text.x = element_text(size=12),
+    axis.title.x = element_text(size = 16, face = "bold"),
+    axis.title.y = element_text(size = 16, face = "bold")
+  )
+
+#Generate contamination boxplot
+genome_contamination <- total_genome_metadata %>%
+            ggplot(aes(y=contamination)) +
+                    ylim(c(2.5,0)) +
+                    geom_boxplot(colour = "#999999", fill="#cccccc") +
+                    theme_classic() +
+                    theme(legend.position = "none",
+                    axis.line = element_blank(),
+                    axis.title = element_blank(),
+                    axis.text=element_blank(),
+                    axis.ticks=element_blank(),
+                        plot.margin = unit(c(0, 0, 0.40, 0),"inches")) #add bottom-margin (top, right, bottom, left)
+
+#Generate completeness boxplot
+genome_completeness <- total_genome_metadata %>%
+        ggplot(aes(x=completeness)) +
+                xlim(c(90,100)) +
+                geom_boxplot(colour = "#999999", fill="#cccccc") +
+                theme_classic() +
+                theme(legend.position = "none",
+                    axis.line = element_blank(),
+                    axis.title = element_blank(),
+                    axis.text=element_blank(),
+                    axis.ticks=element_blank(),
+                    plot.margin = unit(c(0, 0, 0, 0.50),"inches")) #add left-margin (top, right, bottom, left)
+
+#Render composite figure
+#pdf("figures/completeness_contamination.pdf",width=10, height=5)
+grid.arrange(grobs = list(genome_completeness,genome_biplot,genome_contamination),
+        layout_matrix = rbind(c(1,1,1,1,1,1,1,1,1,1,1,4),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3)))
+#dev.off()
+```
+
+```{r genome_quality_plot_colored_by_bact, message=FALSE, warning=FALSE, fig.height=6, fig.width=10, fig.fullwidth=TRUE}
+#Generate quality biplot
+genome_biplot <- total_genome_metadata %>%
+  dplyr::select(c(ID,completeness,contamination, bacterial_species)) %>%
+  ggplot(aes(x=completeness, y=contamination, color = bacterial_species)) +
+  geom_point(alpha=0.7, size = 4) +
+  xlim(c(90,100)) +
+  ylim(c(2.5,0)) +
+  labs(y= "Contamination", x = "Completeness") +
+  theme_classic() +
+  theme(
+    legend.position = "left",
+    axis.text.y = element_text(size=12),
+    axis.text.x = element_text(size=12),
+    axis.title.x = element_text(size = 16, face = "bold"),
+    axis.title.y = element_text(size = 16, face = "bold")
+  )
+
+#Generate contamination boxplot
+genome_contamination <- total_genome_metadata %>%
+            ggplot(aes(y=contamination)) +
+                    ylim(c(2.5,0)) +
+                    geom_boxplot(colour = "#999999", fill="#cccccc") +
+                    theme_classic() +
+                    theme(legend.position = "none",
+                    axis.line = element_blank(),
+                    axis.title = element_blank(),
+                    axis.text=element_blank(),
+                    axis.ticks=element_blank(),
+                        plot.margin = unit(c(0, 0, 0.40, 0),"inches")) #add bottom-margin (top, right, bottom, left)
+
+#Generate completeness boxplot
+genome_completeness <- total_genome_metadata %>%
+        ggplot(aes(x=completeness)) +
+                xlim(c(90,100)) +
+                geom_boxplot(colour = "#999999", fill="#cccccc") +
+                theme_classic() +
+                theme(legend.position = "none",
+                    axis.line = element_blank(),
+                    axis.title = element_blank(),
+                    axis.text=element_blank(),
+                    axis.ticks=element_blank(),
+                    plot.margin = unit(c(0, 0, 0, 0.50),"inches")) #add left-margin (top, right, bottom, left)
+
+#Render composite figure
+#pdf("figures/completeness_contamination.pdf",width=10, height=5)
+grid.arrange(grobs = list(genome_completeness,genome_biplot,genome_contamination),
+        layout_matrix = rbind(c(1,1,1,1,1,1,1,1,1,1,1,4),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3),
+                              c(2,2,2,2,2,2,2,2,2,2,2,3)))
+#dev.off()
+```
+
+
+```{r plotting completeness means}
+# Estimated marginal means 
+emm_comp <- emmeans(m_comp, "host_type_2")
+
+df_comp <- as.data.frame(emm_comp)
+
+comp_plot <- ggplot(df_comp, aes(x = host_type_2, y = emmean, color = host_type_2)) +
+  geom_point(size = 4) +
+  scale_color_manual(values = host_type_2_colors, name = "Host Type") +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.15, size = 1) +
+  labs(
+    title = "Species-adjusted MAG Completeness by Host Type",
+    x = "Host Type",
+    y = "Adjusted Completeness (%)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+
+
+emm_cont <- emmeans(m_cont, "host_type_2")
+df_cont <- as.data.frame(emm_cont)
+
+cont_plot <- ggplot(df_cont, aes(x = host_type_2, y = emmean, color = host_type_2)) +
+  geom_point(size = 4) +
+  scale_color_manual(values = host_type_2_colors, name = "Host Type") +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.15, size = 1) +
+  labs(
+    title = "Species-adjusted MAG Contamination by Host Type",
+    x = "Host Type",
+    y = "Adjusted Contamination (%)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+
+
+comp_plot
+cont_plot
+
+
+library(patchwork)
+
+combined_plot <- comp_plot + cont_plot +
+  plot_layout(ncol = 2) +
+  plot_annotation(
+    title = "Species-adjusted MAG Quality by Host Type"
+  )
+
+combined_plot
+
+```
+
+
+```{r countries}
+total_genome_metadata <- total_genome_metadata %>%
+  mutate(
+    country_normalized = case_when(
+      is.na(country_normalized) ~ "None",
+      tolower(country_normalized) %in% c("none", "na", "n/a", "Not Provided", 
+                                         "Not Collected", "Not Applicable") ~ "None",
+      TRUE ~ country_normalized
+    )
+  )
+
+country_counts <- total_genome_metadata %>%
+  count(country_normalized)
+
+small_countries <- country_counts %>%
+  filter(n < 20) %>%
+  pull(country_normalized)
+
+total_genome_metadata <- total_genome_metadata %>%
+  mutate(country_grouped = ifelse(country_normalized %in% small_countries,
+                                  "Other",
+                                  country_normalized))
+
+country_order <- total_genome_metadata %>%
+  filter(country_grouped != "Other") %>%
+  distinct(country_grouped, continent) %>%
+  arrange(continent, country_grouped) %>%
+  pull(country_grouped)
+
+country_order <- unique(country_order)
+
+# Add "Other" as the last level
+country_order <- c(country_order, "Other")
+
+total_genome_metadata <- total_genome_metadata %>%
+  mutate(country_grouped = factor(country_grouped, levels = country_order))
+
+country_palette <- country_palette[c(country_order)]
+
+ggplot(total_genome_metadata, aes(x = bacterial_species, fill = country_grouped)) +
+  geom_bar(color = "grey20", linewidth = 0.2) +
+  scale_fill_manual(values = country_palette) +
+  labs(
+    x = "Bacterial species",
+    y = "Number of MAGs",
+    fill = "Country"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+ggplot(total_genome_metadata, aes(x = bacterial_species, fill = country_grouped)) +
+  geom_bar(color = "grey20", linewidth = 0.2) +
+  scale_fill_manual(values = country_palette) +
+  facet_grid(~host_type)+
+  labs(
+    x = "Bacterial species",
+    y = "Number of MAGs",
+    fill = "Country"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+
+
+ggplot(total_genome_metadata, aes(x = bacterial_species, fill = continent)) +
+  geom_bar(color = "grey20", linewidth = 0.2) +
+  scale_fill_manual(values = continent_palette) +
+  facet_grid(~host_type)+
+  labs(
+    x = "Bacterial species",
+    y = "Number of MAGs",
+    fill = "Country"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+```
+
+```{r countryplots}
+#order
+# total_genome_metadata$country_grouped <- factor(
+#   total_genome_metadata$country_grouped,
+#   levels = names(country_palette))
+
+#order also host type 2
+total_genome_metadata$host_type_2 <- factor(
+  total_genome_metadata$host_type_2,
+  levels = c("human", "domestic", "wild")
+)
+
+total_genome_metadata%>%
+  filter(!is.na(host_type_2))%>%
+ggplot( aes(x = host_type_2, fill = country_grouped)) +
+  geom_bar(color = "grey20", linewidth = 0.2) +
+  scale_fill_manual(values = country_palette) +
+  labs(
+    x = "Host type",
+    y = "Number of MAGs",
+    fill = "Country"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+
+total_genome_metadata%>%
+  filter(!is.na(host_type_2))%>%
+ggplot( aes(x = host_type_2, fill = country_grouped)) +
+  geom_bar(color = "grey20", linewidth = 0.2) +
+  scale_fill_manual(values = country_palette) +
+  labs(
+    x = "Host type",
+    y = "Number of MAGs",
+    fill = "Country"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+```{r country_counts}
+ggplot(country_counts, aes(x= country_normalized, y = n))+
+  geom_col()+
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+
+
+
+
+```{r wilcoxon tests for host types}
+
+
+results_tbl <- map_dfr(species_list, function(sp) {
+  
+  genome_metadata <- species_data[[sp]]$metadata
+  
+  # Variables to test
+  vars_to_test <- c("contamination", "completeness", "genome_size")
+  
+  map_dfr(vars_to_test, function(v) {
+    
+    # Build formula: variable ~ host_type
+    fml <- as.formula(paste0(v, " ~ host_type"))
+    
+    # Run Wilcoxon
+    test_res <- wilcox.test(fml, data = genome_metadata)
+    
+    # Tidy results + add species & variable info
+    tidy(test_res) %>%
+      mutate(
+        species = sp,
+        variable = v
+      )
+  })
+})
+
+```
+```{r stats}
+results_tbl %>% dplyr::select(p.value, species, variable) %>% filter(p.value<0.05)
+```
+
+
+## Genomic similarity (drep)
+```{r example_drep_final, fig.height = 10, fig_width = 8}
+for (sp in species_list) {
+
+  # Run drep tree construction for THIS species
+  drep_results <- drep_tree_metadata(
+    genome_metadata = species_data[[sp]]$metadata,
+    ndb = species_data[[sp]]$ndb
+  )
+
+  p_host_order <- plot_tree_basic(
+    tree       = drep_results$tree,
+    tip_df     = drep_results$tip_df,
+    color_by   = "host_order",
+    palette = host_order_colors,
+    label_tips = TRUE,
+    show_threshold = 99.5
+  )
+  
+  p_host_type_2 <- plot_tree_basic(
+    tree       = drep_results$tree,
+    tip_df     = drep_results$tip_df,
+    color_by   = "host_type_2",
+    palette = host_type_2_colors,
+    label_tips = TRUE,
+    show_threshold = 99.5
+  )
+  
+#   p_country <- plot_tree_basic(
+#   tree       = drep_results$tree,
+#   tip_df     = drep_results$tip_df,
+#   color_by   = "country_normalized",
+#   palette    = country_palette
+# )
+
+  #print(p_host_order)  
+  print(p_host_type_2) 
+  #print(p_country) 
+
+}
+```
+
+
+```{r drep stats}
+# for (sp in species_list) {
+#     # Stats
+#   res <- drep_stat_analysis(
+#   tip_df = drep_results$tip_df,
+#   ani_matrix = species_data[[sp]]$ndb,
+#   host_type_colors = host_type_colors,
+#   host_order_colors = host_order_colors
+# )
+#   
+#   # Print stats
+#   print(res$permanova$adonis)
+#   print(res$permanova$dispersion)
+#   print(res$pairwise$wilcox_within$test)
+#   print(res$pairwise$wilcox_cross_vs_within$test)
+#   
+#   # Plot
+#   print(res$pcoa$by_host_type)
+#   print(res$pcoa$by_host_order)
+#   print(res$pairwise$boxplot)
+#  
+# 
+# }
+```
+
+
+## Pangenome analysis
+```{r load partitions}
+partitions <- read_csv("data/pangenome.csv")
+```
+
+```{r order}
+partitions$partition <- factor(
+  partitions$partition,
+  levels = c("Cloud", "Shell", "Persistent")
+)
+
+tree_data <- ggtree::ggtree(pruned)$data
+tree_order <- tree_data %>%
+  filter(isTip) %>%
+  arrange(y) %>%
+  pull(label)
+
+partitions <- partitions %>%
+  mutate(species = species %>%
+           str_replace("^enterococcus_hirae$", "enterococcus_b_hirae"))
+
+partitions <- partitions %>%
+  mutate(
+    species = factor(species, levels = tree_order)
+  )
+
+```
+
+
+```{r plot}
+ggplot(partitions,
+       aes(x = species, y = families, fill = partition)) +
+  geom_bar(stat = "identity", width = 0.7) +
+  scale_fill_manual(
+    values = c(
+      Persistent = "#F7A507",
+      Shell = "#01D960",
+      Cloud = "#78DFFF"
+    )
+  ) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(
+    x = "Species",
+    y = "Number of gene families",
+    fill = "Pangenome partition"
+  )
+
+```
+
+
+```{r with tree}
+p_tree <- ggtree(pruned) +
+  theme_tree2() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+
+p_bar_pangenome <- ggplot(partitions, aes(x = species, y = families, fill = partition))+
+  geom_bar(stat = "identity")+
+  scale_fill_manual(values = c(
+      Persistent = "#F7A507",
+      Shell = "#01D960",
+      Cloud = "#78DFFF"
+    ))+
+  scale_y_continuous(breaks = seq(0, 50000, by = 5000))+
+  labs(
+    x = NULL,
+    y = "Number of gene families"
+  ) +
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))+
+  coord_flip()
+
+p_final <- (p_tree | p_bar_pangenome) +
+  plot_layout(widths = c(1, 2.3)) +
+  plot_annotation(
+    title = "Pangenome partitions per species"
+  )
+
+p_final
+```
+
+```{r proportions}
+p_bar_pangenome <- ggplot(
+  partitions,
+  aes(x = species, y = families, fill = partition)
+) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_fill_manual(values = c(
+    Persistent = "#F7A507",
+    Shell = "#01D960",
+    Cloud = "#78DFFF"
+  )) +
+  scale_y_continuous(
+    labels = scales::percent_format()
+  ) +
+  labs(
+    x = NULL,
+    y = "Proportion of gene families"
+  ) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1)) +
+  coord_flip()
+
+p_final <- (p_tree | p_bar_pangenome) +
+  plot_layout(widths = c(1, 2.3)) +
+  plot_annotation(
+    title = "Pangenome partitions per species"
+  )
+
+p_final
+```
+
+
+```{r save data}
+save(total_genome_metadata,
+     species_list,
+     species_data,
+     pruned, # bacterial species tree
+     host_tree,
+     file = "data/intermediate_analysis/data.Rdata")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
