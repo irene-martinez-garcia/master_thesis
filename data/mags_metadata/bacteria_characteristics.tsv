@@ -1,0 +1,11 @@
+species	gram_stain	cell_shape	motility	flagella_type	spore_forming	capsule_presence	oxygen_tolerance	optimal_temp_c	bile_tolerance	primary_metabolism	major_scfa_products	mucin_degrader	typical_genome_size_mb	gc_content_percent	typical_habitat	pathogenic_potential
+lactococcus_lactis	positive	coccus	non_motile	none	no	no	facultative_anaerobe	30	low	homolactic_fermentation	lactate	no	2.3	35	dairy_and_plant_material	rare_opportunistic
+parabacteroides_goldsteinii	negative	rod	non_motile	none	no	no	obligate_anaerobe	37	high	carbohydrate_fermentation	acetate_propionate	no	6.5	44	human_gut_microbiome	commensal
+enterococcus_faecalis	positive	coccus	non_motile	none	no	sometimes	facultative_anaerobe	37	high	lactic_acid_fermentation	lactate	no	3.0	37	intestinal_tract	opportunistic_pathogen
+bacteroides_uniformis	negative	rod	non_motile	none	no	no	obligate_anaerobe	37	high	polysaccharide_fermentation	acetate_propionate	no	4.8	46	human_gut_microbiome	commensal
+phocaeicola_vulgatus	negative	rod	non_motile	none	no	no	obligate_anaerobe	37	high	polysaccharide_fermentation	acetate_propionate	no	5.1	42	human_gut_microbiome	commensal
+hafnia_paralvei	negative	rod	motile	peritrichous	no	no	facultative_anaerobe	37	medium	mixed_acid_fermentation	acetate_formate	no	4.7	49	intestinal_tract_and_environment	opportunistic_pathogen
+citrobacter_braakii	negative	rod	motile	peritrichous	no	no	facultative_anaerobe	37	medium	mixed_acid_fermentation	acetate_formate	no	5.0	52	water_soil_and_intestinal_tract	opportunistic_pathogen
+enterococcus_hirae	positive	coccus	non_motile	none	no	no	facultative_anaerobe	37	high	lactic_acid_fermentation	lactate	no	2.8	37	animal_intestinal_tract	rare_opportunistic
+akkermansia_muciniphila	negative	oval_rod	non_motile	none	no	no	anaerobe_oxygen_tolerant	37	high	mucin_degradation	acetate_propionate	yes	2.7	55	gut_mucus_layer	commensal
+bacteroides_fragilis	negative	rod	non_motile	none	no	yes	obligate_anaerobe	37	high	polysaccharide_fermentation	acetate_propionate	no	5.3	43	human_gut_microbiome	opportunistic_pathogen

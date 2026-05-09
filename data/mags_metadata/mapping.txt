@@ -1,0 +1,11 @@
+id	name
+GCF_004167855.1	bacteroides_fragilis
+GCF_027671165.1	bacteroides_uniformis
+GCF_021891395.1	phocaeicola_vulgatus
+GCF_027688775.1	parabacteroides_goldsteinii
+EHM013277	lactococcus_lactis
+GCF_014000825.1	enterococcus_hirae
+GCF_027690295.1	enterococcus_faecalis
+EHM035261	hafnia_paralvei
+EHM082134	citrobacter_braakii
+GCF_008423265.1	akkermansia_muciniphila
