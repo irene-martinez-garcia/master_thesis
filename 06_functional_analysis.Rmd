@@ -282,7 +282,7 @@ permaniva_sig <- permanova_all %>%filter(term == "3") %>% dplyr::select(-Df, -Su
 permaniva_sig
 ```
 
-```{r tree_order}
+```{r tree_order_assigning}
 tree_data <- ggtree(pruned)$data
 tree_order <- tree_data %>%
   filter(isTip) %>%
@@ -293,7 +293,7 @@ tree_order <- tree_data %>%
 
 
 
-```{r figure, fig.height = 4, fig.width = 10}
+```{r figure_permanova, fig.height = 4, fig.width = 10}
 
 
 permaniva_sig_hw <- permaniva_sig %>%
@@ -683,26 +683,17 @@ cazy_fisher_total        <- dplyr::bind_rows(cazy_fisher_all)
 
 
 
-analysis_results <- readRDS("data/intermediate_analysis/functional_analysis_results.rds")
-
-permanova_all      <- analysis_results$permanova
-betadisper_all     <- analysis_results$betadisper
-kegg_fisher_total  <- analysis_results$fisher$kegg
-amr_fisher_total   <- analysis_results$fisher$amr
-vf_fisher_total    <- analysis_results$fisher$vf
-cazy_fisher_total  <- analysis_results$fisher$cazy
+# analysis_results <- readRDS("data/intermediate_analysis/functional_analysis_results.rds")
+# 
+# permanova_all      <- analysis_results$permanova
+# betadisper_all     <- analysis_results$betadisper
+# kegg_fisher_total  <- analysis_results$fisher$kegg
+# amr_fisher_total   <- analysis_results$fisher$amr
+# vf_fisher_total    <- analysis_results$fisher$vf
+# cazy_fisher_total  <- analysis_results$fisher$cazy
 
 ```
 
-```{r save in rdata}
-# save( betadisper_all,
-#   kegg_fisher_total,
-#   amr_fisher_total,
-#   vf_fisher_total,
-#   cazy_fisher_total,
-#   file = "data/intermediate_analysis/data.RData"
-# )
-```
 
 
 
@@ -891,7 +882,7 @@ plot_volcano_contrasts(
   )
 ```
 
-```{r volcano by pathways, eval = FALSE}
+```{r volcano by pathways}
 #keep only significant KOs 
 sig_df <- kegg_df %>%
   filter(p_adj < 0.05) %>%
@@ -1338,10 +1329,6 @@ p_cazy
 
 ```
 ```{r patchworking, fig.height = 8, fig.width = 12}
-library(patchwork)
-
-
-
 small_legend <- theme(
   legend.text = element_text(size = 7),
   legend.title = element_text(size = 8),
@@ -1580,14 +1567,14 @@ for (sp in species_list) {
 
 
 
-functional_results <- readRDS( "data/intermediate_analysis/fisher_results.rds")
-
-
-
-kegg_annot_df <- functional_results$kegg
-amr_df        <- functional_results$amr
-vf_df_annot   <- functional_results$vf
-cazy_annot    <- functional_results$cazy
+# functional_results <- readRDS( "data/intermediate_analysis/fisher_results.rds")
+# 
+# 
+# 
+# kegg_annot_df <- functional_results$kegg
+# amr_df        <- functional_results$amr
+# vf_df_annot   <- functional_results$vf
+# cazy_annot    <- functional_results$cazy
 
 ```
 
@@ -1735,7 +1722,7 @@ purrr::walk(plots_by_pathway, print)
 ## META-ANALYSIS
 
 ### Human vs wild
-```{r metaanalysis for all keggs}
+```{r metaanalysis for all keggs_hw, fig.height = 10, fig.width = 13}
 # Prep totals and basic filters 
 df_hw <- kegg_fisher_total %>%
   filter(contrast == "human_vs_wild") %>%
@@ -1743,8 +1730,10 @@ df_hw <- kegg_fisher_total %>%
     tot_wild  = n_mags_wild  + absent_wild,
     tot_human = n_mags_human + absent_human
   ) %>%
-  filter(tot_wild > 0, tot_human > 0) %>%
-  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild))
+  filter(n_mags_human > 0 | n_mags_wild > 0) %>% # remove rows where kegg is not present in both groups
+  filter(tot_wild > 0, tot_human > 0) %>%  #remove rows that dont have any data for kegg
+  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
+
 
 #  Low-bias screen 
 min_informative_species <- 8
@@ -1818,11 +1807,10 @@ mh_hw_table <- bind_rows(lapply(names(mh_hw), function(k) {
 })) %>%
   mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
 
-```
 
 
-
-```{r keggs where ci does not include_1, fig.height = 10, fig.width = 13}
+# select keggs where confidence interval does not include 1 
+#these are consistent in the direction of prevalence
 mh_re_table_ci <- mh_hw_table %>%
   dplyr::filter(ci_low_random > 1 | ci_high_random <1) %>%
   dplyr::arrange(p_adj_fdr, p_random) 
@@ -1849,10 +1837,10 @@ meta::forest(
   col.diamond.lines = "black"
 )
 
-
 ```
+As most of the identified KOs are ribosomal subunits, we try again, filtering these before the meta-analysis.
 
-```{r metaanalysis for all keggs_human_wild_cont}
+```{r metaanalysis for all keggs_remove_ribosomal, fig.height = 10, fig.width = 13}
 # Prep totals and basic filters 
 df_hw <- kegg_fisher_total %>%
   filter(contrast == "human_vs_wild") %>%
@@ -1860,11 +1848,10 @@ df_hw <- kegg_fisher_total %>%
     tot_wild  = n_mags_wild  + absent_wild,
     tot_human = n_mags_human + absent_human
   ) %>%
-  filter(tot_wild > 0, tot_human > 0) %>%
-  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) %>%
-  filter(!grepl("^K02[89]", kegg))   # ribosomal protein KOs
-
-#%>%filter((n_mags_human < tot_human) & (n_mags_wild < tot_wild))
+  filter(n_mags_human > 0 | n_mags_wild > 0) %>% # remove rows where kegg is not present in both groups
+  filter(tot_wild > 0, tot_human > 0) %>%  #remove rows that dont have any data for kegg
+  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) %>% #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
+filter(!grepl("^K02[89]", kegg))   # remove ribosomal protein KOs
 
 #  Low-bias screen 
 min_informative_species <- 8
@@ -1938,11 +1925,10 @@ mh_hw_table <- bind_rows(lapply(names(mh_hw), function(k) {
 })) %>%
   mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
 
-```
 
 
-
-```{r keggs where ci does not include_1, fig.height = 10, fig.width = 13}
+# select keggs where confidence interval does not include 1 
+#these are consistent in the direction of prevalence
 mh_re_table_ci <- mh_hw_table %>%
   dplyr::filter(ci_low_random > 1 | ci_high_random <1) %>%
   dplyr::arrange(p_adj_fdr, p_random) 
@@ -1969,11 +1955,11 @@ meta::forest(
   col.diamond.lines = "black"
 )
 
-
 ```
 
+Plotting the individual KOs to check if all species do follow same pattern
 
-```{r forest plot individual keggs, fig.height = 6, fid.width = 10}
+```{r forest plot individual keggs_human_wild_after_ribosomal, fig.height = 6, fid.width = 10}
 # Forest plot (Human on right, Wild on left)
 forest_one_kegg <- function(kegg_id, xlim = NULL, at = NULL) {
 
@@ -2023,6 +2009,7 @@ for (k in keggs) {
 }
 ```
 
+Manual search table of the KOs and information for plotting.
 
 ```{r manual lookup of keggs}
 kegg_search_info <- tibble::tibble(
@@ -2164,7 +2151,7 @@ kegg_search_info <- tibble::tibble(
 
 kegg_search_info
 ```
-```{r wild human with kegginfo, fig.height = 6, fig.width = 10}
+```{r wild human with kegginfo after ribosomal, fig.height = 6, fig.width = 10}
 mh_hw_table_annot <- mh_hw_table %>%
   dplyr::left_join(
     kegg_search_info,
@@ -2210,7 +2197,7 @@ meta::forest(
 
 
 
-```{r forest plot individual keggs, fig.height = 6, fid.width = 10}
+```{r forest plot individual keggs_again, fig.height = 6, fid.width = 10}
 #individual analyses of each of these keggs:
 keggs <- mh_re_table_ci %>% dplyr::pull(kegg)
 
@@ -2226,7 +2213,7 @@ for (k in keggs) {
 
 
 
-
+Testing risk difference
 ### Risk difference meta-analysis
 ```{r risk difference}
 run_random_hw_rd <- function(dat) {
@@ -2318,7 +2305,7 @@ meta::forest(
 
 ### Domestic vs wild
 
-```{r metaanalysis for all keggs_w_d}
+```{r metaanalysis for all keggs_w_d_removing_ribosomal}
 # Prep totals and basic filters 
 df_dw <- kegg_fisher_total %>%
   filter(contrast == "wild_vs_domestic") %>%
@@ -2326,8 +2313,11 @@ df_dw <- kegg_fisher_total %>%
     tot_wild  = n_mags_wild  + absent_wild,
     tot_domestic = n_mags_domestic + absent_domestic
   ) %>%
-  filter(tot_wild > 0, tot_domestic > 0) %>%
-  filter((n_mags_domestic < tot_domestic) & (n_mags_wild < tot_wild))
+  filter(n_mags_human > 0 | n_mags_wild > 0) %>% # remove rows where kegg is not present in both groups
+  filter(tot_wild > 0, tot_human > 0) %>%  #remove rows that dont have any data for kegg
+  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) %>% #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
+filter(!grepl("^K02[89]", kegg))   # remove ribosomal protein KOs
+
 
 #  Low-bias screen 
 min_informative_species <- 4
@@ -2404,7 +2394,7 @@ mh_dw_table <- bind_rows(lapply(names(mh_dw), function(k) {
 
 
 
-```{r keggs where ci does not include_1_h_d, fig.height = 5, fig.width = 7}
+```{r keggs where ci does not include_1_h_d_r_r, fig.height = 5, fig.width = 7}
 mh_re_table_ci <- mh_dw_table %>%
   dplyr::filter(ci_low_random > 1 | ci_high_random <1) %>%
   dplyr::arrange(p_adj_fdr, p_random) 
@@ -2476,7 +2466,7 @@ meta::forest(
 
 ### Human vs domestic
 
-```{r metaanalysis for all keggs_hd}
+```{r metaanalysis for all keggs_hd_rr}
 # Prep totals and basic filters 
 df_dw <- kegg_fisher_total %>%
   filter(contrast == "human_vs_domestic") %>%
@@ -2484,8 +2474,10 @@ df_dw <- kegg_fisher_total %>%
     tot_domestic  = n_mags_domestic  + absent_domestic,
     tot_human = n_mags_human + absent_human
   ) %>%
-  filter(tot_domestic > 0, tot_human > 0) %>%
-  filter((n_mags_human < tot_human) & (n_mags_domestic < tot_domestic))
+  filter(n_mags_human > 0 | n_mags_wild > 0) %>% # remove rows where kegg is not present in both groups
+  filter(tot_wild > 0, tot_human > 0) %>%  #remove rows that dont have any data for kegg
+  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) %>% #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
+filter(!grepl("^K02[89]", kegg))   # remove ribosomal protein KOs
 
 #  Low-bias screen 
 min_informative_species <- 4
@@ -2502,7 +2494,7 @@ kegg_keep_dw <- df_dw %>%
     n_species_inform >= min_informative_species,
     total_events >= min_total_events
   ) %>%
-  select(kegg)
+  dplyr::select(kegg)
 
 df_dw_screened <- df_dw %>%
   inner_join(kegg_keep_dw, by = "kegg")
@@ -2558,11 +2550,7 @@ mh_dw_table <- bind_rows(lapply(names(mh_dw), function(k) {
 })) %>%
   mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
 
-```
 
-
-
-```{r keggs where ci does not include_1_h_d, fig.height = 5, fig.width = 7}
 mh_re_table_ci <- mh_dw_table %>%
   dplyr::filter(ci_low_random > 1 | ci_high_random <1) %>%
   dplyr::arrange(p_adj_fdr, p_random) 
@@ -2588,11 +2576,12 @@ meta::forest(
   col.diamond = "black",
   col.diamond.lines = "black"
 )
-
-
 ```
 
-```{r human domestic with kegginfo, fig.height = 6, fig.width = 10}
+
+
+
+```{r human domestic with kegginfo_3, fig.height = 6, fig.width = 10}
 mh_dw_table_annot <- mh_dw_table %>%
   dplyr::left_join(
     kegg_search_info,
@@ -2632,16 +2621,18 @@ meta::forest(
 ```
 ### Meta-analysis with VF
 #### Human vs wild
-```{r metaanalysis for all vfs}
+```{r metaanalysis for all vfs, fig.height = 10, fig.width = 13}
 # Prep totals and basic filters 
 df_hw <- vf_fisher_total %>%
   filter(contrast == "human_vs_wild") %>%
   mutate(
     tot_wild  = n_mags_wild  + absent_wild,
     tot_human = n_mags_human + absent_human
-  ) %>%
-  filter(tot_wild > 0, tot_human > 0) %>%
-  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild))
+  )%>%
+  filter(n_mags_human > 0 | n_mags_wild > 0) %>% # remove rows where kegg is not present in both groups
+  filter(tot_wild > 0, tot_human > 0) %>%  #remove rows that dont have any data for kegg
+  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) %>% #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
+
 
 #  Low-bias screen 
 min_informative_species <- 4
@@ -2714,11 +2705,8 @@ mh_hw_table <- bind_rows(lapply(names(mh_hw), function(k) {
 })) %>%
   mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
 
-```
 
 
-
-```{r keggs where ci does not include_1, fig.height = 10, fig.width = 13}
 mh_re_table_ci <- mh_hw_table %>%
   dplyr::filter(ci_low_random > 1 | ci_high_random <1) %>%
   dplyr::arrange(p_adj_fdr, p_random) 
@@ -2745,12 +2733,9 @@ meta::forest(
   col.diamond.lines = "black"
 )
 
-
 ```
 
-
 ```{r check vf name}
-library(readxl)
 vf_data <- read_excel("data/VFs.xls")
 ```
 
@@ -2803,11 +2788,13 @@ df_hw <- vf_fisher_total %>%
     tot_domestic  = n_mags_domestic  + absent_domestic,
     tot_human = n_mags_human + absent_human
   ) %>%
-  filter(tot_domestic > 0, tot_human > 0) %>%
-  filter((n_mags_human < tot_human) | (n_mags_domestic < tot_domestic))
+  filter(n_mags_human > 0 | n_mags_wild > 0) %>% # remove rows where kegg is not present in both groups
+  filter(tot_wild > 0, tot_human > 0) %>%  #remove rows that dont have any data for kegg
+  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) %>% #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
+
 
 #  Low-bias screen 
-min_informative_species <- 2
+min_informative_species <- 4
 min_total_events <- 10
 
 vf_keep_hw <- df_hw %>%
@@ -2877,11 +2864,8 @@ mh_hw_table <- bind_rows(lapply(names(mh_hw), function(k) {
 })) %>%
   mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
 
-```
 
 
-
-```{r vfs where ci does not include_1_vf_hd, fig.height = 10, fig.width = 13}
 mh_hw_table_annot <- mh_hw_table %>%
   dplyr::left_join(
     vf_data,
@@ -2918,8 +2902,10 @@ meta::forest(
   col.diamond = "black",
   col.diamond.lines = "black"
 )
-
 ```
+
+
+
 ```{r forest plot individual vfs_hd, fig.height = 6, fid.width = 10}
 # Forest plot (Human on right, Wild on left)
 forest_one_vf <- function(vf_id, xlim = NULL, at = NULL) {
@@ -2974,16 +2960,17 @@ for (k in vfs) {
 
 
 #### Domestic vs wild
-```{r metaanalysis for all vfs_dw}
+```{r metaanalysis for all vfs_dw_2}
 # Prep totals and basic filters 
 df_hw <- vf_fisher_total %>%
   filter(contrast == "wild_vs_domestic") %>%
   mutate(
     tot_wild  = n_mags_wild  + absent_wild,
     tot_domestic = n_mags_domestic + absent_domestic
-  ) %>%
-  filter(tot_wild > 0, tot_domestic > 0) %>%
-  filter((n_mags_domestic < tot_domestic) | (n_mags_wild < tot_wild))
+  )  %>%
+  filter(n_mags_human > 0 | n_mags_wild > 0) %>% # remove rows where kegg is not present in both groups
+  filter(tot_wild > 0, tot_human > 0) %>%  #remove rows that dont have any data for kegg
+  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) %>% #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
 
 #  Low-bias screen 
 min_informative_species <- 3
@@ -3060,7 +3047,7 @@ mh_hw_table <- bind_rows(lapply(names(mh_hw), function(k) {
 
 
 
-```{r vfs where ci does not include_1_vf_hd, fig.height = 10, fig.width = 13}
+```{r vfs where ci does not include_1_vf_dom_wild, fig.height = 10, fig.width = 13}
 mh_hw_table_annot <- mh_hw_table %>%
   dplyr::left_join(
     vf_data,
@@ -3099,7 +3086,7 @@ meta::forest(
 )
 
 ```
-```{r forest plot individual vfs_hd, fig.height = 6, fid.width = 10}
+```{r forest plot individual vfs_dom_wild, fig.height = 6, fid.width = 10}
 # Forest plot (Human on right, Wild on left)
 forest_one_vf <- function(vf_id, xlim = NULL, at = NULL) {
 
@@ -3567,7 +3554,7 @@ ggplot(top_both_domestic,
   theme_bw()
 ```
 
-```{r}
+```{r plotting histograms}
 ggplot(vf_df, aes(x = host_type_2wild)) +
   geom_histogram(bins = 50) +
   geom_vline(xintercept = 0, linetype = "dashed") +
@@ -3674,7 +3661,7 @@ vf_annotation_slopes
 
 For the VF per-spceis model - not enough information to estimate the random slopes.
 
-```{r}
+```{r vf per species}
 
 vf_presence <- vf_fisher_total %>%
   mutate(present = n_mags_human > 0 | n_mags_wild > 0 | n_mags_domestic > 0)
@@ -3732,17 +3719,17 @@ ggplot(vf_distribution, aes(x = n_species, y = n)) +
 ```
 
 ## VF glmm TMB model
-```{r}
+```{r vf model tmb}
 vf_model <- readRDS("data/glmm_results/vf_2/vf_glmmTMB_global_model.rds")
 vf_fixed_effects <- read_csv("data/glmm_results/vf_2/vf_glmm_fixed_effects_2.csv")
 vf_annotation_host <- read_csv("data/glmm_results/vf_2/vf_annotation_host_OR_2.csv")
 ```
 
-```{r fixed}
+```{r fixed_effects_vf}
 vf_fixed_effects
 ```
 
-```{r}
+```{r vf_model_again}
 library(glmmTMB)
 
 vf_model <- up2date(vf_model)
@@ -3760,7 +3747,7 @@ head(vf_re)
 
 
 
-```{r}
+```{r fixed_effects_checking_host}
 fixef_host <- fixef(vf_model)$cond
 
 vf_plot_df <- vf_re %>%
@@ -3774,7 +3761,7 @@ vf_plot_df <- vf_re %>%
 ```
 
 
-```{r}
+```{r selecting top20}
 top_domestic <- vf_plot_df %>%
   dplyr::arrange(desc(OR_domestic)) %>%
   dplyr::slice_head(n = 20)
@@ -3789,7 +3776,7 @@ top_wild <- vf_plot_df %>%
 
 
 
-```{r}
+```{r plottingtop20}
 
 ggplot(top_domestic,
        aes(x = reorder(annotation, OR_domestic),
@@ -3822,7 +3809,7 @@ ggplot(top_wild,
   theme_minimal()
 
 ```
-```{r}
+```{r vflong}
 
 vf_long <- vf_plot_df %>%
   dplyr::select(annotation, OR_domestic, OR_wild) %>%
@@ -3859,7 +3846,7 @@ ggplot(top_combined,
   theme_minimal()
 ```
 
-```{r}
+```{r randomeffects}
 ranef_out <- ranef(vf_model, condVar = TRUE)
 vf_re <- ranef_out$cond$annotation
 
@@ -3938,7 +3925,7 @@ ggplot(top_domestic,
        x = "Annotation") +
   theme_minimal()
 ```
-```{r}
+```{r onlysig}
 vf_sig <- vf_plot_df %>%
   dplyr::mutate(
     sig_domestic = (lower_domestic > 1 | upper_domestic < 1),
@@ -3964,7 +3951,7 @@ vf_sig %>%
   )
 ```
 
-```{r}
+```{r domesticwild}
 vf_domestic_sig <- vf_plot_df %>%
   dplyr::filter(lower_domestic > 1)
 
@@ -4008,7 +3995,7 @@ ggplot(top_wild_sig,
        x = "Annotation") +
   theme_minimal()
 ```
-```{r}
+```{r vfs enriched in both}
 #vfs enriched in domestic and wild vs human
 
 vf_both <- vf_plot_df %>%
@@ -4053,7 +4040,7 @@ ggplot(vf_both_long,
   theme_minimal()
 
 ```
-```{r}
+```{r plotting vfs again}
 
 vf_plot_df <- vf_plot_df %>%
   dplyr::mutate(
@@ -4083,7 +4070,7 @@ vf_plot_df <- vf_plot_df %>%
 
 ```
 
-```{r}
+```{r plottingtogether}
 plot_domestic <- vf_plot_df %>%
   dplyr::filter(sig_domestic) %>%
   dplyr::mutate(
@@ -4120,7 +4107,7 @@ ggplot(plot_all,
   theme_minimal()
 
 ```
-```{r}
+```{r more plottn}
 ggplot(plot_all,
        aes(x = logOR,
            y = reorder(annotation, logOR))) +
@@ -4138,7 +4125,7 @@ ggplot(plot_all,
 ```
 
 ## kegg-per-spceis
-```{r}
+```{r kegg per species}
 kegg_models <- readRDS("data/glmm_results/kegg/kegg_glmmTMB_models_by_species.rds")
 kegg_host <- read_csv("data/glmm_results/kegg/kegg_host_effects_by_species.csv")
 kegg_annotation_random <- read_csv("data/glmm_results/kegg/kegg_annotation_random_slopes.csv")
@@ -4146,11 +4133,11 @@ kegg_annotation_random <- read_csv("data/glmm_results/kegg/kegg_annotation_rando
 
 
 
-```{r}
+```{r load kegg host}
 kegg_host
 ```
 
-```{r}
+```{r checkrandomkegg}
 head(kegg_annotation_random )
 
 
@@ -4214,7 +4201,7 @@ ggplot(
 ```
 
 
-```{r}
+```{r kegg wild effects}
 kegg_wild_effects <- purrr::imap_dfr(
   kegg_models,
   ~ {

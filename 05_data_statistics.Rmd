@@ -2,7 +2,7 @@
 
 
 ## Load all the species data
-```{r Define species and mags to remove list_2, eval = FALSE}
+```{r Define species and mags to remove list_2}
 # ALL SPECIES
 species_list <- c(
   "lactococcus_lactis",
@@ -87,14 +87,14 @@ total_genome_metadata <- dplyr::bind_rows(named_list, .id = "bacterial_species")
 
 ## Phylogenetic tree of the 10 bacterial species
 
-```{r load tree and metadata}
+```{r load tree and metadata, eval = FALSE}
 # Tree and metadata from the GTDB Release 226
 
 tree <- read.tree("data/bac120.tree")
 meta <- read_tsv("data/bac120_metadata.tsv.gz")
 ```
 
-```{r gtdb tree}
+```{r gtdb tree, eval = FALSE}
 # Species list
 my_species <- c(
   "Akkermansia muciniphila",
@@ -124,7 +124,7 @@ selected_accessions <- meta %>%
 
 ```
 
-```{r pruning the tree}
+```{r pruning the tree, eval = FALSE}
 # prune the GTDB tree to contain only our species
 pruned <- drop.tip(tree, setdiff(tree$tip.label, selected_accessions))
 
@@ -144,11 +144,18 @@ pruned$tip.label <- pruned$tip.label %>%
 ggtree(pruned) + geom_tiplab(size = 3)
 ```
 
+```{r load the bacterial tree}
+load("data/pruned_tree.RData")
+ggtree(pruned) + geom_tiplab(size = 3)
+```
+
+
+
 ## Phylogenetic tree of the host species
 ```{r host tree, fig.height= 8, fig.width = 10}
 
 host_tree <- read.tree("data/host_species_tree.nwk")
-plot(tree, cex = 0.5)
+plot(host_tree, cex = 0.5)
 axisPhylo()
 
 ```
@@ -1366,7 +1373,7 @@ partitions <- partitions %>%
 ```
 
 
-```{r plot}
+```{r plot_pangenome}
 ggplot(partitions,
        aes(x = species, y = families, fill = partition)) +
   geom_bar(stat = "identity", width = 0.7) +
@@ -1453,7 +1460,7 @@ p_final
 ```
 
 
-```{r save data}
+```{r save data, eval = FALSE}
 save(total_genome_metadata,
      species_list,
      species_data,
@@ -1463,6 +1470,10 @@ save(total_genome_metadata,
 ```
 
 
+```{r save separately, eval = FALSE}
+save(pruned, file = "data/pruned_tree.RData")
+save(host_tree, file = "data/host_tree.RData")
+```
 
 
 
