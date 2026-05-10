@@ -940,7 +940,7 @@ kegg_annot_df <- kegg_df %>%
 
 
 
-```{r volcano plot colorful, fig.height=6, fig.width = 15, eval = FALSE}
+```{r volcano plot colorful, fig.height=6, fig.width = 15,}
 
 kegg_categories <- sort(unique(na.omit(kegg_annot_df$category)))
 
@@ -1091,7 +1091,6 @@ vf_df_annot %>%
 
 ##### CAZY
 ```{r cazy data}
-library(readxl)
 faminfo <- read_excel("data/FamInfo.txt.04232020.xls")
 activities <- read_tsv("data/CAZyDB.07302020.fam-activities.txt", comment = "#",
                        col_names = c("family", "activity"))
@@ -1532,11 +1531,11 @@ for (sp in species_list) {
 
   print(p)
 
-  ggsave(
-    paste0("plots/functional_enrichment_", sp, ".pdf"),
-    plot = p,
-    width = 13,
-    height = 8
+  # ggsave(
+  #   paste0("plots/functional_enrichment_", sp, ".pdf"),
+  #   plot = p,
+  #   width = 13,
+  #   height = 8
   )
 }
 
@@ -2631,7 +2630,7 @@ df_hw <- vf_fisher_total %>%
   )%>%
   filter(n_mags_human > 0 | n_mags_wild > 0) %>% # remove rows where kegg is not present in both groups
   filter(tot_wild > 0, tot_human > 0) %>%  #remove rows that dont have any data for kegg
-  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) %>% #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
+  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
 
 
 #  Low-bias screen 
@@ -2789,8 +2788,8 @@ df_hw <- vf_fisher_total %>%
     tot_human = n_mags_human + absent_human
   ) %>%
   filter(n_mags_human > 0 | n_mags_wild > 0) %>% # remove rows where kegg is not present in both groups
-  filter(tot_wild > 0, tot_human > 0) %>%  #remove rows that dont have any data for kegg
-  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) %>% #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
+  filter(tot_domestic > 0, tot_human > 0) %>%  #remove rows that dont have any data for kegg
+  filter((n_mags_human < tot_human) | (n_mags_domestic < tot_domestic)) #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
 
 
 #  Low-bias screen 
@@ -2968,12 +2967,12 @@ df_hw <- vf_fisher_total %>%
     tot_wild  = n_mags_wild  + absent_wild,
     tot_domestic = n_mags_domestic + absent_domestic
   )  %>%
-  filter(n_mags_human > 0 | n_mags_wild > 0) %>% # remove rows where kegg is not present in both groups
-  filter(tot_wild > 0, tot_human > 0) %>%  #remove rows that dont have any data for kegg
-  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) %>% #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
+  filter(n_mags_domestic > 0 | n_mags_wild > 0) %>% # remove rows where kegg is not present in both groups
+  filter(tot_domestic > 0, tot_domestic > 0) %>%  #remove rows that dont have any data for kegg
+  filter((n_mags_domestic < tot_domestic) | (n_mags_wild < tot_wild)) #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
 
 #  Low-bias screen 
-min_informative_species <- 3
+min_informative_species <- 4
 min_total_events <- 10
 
 vf_keep_hw <- df_hw %>%
@@ -3437,7 +3436,7 @@ Correlations: 0.90–0.94 between host effects
 
 
 Species effect: Variance = 0.57 (moderate)
-- Species differ in overall VF load, but much less than annotations differ
+- Species differ in overall VF load, but much less than the variation from VF to VF (VF-specific effects)
 
 
 Residuals: Min: -42.7   Max: 14.1
@@ -3479,7 +3478,7 @@ Domestic vs Wild: Domestic genomes have 39% higher odds than wild (p < 0.0001)
 Prevalence of VFs : human > domestic > wild (average, not true for every VF)
 
 
-```{r vf_random_effects_per_vf}
+```{r vf_random_effects_per_vf_1}
 #get random deviation effects of each individual VF
 # values here are log-odds of deviation from the average (fixed effect)
 
@@ -3717,72 +3716,26 @@ kegg_summary_dw <- kegg_clean %>%
 
 ```
 
-Here it is detecting a VF that is present across all mags in both comparisons except for hafnia paralvei, where it is present in 1 wild mag and 0 human mags, and it is assigned as "enriched in human", probably because we have more human mags overall.
+Here it is detecting a VF that is present across all mags in both comparisons except for hafnia paralvei, where it is present in 1 wild mag and 0 human mags, and it is assigned as "enriched in human", probably because we have more human mags overall.- This is not what we want to detect.
 
 ```{r vf0141}
+#VF0141 is the top human-enriched term when comparing to domestic in the plot
 vf_summary_hw %>% filter(vf == "VF0141", contrast == "human_vs_wild" )
 ```
-This one is present overall but is more represented in humans compared to wild for parabacteroides goldsteinii.
+This one is present overall but is more represented in humans compared to wild for parabacteroides goldsteinii only- also not what we are looking for..
 
 
 
 
 
 ```{r vf0377}
+#VF0377 is supposed to be enriched in wild compared to humans
 vf_summary_hw %>% filter(vf == "VF0377", contrast == "human_vs_wild" )
 ```
-
 This one is absent in humans, present in few wild.
 
 
-```{r vf01232}
-vf_summary_hw %>% filter(vf == "VF01232", contrast == "human_vs_wild" )
-```
-???
-
-
-### 1.5) Same VF glmm model but with TMB instead of lme4
-
-Still with the outdated filtering.
-
-```{r vf model tmb}
-vf_glmm_2_TMB <- readRDS("data/glmm_results/vf_2/vf_glmmTMB_global_model.rds")
-
-up2date(vf_glmm_2_TMB)
-
-summary(vf_glmm_2_TMB)
-```
-
-The first model (glmm_1) did not converge, but this one does.
-This one is more stable
-
-
-```{r fixed_effects_vf_2_TMB}
-vf_fixed_2 <-  broom.mixed::tidy(vf_glmm_2_TMB, effects = "fixed")
-vf_fixed_2
-```
-
-
-
-```{r vf_emmeans_host_contrasts_2}
-# What is the average probability of VF presence for each host type, and how do they compare??
-# Use emmeans to calculate av prob of vf presence
-
-
-emm_2 <- emmeans(
-  vf_glmm_2_TMB,
-  pairwise ~ host_type_2,
-  type = "response",
-  data = vf_glmm
-)
-
-
-
-emm_2$contrasts
-
-```
-
-### 2) Same VF glmmTMB modelbut with proper filtering
+### 2) Same VF global model - but this time with TMB and proper filtering
 
 PROPER FILTERING
 
@@ -3841,7 +3794,7 @@ head(re)
 fix <- fixef(vf_glmm_4_TMB)$cond
 fix
 ```
-```{r combine fixed and ranomd effects to get real effect}
+```{r combine fixed and random effects to get real effect}
 
 vf_effects <- re %>%
   tibble::rownames_to_column("annotation") %>%
@@ -3854,12 +3807,10 @@ vf_effects <- re %>%
     OR_domestic = exp(domestic),#convert to odds ratio
     OR_wild     = exp(wild)
   )
-
-
 ```
 
 
-```{r forest_plot_glmm_filtered, fig.height = 6, fig.width =10}
+```{r forest_plot_glmm_filtered_4, fig.height = 6, fig.width =10}
 vf_effects_plot <- vf_effects %>%
   mutate(
     human     = intercept,
@@ -3934,21 +3885,24 @@ p_dw <- ggplot(vf_dw, aes(x = OR, y = reorder(annotation, OR))) +
   )
 ```
 
-```{r vf0700}
+```{r vf0700_again}
+#VF0700 is supposed to be top term enriched in human vs wild
 vf_summary_hw %>% filter(vf == "VF0700", contrast == "human_vs_wild" )
 ```
 VF0700 -supposed to be enriched in human -> is not really...
 
 
 ```{r vf0594}
+#VF0594 is supposed to be enriched in wild animal compared to human
 vf_summary_hw %>% filter(vf == "VF0594", contrast == "human_vs_wild" )
 ```
 VF0594->supposed to be enriched in wild -> slightly enriched.
 
-```{r vf0584}
-vf_summary_hw %>% filter(vf == "VF0584", contrast == "human_vs_wild" )
+```{r vf0033}
+#VF0033 is supposed to be enriched in wild animal compared to human
+vf_summary_hw %>% filter(vf == "VF0033", contrast == "human_vs_wild" )
 ```
-
+Is slightly enriched in wild animals in phocaeicola vulgatus.
 
 ### 3) VF GLMM with glmmTMB per species
 
@@ -4033,7 +3987,7 @@ annotation host_type_2wild     SD = 2.589
 
 
 
-```{r vf_effects_per_species}
+```{r vf_effects_per_species_1}
 vf_models <- purrr::map(vf_models, glmmTMB::up2date)
 
 
@@ -4249,7 +4203,7 @@ Supposedly enriched in domestic: VF1055, VF1299
 vf_summary_hd %>% filter(vf == "VF1055", contrast == "human_vs_domestic" )
 ```
 
-VF1055 is slighlty more prevalent in domestic forlactococcus_lactis and phocaeicola vulgatus, but it is a very smalldifference and this is not consistent for the other species...
+VF1055 is slighlty more prevalent in domestic for lactococcus_lactis and phocaeicola vulgatus, but it is a very small difference and this is not consistent for the other species...
 
 ```{r vf1299}
 vf_summary_hd %>% filter(vf == "VF1299", contrast == "human_vs_domestic" )
@@ -4482,13 +4436,13 @@ ggplot(vf_distribution, aes(x = n_species, y = n)) +
 
 
 
-## kegg-per-spceis
+## kegg-per-species
 ```{r load kegg per species model filtered}
 kegg_models <- readRDS("data/glmm_results/kegg/kegg_glmmTMB_models_by_species_FILTERED.rds")
 ```
 
 
-```{r vf_effects_per_species}
+```{r kegg_effects_per_species_oo}
 kegg_models <- purrr::map(kegg_models, glmmTMB::up2date)
 
 
@@ -4580,7 +4534,7 @@ kegg_annotation_slopes <- purrr::imap_dfr(
 kegg_annotation_slopes
 ```
 
-```{r vf_real_effects_per_species, fig.height = 7, fig.width = 12}
+```{r kegg_real_effects_per_species, fig.height = 7, fig.width = 12}
 kegg_fixed <- kegg_models %>%
   purrr::imap_dfr(~ {
     coefs <- summary(.x)$coefficients$cond
@@ -4710,7 +4664,7 @@ K13290 is supposed to be higher in domestic, is not really...
 
 
 
-```{r top wild check }
+```{r top kegg wild check }
 #which vf is enriched in wild according to previous psuedo-meta-analysis?
 top_wild_keggs <- consistent_keggs %>%
   dplyr::filter(term == "host_type_2wild") %>%   # only wild comparison
@@ -4872,6 +4826,73 @@ K18434: type IV secretion system T-DNA border endonuclease VirD2
 kegg_summary_hw %>% filter(kegg == "K18434", contrast == "human_vs_wild" )
 ```
 
+###Testing model with (host_type_2 | species)?
+
+```{r vf model tmb_5}
+vf_glmm_5_TMB <- readRDS("data/glmm_results/vf_glmmTMB_filtered_model_5.rds")
+
+up2date(vf_glmm_5_TMB)
+
+summary(vf_glmm_5_TMB)
+```
+
+Random effects- species-level:
+Intecept SD = 0.62  - species differ in baseline VF prevalence
+domestic SD =0.27   - domestic host effect varies moderately across species
+Wild  SD = 0        - wild host effect is constant across species
+
+
+```{r extracting effects}
+#fixed effects
+fixef_df <- broom.mixed::tidy(
+  vf_glmm_5_TMB,
+  effects = "fixed"
+) %>%
+  dplyr::select(term, estimate)
+
+#randome effects
+vf_re <- ranef(vf_glmm_5_TMB)$cond$annotation %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("annotation")
+
+
+#species random effects
+species_re <- ranef(vf_glmm_5_TMB)$cond$species %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("species")
+
+
+#convert to long formats
+# Keep only host effects
+vf_long <- vf_re %>%
+  pivot_longer(
+    cols = starts_with("host_type_2"),
+    names_to = "term",
+    values_to = "vf_dev"
+  )
+
+species_long <- species_re %>%
+  pivot_longer(
+    cols = starts_with("host_type_2"),
+    names_to = "term",
+    values_to = "species_dev"
+  )
+
+fixed_long <- fixef_df %>%
+  filter(str_detect(term, "host_type_2")) %>%
+  rename(fixed = estimate)
+
+
+##combine all to get true estimated effect:
+vf_species_effects <- vf_long %>%
+  left_join(fixed_long, by = "term") %>%
+  left_join(species_long, by = "term") %>%
+  mutate(
+    total_effect = fixed + vf_dev + species_dev,
+    odds_ratio = exp(total_effect)
+  )
+```
+Model does not give true standard error for random effects, so we will approximate SE_total ≈ SE_fixed
 
 
 
