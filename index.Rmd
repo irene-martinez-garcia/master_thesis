@@ -55,6 +55,8 @@ library(tinytable)
 library(rairtable)
 library(janitor)
 library(broom)
+library(broom.mixed)
+library(readxl)
 
 # For tree handling
 library(ape)

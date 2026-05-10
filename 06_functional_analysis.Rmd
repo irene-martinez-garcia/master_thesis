@@ -3138,7 +3138,7 @@ for (k in vfs) {
 
 ## Hierarchical GLMM
 
-```{r make the matrices}
+```{r make the matrices for the glmms}
 make_glmm_long <- function(mat, metadata, species_name, annotation_type) {
 
   # mat: wide matrix from make_annotation_matrix()
@@ -3224,6 +3224,62 @@ cazy_glmm <- purrr::map_dfr(glmm_tables, "CAZy")
 ```
 
 
+```{r filtering_vf_glmm_used_in_TMB, eval = FALSE}
+## This is the filtering I was using before - models 1 and 2 
+
+vf_glmm <- vf_glmm %>%
+  dplyr::mutate(
+    host_type_2 = factor(host_type_2),
+    host_type_2 = relevel(host_type_2, ref = "human"),
+    annotation  = factor(annotation),
+    species     = factor(species), 
+    completeness = as.numeric(completeness)
+  )
+
+
+# Filter rare VFs
+vf_glmm <- vf_glmm %>%
+  dplyr::group_by(annotation) %>%
+  dplyr::filter(sum(present) >= 10) %>%
+  dplyr::ungroup()
+```
+
+
+```{r better_filtering_based_on_metaanalysis_filtering}
+## Current filtering for models 4
+
+vf_glmm_filtered <- vf_glmm %>%
+  group_by(species, annotation, host_type_2) %>%
+  summarise(
+    n_present = sum(present),
+    n_total = n(),
+    .groups = "drop"
+  ) 
+
+vf_informative <- vf_glmm_filtered %>%
+  group_by(species, annotation) %>%
+  summarise(
+    has_variation = n_distinct(n_present) > 1, #exclude all 0 and all 1 , model 3 was using: has_variation = any(n_present > 0) & any(n_present < n_total)
+    total_events = sum(n_present),  #total events across host groups
+    .groups = "drop"
+  ) %>%
+  filter(
+    has_variation,
+    total_events >= 5  #removing cases where only <5 mags across all host groups (very rare VFs)
+  )
+
+
+vf_keep <- vf_informative %>%
+  group_by(annotation) %>%
+  summarise(n_species = n(), .groups = "drop") %>%
+  filter(n_species >= 3) %>%
+  pull(annotation)
+
+vf_glmm <- vf_glmm %>%
+  filter(annotation %in% vf_keep)
+```
+
+
 
 ```{r check distribution}
 
@@ -3281,387 +3337,1092 @@ ggplot(vf_by_genome, aes(x = n_vf)) +
 ```
 
 
-For each KO, does the probability of being present in a MAG differ by host type (wild / domestic / human), consistently across bacterial species, after correcting for MAG completeness?
+The following generalized linear mixed models are done in Mjolnir HPC, then the results are imported into this R Markdown.
 
--Done in cluster
 
-```{r load_vf_glmm_resutls}
-vf_fixed  <- read_csv("data/glmm_results/vf_glmm_fixed_effects.csv")
-vf_contr  <- read_csv("data/glmm_results/vf_glmm_host_contrasts.csv")
-vf_effect <- read_csv("data/glmm_results/vf_glmm_annotation_effects.csv")
-m_vf_2 <- readRDS("data/glmm_results/vf_glmm_model.rds")
+### 1) VF glmm with lme4
+
+This is the first model I tested, with the outdated filtering.
+
+```{r model 1}
+vf_glmm <- vf_glmm %>%
+  dplyr::mutate(
+    host_type_2 = factor(host_type_2),
+    host_type_2 = relevel(host_type_2, ref = "human"),  #setting human as reference factor
+    annotation  = factor(annotation),
+    species     = factor(species)
+  )
+
+# Filter rare VFs (important for speed)
+vf_glmm <- vf_glmm %>%
+  dplyr::group_by(annotation) %>%
+  dplyr::filter(sum(present) >= 15) %>%
+  dplyr::ungroup()
+
+
+# vf_glmm_1 <- glmer(
+#   present ~ host_type_2 + completeness +
+#     (host_type_2 || annotation) +   
+#     (1 | species),
+#   data = vf_glmm,
+#   family = binomial(),
+#   control = glmerControl(
+#     optimizer = "bobyqa",
+#     optCtrl = list(maxfun = 2e5)
+#   )
+# )
 ```
-```{r vf_fixed}
+
+MODEL:
+
+$$
+\text{logit}(P(present=1)) = \beta_0 + \beta_1(host) + \beta_2(completeness) + b_{annotation} + b_{annotation, host} + b_{species}
+$$
+
+m_vf_2 <- glmer(
+  present ~ host_type_2 + completeness +
+    (host_type_2 || annotation) +   # || = faster, safer
+    (1 | species),
+  data = vf_glmm,
+  family = binomial(),
+  control = glmerControl(
+    optimizer = "bobyqa",
+    optCtrl = list(maxfun = 2e5)
+  )
+)
+
+
+
+For each VF, does the probability of being present in a MAG differ by host type (wild / domestic / human), consistently across bacterial species, after correcting for MAG completeness?
+
+Is the presence of a virulence factor (VF) associated with host type, while accounting for genome completeness and variation across annotations and species?
+
+---
+
+#### Fixed effects: 
+1) host_type_2 - How the probability of a VF being present differs in other hosts compared to human
+2) completeness - Control for differences in MAG quality
+
+#### Random effects:
+Different virulence factors behave differently across host types.
+
+
+(host_type_2 || annotation) - each VF gets its own intercept (baseline) and slope (host type effect) 
+The || means random intercepts and slopes are independent.
+
+--- 
+
+Some species have more VFs overall than others (biological variation and genome size).
+(1 | species)
+
+```{r load_vf_glmm_model}
+vf_glmm_1 <- readRDS("data/glmm_results/vf_glmm_model.rds")
+```
+
+```{r summary of model}
+summary(vf_glmm_1)
+```
+
+Random effects: 
+Intercept variance = 2.92  (large)
+Host effects variance:
+  human    = 11.39
+  domestic = 13.92
+  wild     = 6.06
+  
+Very large -- Different VFs behave VERY differently per host type
+
+Correlations: 0.90–0.94 between host effects
+-VFs that respond strongly to one host type tend to respond similarly to others
+
+
+Species effect: Variance = 0.57 (moderate)
+- Species differ in overall VF load, but much less than annotations differ
+
+
+Residuals: Min: -42.7   Max: 14.1
+-very extreme -some predictions are very wrong, heterogeneous VFs
+
+
+QUESTIONS:
+For each VF, does probability differ by host type? - YES: large random-effect variance for host slopes
+Is VF presence associated with host type overall?  - wild: strong negative effect compared to human, domestic not so much
+This is somewhat conserved across species: species variance is relatively small.
+
+
+```{r vf_fixed_1}
+#extract fixed effects
+vf_fixed <-  broom.mixed::tidy(vf_glmm_1, effects = "fixed")
 vf_fixed
 ```
-```{r vf_host_contrasts}
-vf_contr
-```
+Fixed effects:
 
-```{r vf_annot}
-vf_effect %>% head(10)
-```
+Intercept = 0.192 (p = 0.37)  - baseline human host
+Domestic = -0.129 (p = 0.072)  - VF presence in domestic animals is slightly lower than human (but not p<0.05)
+Wild = -0.459 (p = 4.32e-13) - VFs are significantly less likely to be present in wild-associated genomes compared to human
+Completeness = 0.0175 (p = 1.53e-15) - More complete genomes are more likely to have VFs detected 
+
+```{r vf_emmeans_host_contrasts_1}
+# What is the average probability of VF presence for each host type, and how do they compare??
+# Use emmeans to calculate av prob of vf presence
+
+emm <- emmeans(vf_glmm_1, pairwise ~ host_type_2, type = "response")
 
 
-```{r selecting top vfs}
-vf_top_human <- vf_effect %>%
-  arrange(host_type_2wild) %>%   # more negative = more human-enriched
-  slice_head(n = 15)
-
-vf_top_human
-
-vf_top_wild <- vf_effect %>%
-  arrange(desc(host_type_2wild)) %>%
-  slice_head(n = 15)
-
-vf_top_wild
+emm$contrasts
 
 ```
+Human vs domestic : not significant (no clear difference between human and domestic)
+Human vs wild: Human genomes have 58% higher odds of VF presence than wild (p < 0.0001)
+Domestic vs Wild: Domestic genomes have 39% higher odds than wild (p < 0.0001)
+
+Prevalence of VFs : human > domestic > wild (average, not true for every VF)
 
 
-```{r load random effects model annotations}
-re_vf <- ranef(m_vf_2, condVar = TRUE)$annotation
+```{r vf_random_effects_per_vf}
+#get random deviation effects of each individual VF
+# values here are log-odds of deviation from the average (fixed effect)
+
+
+vf_effects <- ranef(vf_glmm_1)$annotation 
+head(vf_effects)
 ```
+Intercept: baseline prevalence of VF, + : generally common
+Example - VF0003
+host_type_2human: +5.42 : effect of human is much stronger than average VF
+host_type2domestic : same
+host_type2wild: +2.89 -> VF0003 is much more strongly associated with human (and domestic) than wild
 
 
-```{r vf_effects_with_uncertainty}
-
-vf_df <- as.data.frame(re_vf) %>%
-  tibble::rownames_to_column("vf")
-
-postvar <- attr(re_vf, "postVar")
-
-pv_slopes <- postvar[['c("host_type_2human", "host_type_2domestic", "host_type_2wild")']]
 
 
-vf_df <- vf_df %>%
+Fixed effects → the average trend across all VFs
+Random effects → how each VF deviates from that average
+
+
+If we want the real effect: fixed + random
+```{r real effect per vf}
+# real effect per VF: add fixed + random effects
+
+vf_effects_real <- vf_effects %>%
+  tibble::rownames_to_column("VF") %>%
   mutate(
-    se_human    = sqrt(pv_slopes[1, 1, ]),
-    se_domestic = sqrt(pv_slopes[2, 2, ]),
-    se_wild     = sqrt(pv_slopes[3, 3, ])
+    wild_real = fixef(vf_glmm_1)["host_type_2wild"] + host_type_2wild,
+    domestic_real = fixef(vf_glmm_1)["host_type_2domestic"] + host_type_2domestic,
+    human_real = 0 + host_type_2human  # human is reference → fixed = 0
   )
 
+```
 
-vf_df <- vf_df %>%
+```{r adding comparison human_vs_wild}
+vf_effects_real <- vf_effects_real %>%
+  mutate(wild_vs_human = wild_real - human_real) %>%
+  arrange(desc(wild_vs_human)) %>%
+  dplyr::select(VF, wild_real, human_real, domestic_real, wild_vs_human) 
+
+vf_effects_real%>%
+  head(10)
+```
+Example: wild_real : -0.46  vs human_real: -3.22
+
+These VFs are more present in wild than human- they are rare overall (negative values-low probability) but they are less rare in wild compared to human.
+
+
+
+```{r heatmap of top vfs}
+top_vfs <- vf_effects_real %>%
   mutate(
-    lo_human = host_type_2human - 1.96 * se_human,  #95% uncertainty interval
-    hi_human = host_type_2human + 1.96 * se_human,
-
-    lo_dom   = host_type_2domestic - 1.96 * se_domestic,
-    hi_dom   = host_type_2domestic + 1.96 * se_domestic,
-
-    lo_wild  = host_type_2wild - 1.96 * se_wild,
-    hi_wild  = host_type_2wild + 1.96 * se_wild
-  )
-
-vf_df2 <- vf_df %>%
-  left_join(vf_data, by = c("vf" = "vf"))
-
-
-vf_human <- vf_df2 %>%
-  filter(hi_wild < 0) %>%
-  arrange(host_type_2wild)
-
-
-vf_wild <- vf_df2 %>%
-  filter(lo_wild > 0) %>%
-  arrange(desc(host_type_2wild))
-
-vf_domestic <- vf_df2 %>%
-  filter(
-    lo_dom > 0,
-    hi_wild > 0,     # optional: distinct from wild
-    hi_human > 0    # optional: distinct from human
+    wild_vs_human = wild_real - human_real
   ) %>%
-  arrange(desc(host_type_2domestic))
+  {
+    bind_rows(
+      arrange(., desc(wild_real)) %>% slice_head(n = 10),
+      arrange(., desc(human_real)) %>% slice_head(n = 10),
+      arrange(., desc(wild_vs_human)) %>% slice_head(n = 10)
+    )
+  } %>%
+  distinct(VF, .keep_all = TRUE)
 
 
-vf_gradient <- vf_df2  %>%
-  filter(
-    lo_wild > 0,
-    lo_dom  > 0,
-    host_type_2wild > host_type_2domestic,
-    host_type_2domestic > host_type_2human
-  )  %>%
-  arrange(desc(host_type_2wild))
-
-
-
-top_wild <- vf_wild  %>% slice_head(n = 12)
-
-ggplot(top_wild,
-       aes(y = reorder(vf, host_type_2wild),
-           x = exp(host_type_2wild))) +
-  geom_point(size = 2) +
-  geom_errorbarh(
-    aes(
-      xmin = exp(lo_wild),
-      xmax = exp(hi_wild)
-    ),
-    height = 0.2
-  ) +
-  geom_vline(xintercept = 1, linetype = "dashed") +
-  scale_x_log10() +
-  labs(
-    x = "Odds ratio (Wild vs Human)",
-    y = "Virulence factor"
-  ) +
-  theme_bw()
-
-
-ggplot(top_wild,
-       aes(y = reorder(vf, host_type_2wild),
-           x = exp(host_type_2wild),
-           color = vf_type)) +
-  geom_point(size = 2) +
-  geom_errorbarh(
-    aes(xmin = exp(lo_wild), xmax = exp(hi_wild)),
-    height = 0.2
-  ) +
-  geom_vline(xintercept = 1, linetype = "dashed") +
-  scale_x_log10() +
-  labs(
-    x = "Odds ratio (Wild vs Human)",
-    y = "Virulence factor",
-    color = "VF functional class"
-  ) +
-  theme_bw()
-
-
-vf_domestic <- vf_df2 %>%
-  filter(lo_dom > 0) %>%
-  arrange(desc(host_type_2domestic))
-
-top_domestic <- vf_domestic %>% slice_head(n = 12)
-
-ggplot(top_domestic,
-       aes(y = reorder(vf, host_type_2domestic),
-           x = exp(host_type_2domestic),
-           color = vf_type)) +
-  geom_point(size = 2) +
-  geom_errorbarh(
-    aes(xmin = exp(lo_dom), xmax = exp(hi_dom)),
-    height = 0.2
-  ) +
-  geom_vline(xintercept = 1, linetype = "dashed") +
-  scale_x_log10() +
-  labs(
-    x = "Odds ratio (Domestic vs Human)",
-    y = "Virulence factor",
-    color = "VF functional class"
-  ) +
-  theme_bw()
-
-vf_human <- vf_df2 %>%
-  filter(hi_wild < 0) %>%
-  arrange(host_type_2wild)
-
-top_human <- vf_human %>% slice_head(n = 12)
-
-
-ggplot(top_human,
-       aes(y = reorder(vf, -host_type_2wild),
-           x = exp(-host_type_2wild),
-           color = vf_type)) +
-  geom_point(size = 2) +
-  geom_errorbarh(
-    aes(xmin = exp(-hi_wild), xmax = exp(-lo_wild)),
-    height = 0.2
-  ) +
-  geom_vline(xintercept = 1, linetype = "dashed") +
-  scale_x_log10() +
-  labs(
-    x = "Odds ratio (Human vs Wild)",
-    y = "Virulence factor",
-    color = "VF functional class"
-  ) +
-  theme_bw()
-
-
-
-vf_df2 <- vf_df2 %>%
-  mutate(
-    wild_vs_domestic = host_type_2wild - host_type_2domestic
+heatmap_df <- top_vfs %>%
+  dplyr::select(VF, human_real, domestic_real, wild_real) %>%
+  pivot_longer(
+    cols = -VF,
+    names_to = "host",
+    values_to = "effect"
   )
 
+ggplot(heatmap_df, aes(x = host, y = VF, fill = effect)) +
+  geom_tile() +
+  scale_fill_viridis_c(option = "plasma") +
+  theme_minimal() +
+  labs(
+    title = "VF host associations (log-odds)",
+    x = "Host type",
+    y = "Virulence Factor",
+    fill = "Effect"
+  )
+
+
 ```
-```{r human and wild together}
-top_wild <- vf_df2 %>%
-  arrange(desc(host_type_2wild)) %>%
-  slice_head(n = 10)
 
-top_human <- vf_df2 %>%
-  arrange(host_type_2wild) %>%
-  slice_head(n = 10)
+-VFs that are generally common (more yellow) are prevalent in human/domestic and less so in wild (orange)
+-VFs that are rare everywhere (purple) are less rare in wild (lighter purple) compared to human/domestic.
 
-top_both <- bind_rows(top_wild, top_human)
 
-ggplot(top_both,
-       aes(
-         y = reorder(vf, host_type_2wild),
-         x = exp(host_type_2wild),
-         color = vf_type
-       )) +
-  geom_point(size = 2) +
-  geom_errorbarh(
-    aes(
-      xmin = exp(lo_wild),
-      xmax = exp(hi_wild)
-    ),
-    height = 0.2
-  ) +
+```{r forest_plit_glmm1, fig.height = 6, fig.width =10}
+# we CANNOT reliably compute per‑VF confidence intervals from this model, we would need to fit individual models per VF
+#plot direction only
+
+
+vf_hw <- vf_effects_real %>%
+  mutate(
+    logOR = human_real - wild_real, ## logOR > 0 : human > wild
+    OR = exp(logOR)
+  ) %>%
+  slice_max(abs(logOR), n = 50)  ##  strongest differences, regardless of direction:
+
+p_hw <- ggplot(vf_hw, aes(x = OR, y = reorder(VF, OR))) +
   geom_vline(xintercept = 1, linetype = "dashed") +
+  geom_point() +
   scale_x_log10() +
-  labs(
-    x = "Odds ratio (Wild vs Human, relative to average VF)",
-    y = "Virulence factor",
-    color = "VF functional class"
-  ) +
-  theme_bw()
+  theme_minimal()+
+labs(
+    title = "Human vs Wild",
+    x = "Odds ratio (human / wild, log scale)",
+    y = "Virulence factor"
+  )
 
 
-top_domestic <- vf_df2 %>%
-  arrange(desc(host_type_2domestic)) %>%
-  slice_head(n = 10)
+#domestic vs human
+vf_dh <- vf_effects_real %>%
+  mutate(
+    logOR = human_real - domestic_real,
+    OR = exp(logOR)
+  ) %>%
+  slice_max(abs(logOR), n = 50)
 
-top_human_dom <- vf_df2 %>%
-  arrange(host_type_2domestic) %>%
-  slice_head(n = 10)
-
-top_both_domestic <- bind_rows(top_domestic, top_human_dom)
-
-ggplot(top_both_domestic,
-       aes(
-         y = reorder(vf, host_type_2domestic),
-         x = exp(host_type_2domestic),
-         color = vf_type
-       )) +
-  geom_point(size = 2) +
-  geom_errorbarh(
-    aes(
-      xmin = exp(lo_dom),
-      xmax = exp(hi_dom)
-    ),
-    height = 0.2
-  ) +
+p_hd <- ggplot(vf_dh, aes(x = OR, y = reorder(VF, OR))) +
   geom_vline(xintercept = 1, linetype = "dashed") +
+  geom_point() +
   scale_x_log10() +
-  labs(
-    x = "Odds ratio (Domestic vs Human, relative to average VF)",
-    y = "Virulence factor",
-    color = "VF functional class"
-  ) +
-  theme_bw()
+  theme_minimal()+
+labs(
+    title = "Human vs Domestic",
+    x = "Odds ratio (human / domestic, log scale)",
+    y = "Virulence factor"
+  )
+
+
+#domestic vs wild
+ vf_dw <- vf_effects_real %>%
+  mutate(
+    logOR = domestic_real - wild_real,
+    OR = exp(logOR)
+  ) %>%
+  slice_max(abs(logOR), n = 50)
+
+p_dw <- ggplot(vf_dw, aes(x = OR, y = reorder(VF, OR))) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  geom_point() +
+  scale_x_log10() +
+  theme_minimal()+
+labs(
+    title = "Domestic vs Wild",
+    x = "Odds ratio (domestic / wild, log scale)",
+    y = "Virulence factor"
+  )
+
+
+
+(p_hw +p_dw+ p_hd) +
+  plot_layout(ncol = 3) +
+  plot_annotation(
+    title = "Virulence factor enrichment across host types"
+  )
 ```
 
-```{r plotting histograms}
-ggplot(vf_df, aes(x = host_type_2wild)) +
-  geom_histogram(bins = 50) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
-  labs(
-    x = "VF deviation (wild vs human)",
-    y = "Number of virulence factors"
-  ) +
-  theme_bw()
+Checking the top terms to see what the model is really doing.
+1) VF0700
+
+```{r chcecks vf0700}
+## vfs
+#cleaning so we can check if vf that are given by model are actually enriched or not using the fisher tables
+vf_clean <- vf_fisher_total %>%
+  mutate(
+    total_human = n_mags_human + absent_human,
+    total_wild  = n_mags_wild  + absent_wild,
+    total_domestic = n_mags_domestic + absent_domestic,
+
+    prop_human = n_mags_human / total_human,
+    prop_wild  = n_mags_wild  / total_wild,
+    prop_domestic = n_mags_domestic / total_domestic,
+
+    label_human = paste0(n_mags_human, "/", total_human),
+    label_wild  = paste0(n_mags_wild, "/", total_wild),
+    label_domestic  = paste0(n_mags_domestic, "/", total_domestic)
+  )
 
 
-ggplot(vf_df2,
-       aes(x = wild_vs_domestic)) +
-  geom_histogram(bins = 40) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
-  labs(
-    x = "VF deviation (Wild vs Domestic)",
-    y = "Number of virulence factors"
-  ) +
-  theme_bw()
+vf_summary_hw <- vf_clean %>%
+  dplyr::select(
+    vf,label_human, label_wild,prop_human, prop_wild,
+    diff_prop,odds_ratio,p_value,p_adj,species,contrast)
+
+vf_summary_hd <- vf_clean %>%
+  dplyr::select(
+    vf,label_human, label_domestic,prop_human, prop_domestic,
+    diff_prop,odds_ratio,p_value,p_adj,species,contrast)
+
+vf_summary_dw <- vf_clean %>%
+  dplyr::select(vf,label_wild, label_domestic,
+    prop_wild, prop_domestic,diff_prop,odds_ratio,
+    p_value,p_adj, species,contrast)
+
+
+vf_summary_hw %>% filter(vf == "VF0700", contrast == "human_vs_wild" )
+
+
+## keggs
+kegg_clean <- kegg_fisher_total %>%
+  mutate(
+    total_human = n_mags_human + absent_human,
+    total_wild  = n_mags_wild  + absent_wild,
+    total_domestic = n_mags_domestic + absent_domestic,
+
+    prop_human = n_mags_human / total_human,
+    prop_wild  = n_mags_wild  / total_wild,
+    prop_domestic = n_mags_domestic / total_domestic,
+
+    label_human = paste0(n_mags_human, "/", total_human),
+    label_wild  = paste0(n_mags_wild, "/", total_wild),
+    label_domestic  = paste0(n_mags_domestic, "/", total_domestic)
+  )
+
+
+kegg_summary_hw <- kegg_clean %>%
+  dplyr::select(
+    kegg,label_human, label_wild,prop_human, prop_wild,
+    diff_prop,odds_ratio,p_value,p_adj,species,contrast)
+
+kegg_summary_hd <- kegg_clean %>%
+  dplyr::select(
+    kegg,label_human, label_domestic,prop_human, prop_domestic,
+    diff_prop,odds_ratio,p_value,p_adj,species,contrast)
+
+kegg_summary_dw <- kegg_clean %>%
+  dplyr::select(kegg,label_wild, label_domestic,
+    prop_wild, prop_domestic,diff_prop,odds_ratio,
+    p_value,p_adj, species,contrast)
+
+```
+
+Here it is detecting a VF that is present across all mags in both comparisons except for hafnia paralvei, where it is present in 1 wild mag and 0 human mags, and it is assigned as "enriched in human", probably because we have more human mags overall.
+
+```{r vf0141}
+vf_summary_hw %>% filter(vf == "VF0141", contrast == "human_vs_wild" )
+```
+This one is present overall but is more represented in humans compared to wild for parabacteroides goldsteinii.
+
+
+
+
+
+```{r vf0377}
+vf_summary_hw %>% filter(vf == "VF0377", contrast == "human_vs_wild" )
+```
+
+This one is absent in humans, present in few wild.
+
+
+```{r vf01232}
+vf_summary_hw %>% filter(vf == "VF01232", contrast == "human_vs_wild" )
+```
+???
+
+
+### 1.5) Same VF glmm model but with TMB instead of lme4
+
+Still with the outdated filtering.
+
+```{r vf model tmb}
+vf_glmm_2_TMB <- readRDS("data/glmm_results/vf_2/vf_glmmTMB_global_model.rds")
+
+up2date(vf_glmm_2_TMB)
+
+summary(vf_glmm_2_TMB)
+```
+
+The first model (glmm_1) did not converge, but this one does.
+This one is more stable
+
+
+```{r fixed_effects_vf_2_TMB}
+vf_fixed_2 <-  broom.mixed::tidy(vf_glmm_2_TMB, effects = "fixed")
+vf_fixed_2
+```
+
+
+
+```{r vf_emmeans_host_contrasts_2}
+# What is the average probability of VF presence for each host type, and how do they compare??
+# Use emmeans to calculate av prob of vf presence
+
+
+emm_2 <- emmeans(
+  vf_glmm_2_TMB,
+  pairwise ~ host_type_2,
+  type = "response",
+  data = vf_glmm
+)
+
+
+
+emm_2$contrasts
+
+```
+
+### 2) Same VF glmmTMB modelbut with proper filtering
+
+PROPER FILTERING
+
+```{r vf model tmb}
+library(glmmTMB)
+vf_glmm_4_TMB <- readRDS("data/glmm_results/vf_glmmTMB_filtered_model_4.rds")
+
+up2date(vf_glmm_4_TMB)
+
+summary(vf_glmm_4_TMB)
+```
+
+Interpretation
+
+Fixed effects: 
+-Intercept: 0.67 (p = 0.09) -> VF presence is generally high 
+-Domestic vs human : 0.107 (p=0.24) -> VF presence is NOT different between human and domestic animals
+-Wild vs human: -0.287 (p=0.000269) -> Wild hosts have about 25% lower odds of VF presence than humans 
+-Completeness: 0.021 (p = 7.77e-13) -> higher completeness= higher prob of VF presence
+
+
+Random effects:
+-Intercept: 3.55
+-Domestic slope: 1.58
+-Wild slope:1.38
+-Species: 0.64 -> some variation between species but smaller than VF to VF variation
+
+Huge variability between VFs, different VFs respond differently to host type.
+
+```{r vf_emmeans_host_contrasts_3}
+# What is the average probability of VF presence for each host type, and how do they compare??
+# Use emmeans to calculate av prob of vf presence
+
+
+emm_2 <- emmeans(
+  vf_glmm_4_TMB,
+  pairwise ~ host_type_2,
+  type = "response",
+  data = vf_glmm
+)
+
+
+
+emm_2$contrasts
+
+```
+Domestic and human hosts have significantly higher VF presence than wild hosts.
+
+
+```{r randomeffects_3}
+#extract random effects
+re <- ranef(vf_glmm_4_TMB)$cond$annotation
+head(re)
+
+#extract fixed effects
+fix <- fixef(vf_glmm_4_TMB)$cond
+fix
+```
+```{r combine fixed and ranomd effects to get real effect}
+
+vf_effects <- re %>%
+  tibble::rownames_to_column("annotation") %>%
+  mutate(
+    intercept = fix["(Intercept)"] + `(Intercept)`,
+    domestic  = fix["host_type_2domestic"] + host_type_2domestic,
+    wild      = fix["host_type_2wild"] + host_type_2wild
+  )%>% 
+  mutate(
+    OR_domestic = exp(domestic),#convert to odds ratio
+    OR_wild     = exp(wild)
+  )
 
 
 ```
 
-```{r scattreplot}
-ggplot(vf_df,
-       aes(x = host_type_2wild, y = host_type_2domestic)) +
-  geom_point(alpha = 0.3) +
-  geom_vline(xintercept = 0) +
-  geom_hline(yintercept = 0) +
+
+```{r forest_plot_glmm_filtered, fig.height = 6, fig.width =10}
+vf_effects_plot <- vf_effects %>%
+  mutate(
+    human     = intercept,
+    domestic  = intercept + domestic,
+    wild      = intercept + wild
+  )
+
+# Human vs Wild
+vf_hw <- vf_effects_plot %>%
+  mutate(
+    logOR = human - wild,
+    OR = exp(logOR)
+  ) %>%
+  slice_max(abs(logOR), n = 50)
+
+p_hw <- ggplot(vf_hw, aes(x = OR, y = reorder(annotation, OR))) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  geom_point() +
+  scale_x_log10() +
+  theme_minimal() +
   labs(
-    x = "VF deviation: Wild vs Human",
-    y = "VF deviation: Domestic vs Human"
-  ) +
-  theme_bw()
+    title = "Human vs Wild",
+    x = "Odds ratio (human / wild, log scale)",
+    y = "Virulence factor"
+  )
+
+# Human vs Domestic
+vf_hd <- vf_effects_plot %>%
+  mutate(
+    logOR = human - domestic,
+    OR = exp(logOR)
+  ) %>%
+  slice_max(abs(logOR), n = 50)
+
+p_hd <- ggplot(vf_hd, aes(x = OR, y = reorder(annotation, OR))) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  geom_point() +
+  scale_x_log10() +
+  theme_minimal() +
+  labs(
+    title = "Human vs Domestic",
+    x = "Odds ratio (human / domestic, log scale)",
+    y = "Virulence factor"
+  )
 
 
-ggplot(vf_df2,
-       aes(x = host_type_2wild,
-           y = host_type_2domestic,
-           color = vf_type)) +
-  geom_point(alpha = 0.6) +
-  geom_vline(xintercept = 0) +
-  geom_hline(yintercept = 0) +
+# Domestic vs Wild
+vf_dw <- vf_effects_plot %>%
+  mutate(
+    logOR = domestic - wild,
+    OR = exp(logOR)
+  ) %>%
+  slice_max(abs(logOR), n = 50)
+
+p_dw <- ggplot(vf_dw, aes(x = OR, y = reorder(annotation, OR))) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  geom_point() +
+  scale_x_log10() +
+  theme_minimal() +
   labs(
-    x = "VF deviation: Wild vs Human",
-    y = "VF deviation: Domestic vs Human",
-    color = "VF functional class"
-  ) +
-  theme_bw()
+    title = "Domestic vs Wild",
+    x = "Odds ratio (domestic / wild, log scale)",
+    y = "Virulence factor"
+  )
+
+
+# Combine plots
+(p_hw + p_dw + p_hd) +
+  plot_layout(ncol = 3) +
+  plot_annotation(
+    title = "Virulence factor enrichment across host types"
+  )
+```
+
+```{r vf0700}
+vf_summary_hw %>% filter(vf == "VF0700", contrast == "human_vs_wild" )
+```
+VF0700 -supposed to be enriched in human -> is not really...
+
+
+```{r vf0594}
+vf_summary_hw %>% filter(vf == "VF0594", contrast == "human_vs_wild" )
+```
+VF0594->supposed to be enriched in wild -> slightly enriched.
+
+```{r vf0584}
+vf_summary_hw %>% filter(vf == "VF0584", contrast == "human_vs_wild" )
 ```
 
 
+### 3) VF GLMM with glmmTMB per species
+
+```{r modelling_vfs_per_species, eval = FALSE}
+#### done in cluster!!
+
+#Separate per species
+vf_by_species <- split(vf_glmm, vf_glmm$species)
 
 
+# -------------------------
+# Fit GLMM (one per species)
+# -------------------------
+fit_vf_model_one_species <- function(df, min_prevalence = 10) {
 
-## GLMM with glmmTMB per species
-```{r glmmTMB}
+  # Drop species factor (constant within subset)
+  df <- df %>% dplyr::select(-species)
+
+  # Filter rare VFs
+  df <- df %>%
+    dplyr::group_by(annotation) %>%
+    dplyr::filter(sum(present) >= min_prevalence) %>% #filter rare vfs 
+    dplyr::ungroup()
+
+  if (nrow(df) == 0 || n_distinct(df$annotation) < 2) {
+    return(NULL)
+  }
+
+
+  tryCatch(
+  glmmTMB(
+  present ~ host_type_2 + completeness +
+    (host_type_2 || annotation) ,
+  data = df,
+  family = binomial(),
+  control = glmmTMBControl(
+    optimizer = optim,
+    optArgs = list(method = "BFGS")
+  )
+), error = function(e) {
+  message("Model failed  :(  : ", conditionMessage(e))
+  NULL
+}
+  )
+
+  
+}
+
+vf_models <- purrr::imap(
+  vf_by_species,
+  ~ {
+    message("Fitting VF GLMM for species: ", .y)
+    fit_vf_model_one_species(.x)
+  }
+)
+
+# Drop failed models
+vf_models <- vf_models[!purrr::map_lgl(vf_models, is.null)]
+
+```
+
+For a each species, what determines whether a virulence factor is present — and how does that relationship vary across different virulence factors?
+
+(same as before but here we have 1 model per bacterial species and we are using glmmTMB-faster)
+
+
+```{r glmmTMB_loading_vf_models_per_species}
+library(glmmTMB)
 vf_models <- readRDS("data/glmm_results/vf_glmmTMB_models_by_species.rds")
-vf_effects <- read_csv("data/glmm_results/vf_host_effects_by_species.csv")
-vf_annotation_slopes <- read_csv("data/glmm_results/vf_annotation_random_slopes.csv")
+
+#checking one model
+up2date(vf_models[["akkermansia_muciniphila"]])
+summary(vf_models[["akkermansia_muciniphila"]])
 ```
 
-```{r vf_effects}
+For Akkermansia muciniphila:
+Random effects :
+
+annotation (Intercept)         SD = 7.166  - huge variation: different VFs have wildly different baseline prevalence (some all absent or all present)
+annotation host_type_2domestic SD = 2.594  - large random slopes - effect of host type varies a lot across VFs
+annotation host_type_2wild     SD = 2.589
+
+
+
+```{r vf_effects_per_species}
+vf_models <- purrr::map(vf_models, glmmTMB::up2date)
+
+
+vf_effects <- purrr::imap_dfr(
+  vf_models,
+  ~ broom.mixed::tidy(.x, effects = "fixed") %>%
+      dplyr::mutate(species = .y)
+)
+
 vf_effects
 ```
+For Akkermansia muciniphila:
+Intercept : -1.47 : baseline log-odds of VF presence in human 
+host_type2domestic: -0.27  (p = 0.49) - not significant
+host_type2wild: -0.12  (p = 0.77) - not significant
+completeness: +0.119 : more completeness = higher probability of VF presence, for each unit increase in completeness, the odds of detecting a VF increase by: exp⁡(0.1189)≈1.13-> 13 (p=5.9e-05 )
 
-```{r host_effects}
-host_effects <- vf_effects %>%
-  filter(term %in% c("host_type_2domestic", "host_type_2wild")) %>%
-  mutate(
+
+Fixed effects dont't detect differences across host types because it is the average effect (individual VFs some very high, some very low, cancel each other out).
+
+But this is different beteween species
+
+```{r vf_host_effects_fixed, fig.width= 10, fig.height = 5}
+vf_host_effects <- vf_effects %>%
+  dplyr::filter(term %in% c("host_type_2domestic", "host_type_2wild")) %>%
+  dplyr::mutate(
+    # Convert to odds ratios
     odds_ratio = exp(estimate),
-    ci_low = exp(estimate - 1.96 * std.error),
-    ci_high = exp(estimate + 1.96 * std.error)
+    conf.low = exp(estimate - 1.96 * std.error),
+    conf.high = exp(estimate + 1.96 * std.error),
+    
+    # Significance flag
+    significant = p.value < 0.05,
+    
+    # Clean labels
+    term = dplyr::recode(
+      term,
+      host_type_2domestic = "Domestic vs human",
+      host_type_2wild = "Wild vs human"
+    )
   )
 
-```
-
-```{r plot_host_efefcts}
-ggplot(host_effects,
-       aes(y = species, x = odds_ratio)) +
-  geom_point() +
+ggplot(vf_host_effects,
+       aes(x = odds_ratio, y = species,
+           color = significant)) +
+  geom_point(size = 2) +
   geom_errorbarh(
-    aes(xmin = ci_low, xmax = ci_high),
+    aes(xmin = conf.low, xmax = conf.high),
     height = 0.2
   ) +
   geom_vline(xintercept = 1, linetype = "dashed") +
-  facet_wrap(~ term) +
   scale_x_log10() +
+  scale_color_manual(
+    values = c(`TRUE` = "#2C7BB6",   
+               `FALSE` = "grey80"),
+    labels = c("Not significant", "Significant")
+  ) +
+  
+  facet_wrap(~ term) +
+  
   labs(
     x = "Odds ratio (log scale)",
     y = "Species",
-    title = "Host-associated VF presence by species"
+    color = "Effect significance",
+    title = "Host-type effects on virulence factor presence"
   ) +
-  theme_bw()
-
+  
+  theme_minimal() +
+  theme(
+    legend.position = "top"
+  )
 ```
+Host type effects are inconsistent and species-dependent.
 
-```{r random_slopes}
+Human vs wild: for most species, VFs are less likely to be present in wild compared to human.
+
+Human vs domestic: mix
+Bacteroides fragilis: VFs are less likely to be present in both wild and domestic compared to human.
+Parabacteroides goldsteinii and Enterococcus hirae: VFs are more likely to be in domestic than human.
+The rest - not significantly different.
+
+
+  
+```{r annotation_slopers_per_speceis}
+vf_annotation_slopes <- purrr::imap_dfr(
+  vf_models,
+  ~ ranef(.x)$cond$annotation %>%
+      as.data.frame() %>%
+      tibble::rownames_to_column("annotation") %>%
+      dplyr::mutate(species = .y)
+)
+
 vf_annotation_slopes
 ```
 
+```{r vf_real_effects_per_species, fig.height = 7, fig.width = 12}
+vf_fixed <- vf_models %>%
+  purrr::imap_dfr(~ {
+    coefs <- summary(.x)$coefficients$cond
+    
+    tibble::tibble(
+      term = rownames(coefs),
+      estimate = coefs[, "Estimate"],
+      species = .y
+    )
+  }) %>%
+  dplyr::filter(term %in% c("host_type_2domestic", "host_type_2wild"))
+
+vf_combined <- vf_annotation_slopes %>%
+  tidyr::pivot_longer(
+    cols = c(host_type_2domestic, host_type_2wild),
+    names_to = "term",
+    values_to = "random_effect"
+  ) %>%
+  dplyr::left_join(vf_fixed, by = c("species", "term")) %>%
+  dplyr::mutate(
+    total_effect = estimate + random_effect,
+    odds_ratio = exp(total_effect)
+  )
+
+
+plots <- vf_combined %>%
+  dplyr::filter(odds_ratio > 0.1, odds_ratio < 10) %>%
+  dplyr::group_split(species) %>%
+  purrr::map(~ {
+    species_name <- unique(.x$species)
+    
+    top <- .x %>%
+      dplyr::group_by(term) %>%
+      dplyr::slice_max(abs(total_effect), n = 10)
+    
+    ggplot(top,
+           aes(x = odds_ratio,
+               y = reorder(annotation, odds_ratio),
+               color = term)) +
+      geom_point() +
+      facet_wrap(~ term, scales = "free_y") +
+      scale_x_log10() +
+      geom_vline(xintercept = 1, linetype = "dashed") +
+      labs(title = species_name,
+           y = "VFs") +
+      theme_minimal()
+  })
+
+# combine
+wrap_plots(plots, guides = "collect")
+```
+
+#### Trying to do meta-analysis on the VF per species model
+
+To check if there are any VFs that across species follow the same direction of enrichment (in terms of host type).
+
+Random effects do not give you uncertainty (SE), so we cannot do a proper meta-analysis.
+
+
+Here we do we will try to check for VF-level consistency doing a pseudo-meta-analysis, by calculating the mean and standard variation across species.
+
+Here it is unweighted, so the same weight is given to each species:
+
+```{r pseudometaanalysis_unweighted}
+vf_meta <- vf_combined %>%
+  dplyr::group_by(annotation, term) %>%
+  dplyr::summarise(
+    mean_effect = mean(total_effect),  #average effect across species
+    sd_effect = sd(total_effect),
+    n_species = n(),
+    prop_positive = mean(total_effect > 0),  # consistenvy of direction; ie: 1 - always enriched, 0 -always depleted
+    .groups = "drop"
+  )
+
+
+#select consistent VFs accross at least 3 species
+consistent_vfs <- vf_meta %>%
+  dplyr::filter(
+    n_species >= 3,
+    abs(mean_effect) > 0.5,
+    prop_positive > 0.8 | prop_positive < 0.2
+  )
+
+
+consistent_vfs <- consistent_vfs %>%
+  mutate(
+    odds_ratio = exp(mean_effect),
+    conf.low = exp(mean_effect - sd_effect),
+    conf.high = exp(mean_effect + sd_effect)
+  ) %>%
+  filter((conf.low > 1 & conf.high > 1) | (conf.low < 1 & conf.high < 1))
+
+ggplot(consistent_vfs,
+       aes(x = odds_ratio,
+           y = reorder(annotation, odds_ratio))) +
+  geom_point() +
+  geom_errorbarh(
+    aes(xmin = conf.low, xmax = conf.high),
+    height = 0.2
+  ) +
+  facet_wrap(~ term, scales = "free_y") +
+  scale_x_log10() +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  labs(
+    x = "Odds ratio (across species)",
+    y = "Virulence factor",
+    title = "Consistently host-associated virulence factors"
+  ) +
+  theme_minimal()
+
+```
+
+Checking for what we are actually finding with this analysis:
+
+Supposedly enriched in domestic: VF1055, VF1299
+```{r vf1055}
+vf_summary_hd %>% filter(vf == "VF1055", contrast == "human_vs_domestic" )
+```
+
+VF1055 is slighlty more prevalent in domestic forlactococcus_lactis and phocaeicola vulgatus, but it is a very smalldifference and this is not consistent for the other species...
+
+```{r vf1299}
+vf_summary_hd %>% filter(vf == "VF1299", contrast == "human_vs_domestic" )
+```
+VF1299 -not really "higer in domestic", jsut present across all mags in both host types, except for one where it is actually higher in human...
 
 
 
-For the VF per-spceis model - not enough information to estimate the random slopes.
+Checking supposedly enriched in human: VF0946
+```{r vf0946}
+vf_summary_hd %>% filter(vf == "VF0946", contrast == "human_vs_domestic" )
+```
+Higher in human across all.
 
-```{r vf per species}
+
+
+```{r top wild check }
+#which vf is enriched in wild according to previous psuedo-meta-analysis?
+top_wild_vfs <- consistent_vfs %>%
+  dplyr::filter(term == "host_type_2wild") %>%   # only wild comparison
+  dplyr::filter(odds_ratio > 1) %>%              # enriched in wild 
+  dplyr::arrange(desc(odds_ratio)) %>%           # strongest first
+  dplyr::select(
+    annotation,
+    odds_ratio,
+    conf.low,
+    conf.high,
+    mean_effect,
+    n_species,
+    prop_positive
+  )
+  
+top_wild_vfs
+```
+```{r vf0126}
+vf_summary_hw %>% filter(vf == "VF0126", contrast == "human_vs_wild" )
+```
+
+
+
+Here it is again, but this time weighing each species by number of observations (hafnia and citrobacter have much lower n_mags than phocaeicola and others).
+
+Correct way to say it:  weighted aggregation of BLUP-based estimates.
+```{r pseudometaanalysis_weighted}
+# Get species-level weights (sample size)
+species_weights <- vf_models %>%
+  purrr::imap_dfr(~ {
+    data.frame(
+      species = .y,
+      n_obs = nrow(.x$frame)   # approximate sample size per species
+    )
+  })
+
+
+# Combine VF random + fixed effects = TRUE EFFECT
+vf_combined <- vf_annotation_slopes %>%
+  pivot_longer(
+    cols = c(host_type_2domestic, host_type_2wild),
+    names_to = "term",
+    values_to = "random_effect"
+  ) %>%
+  left_join(vf_fixed, by = c("species", "term")) %>%
+  mutate(
+    total_effect = estimate + random_effect   # log-odds
+  ) %>%
+  left_join(species_weights, by = "species")
+
+
+#Weighted meta-like aggregation per VF
+vf_meta <- vf_combined %>%
+  group_by(annotation, term) %>%
+  summarise(
+    n_species = n(),
+    
+    # weighted mean 
+    weighted_mean = weighted.mean(total_effect, w = n_obs),
+    
+    # weighted variance (approximate)
+    weighted_var = sum(n_obs * (total_effect - weighted_mean)^2) / sum(n_obs),
+    
+    weighted_se = sqrt(weighted_var / n_species),
+    
+    # consistency of direction
+    prop_positive = mean(total_effect > 0),
+    
+    .groups = "drop"
+  )
+
+
+# Build confidence intervals (log-odds scale)
+vf_meta <- vf_meta %>%
+  mutate(
+    ci_low = weighted_mean - 1.96 * weighted_se,
+    ci_high = weighted_mean + 1.96 * weighted_se,
+    
+    # convert to odds ratios
+    odds_ratio = exp(weighted_mean),
+    or_low = exp(ci_low),
+    or_high = exp(ci_high)
+  )
+
+
+# Filter for CONSISTENT direction
+# (CI does NOT cross 0 (log scale)/ OR does NOT cross 1(odds ratio scale))
+vf_consistent <- vf_meta %>%
+  filter(
+    n_species >= 3,   # require at least 3 species
+    
+    # CI does NOT cross 0 (log scale)
+    (ci_low > 0 & ci_high > 0) | (ci_low < 0 & ci_high < 0)
+  )
+
+# keep top VFs 
+vf_top <- vf_consistent %>%
+  group_by(term) %>%
+  slice_max(abs(weighted_mean), n = 15) %>%
+  ungroup()
+
+
+# Final forest-style plot - plotting only the top 15
+ggplot(vf_top,
+       aes(x = odds_ratio,
+           y = reorder(annotation, odds_ratio))) +
+  geom_point(size = 2) +
+  geom_errorbarh(
+    aes(xmin = or_low, xmax = or_high),
+    height = 0.2
+  ) +
+  facet_wrap(~ term, scales = "free_y") +
+  scale_x_log10() +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  labs(
+    x = "Odds ratio (weighted across species)",
+    y = "Virulence factor",
+    title = "Virulence factors with consistent host association across species"
+  ) +
+  theme_minimal()
+
+
+#Plotting all of the ones where the ci does not cross
+ggplot(vf_consistent,
+       aes(x = odds_ratio,
+           y = reorder(annotation, odds_ratio))) +
+  geom_point(size = 2) +
+  geom_errorbarh(
+    aes(xmin = or_low, xmax = or_high),
+    height = 0.2
+  ) +
+  facet_wrap(~ term, scales = "free_y") +
+  scale_x_log10() +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  labs(
+    x = "Odds ratio (weighted across species)",
+    y = "Virulence factor",
+    title = "Virulence factors with consistent host association across species"
+  ) +
+  theme_minimal()
+```
+
+```{r vf0089}
+#supposedly enriched in domestic
+vf_summary_hd %>% filter(vf == "VF0089", contrast == "human_vs_domestic" )
+```
+VF0089 is higher in domestic 2 species, not for the other 2.
+
+
+```{r vf0083}
+#higher in humans -yes
+vf_summary_hw %>% filter(vf == "VF0083", contrast == "human_vs_wild" )
+```
+
+
+```{r checking sharing of vf per species}
 
 vf_presence <- vf_fisher_total %>%
   mutate(present = n_mags_human > 0 | n_mags_wild > 0 | n_mags_domestic > 0)
@@ -3718,583 +4479,400 @@ ggplot(vf_distribution, aes(x = n_species, y = n)) +
 
 ```
 
-## VF glmm TMB model
-```{r vf model tmb}
-vf_model <- readRDS("data/glmm_results/vf_2/vf_glmmTMB_global_model.rds")
-vf_fixed_effects <- read_csv("data/glmm_results/vf_2/vf_glmm_fixed_effects_2.csv")
-vf_annotation_host <- read_csv("data/glmm_results/vf_2/vf_annotation_host_OR_2.csv")
-```
 
-```{r fixed_effects_vf}
-vf_fixed_effects
-```
 
-```{r vf_model_again}
-library(glmmTMB)
-
-vf_model <- up2date(vf_model)
-
-summary(vf_model)
-
-ranef_out <- ranef(vf_model)
-
-vf_re <- ranef_out$cond$annotation %>%
-  as.data.frame() %>%
-  tibble::rownames_to_column("annotation")
-
-head(vf_re)
-```
-
-
-
-```{r fixed_effects_checking_host}
-fixef_host <- fixef(vf_model)$cond
-
-vf_plot_df <- vf_re %>%
-  dplyr::mutate(
-    beta_domestic = fixef_host["host_type_2domestic"] + host_type_2domestic,
-    beta_wild     = fixef_host["host_type_2wild"]     + host_type_2wild,
-    OR_domestic = exp(beta_domestic),
-    OR_wild     = exp(beta_wild)
-  )
-
-```
-
-
-```{r selecting top20}
-top_domestic <- vf_plot_df %>%
-  dplyr::arrange(desc(OR_domestic)) %>%
-  dplyr::slice_head(n = 20)
-
-
-top_wild <- vf_plot_df %>%
-  dplyr::arrange(desc(OR_wild)) %>%
-  dplyr::slice_head(n = 20)
-```
-
-
-
-
-
-```{r plottingtop20}
-
-ggplot(top_domestic,
-       aes(x = reorder(annotation, OR_domestic),
-           y = OR_domestic)) +
-  geom_point(size = 2) +
-  coord_flip() +
-  geom_hline(yintercept = 1,
-             linetype = "dashed",
-             color = "red") +
-  labs(
-    title = "Top enriched VFs in domestic hosts",
-    x = "Virulence factor (annotation)",
-    y = "Odds ratio (vs human)"
-  ) +
-  theme_minimal()
-
-ggplot(top_wild,
-       aes(x = reorder(annotation, OR_wild),
-           y = OR_wild)) +
-  geom_point(size = 2) +
-  coord_flip() +
-  geom_hline(yintercept = 1,
-             linetype = "dashed",
-             color = "red") +
-  labs(
-    title = "Top enriched VFs in wild hosts",
-    x = "Virulence factor (annotation)",
-    y = "Odds ratio (vs human)"
-  ) +
-  theme_minimal()
-
-```
-```{r vflong}
-
-vf_long <- vf_plot_df %>%
-  dplyr::select(annotation, OR_domestic, OR_wild) %>%
-  pivot_longer(
-    cols = c(OR_domestic, OR_wild),
-    names_to = "host",
-    values_to = "OR"
-  ) %>%
-  dplyr::mutate(
-    host = dplyr::recode(host,
-                         OR_domestic = "domestic",
-                         OR_wild = "wild")
-  )
-
-top_combined <- vf_long %>%
-  dplyr::group_by(host) %>%
-  dplyr::slice_max(OR, n = 15) %>%
-  dplyr::ungroup()
-
-ggplot(top_combined,
-       aes(x = reorder(annotation, OR),
-           y = OR,
-           color = host)) +
-  geom_point(size = 2,
-             position = position_dodge(width = 0.6)) +
-  coord_flip() +
-  geom_hline(yintercept = 1,
-             linetype = "dashed") +
-  labs(
-    title = "Top enriched virulence factors by host type",
-    x = "Annotation",
-    y = "Odds ratio (vs human)"
-  ) +
-  theme_minimal()
-```
-
-```{r randomeffects}
-ranef_out <- ranef(vf_model, condVar = TRUE)
-vf_re <- ranef_out$cond$annotation
-
-post_var <- attr(vf_re, "condVar")
-
-vf_re_df <- as.data.frame(vf_re) %>%
-  tibble::rownames_to_column("annotation")
-
-term_names <- colnames(vf_re)
-
-idx_dom <- which(term_names == "host_type_2domestic")
-idx_wild <- which(term_names == "host_type_2wild")
-
-get_se <- function(i, term) {
-  sqrt(post_var[term, term, i])
-}
-
-vf_re_df <- vf_re_df %>%
-  dplyr::mutate(
-    se_domestic = sapply(seq_len(nrow(vf_re_df)),
-                         function(i) sqrt(post_var[idx_dom, idx_dom, i])),
-
-    se_wild = sapply(seq_len(nrow(vf_re_df)),
-                     function(i) sqrt(post_var[idx_wild, idx_wild, i]))
-  )
-
-fixef_host <- fixef(vf_model)$cond
-
-vf_plot_df <- vf_re_df %>%
-  dplyr::mutate(
-    beta_domestic = fixef_host["host_type_2domestic"] + host_type_2domestic,
-    beta_wild     = fixef_host["host_type_2wild"]     + host_type_2wild,
-
-    # ORs
-    OR_domestic = exp(beta_domestic),
-    OR_wild     = exp(beta_wild),
-
-    # CIs
-    lower_domestic = exp(beta_domestic - 1.96 * se_domestic),
-    upper_domestic = exp(beta_domestic + 1.96 * se_domestic),
-
-    lower_wild = exp(beta_wild - 1.96 * se_wild),
-    upper_wild = exp(beta_wild + 1.96 * se_wild)
-  )
-
-
-#deriving domestic vs wild
-
-vf_plot_df <- vf_plot_df %>%
-  dplyr::mutate(
-    beta_dw = beta_domestic - beta_wild,
-    OR_dw = exp(beta_dw),
-
-    # Approximate SE (independent assumption)
-    se_dw = sqrt(se_domestic^2 + se_wild^2),
-
-    lower_dw = exp(beta_dw - 1.96 * se_dw),
-    upper_dw = exp(beta_dw + 1.96 * se_dw)
-  )
-
-top_domestic <- vf_plot_df %>%
-  dplyr::arrange(desc(OR_domestic)) %>%
-  dplyr::slice_head(n = 20)
-
-ggplot(top_domestic,
-       aes(x = reorder(annotation, OR_domestic),
-           y = OR_domestic)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = lower_domestic, ymax = upper_domestic),
-                width = 0.2) +
-  coord_flip() +
-  scale_y_log10() +
-  geom_hline(yintercept = 1, linetype = "dashed") +
-  labs(title = "Domestic vs Human",
-       y = "Odds ratio",
-       x = "Annotation") +
-  theme_minimal()
-```
-```{r onlysig}
-vf_sig <- vf_plot_df %>%
-  dplyr::mutate(
-    sig_domestic = (lower_domestic > 1 | upper_domestic < 1),
-    sig_wild     = (lower_wild > 1 | upper_wild < 1),
-    sig_dw       = (lower_dw > 1 | upper_dw < 1)
-  )
-
-vf_sig %>%
-  summarise(
-    domestic_sig = sum(sig_domestic, na.rm = TRUE),
-    wild_sig = sum(sig_wild, na.rm = TRUE),
-    domestic_vs_wild_sig = sum(sig_dw, na.rm = TRUE)
-  )
-
-
-vf_sig %>%
-  summarise(
-    domestic_enriched = sum(lower_domestic > 1),
-    domestic_depleted = sum(upper_domestic < 1),
-
-    wild_enriched = sum(lower_wild > 1),
-    wild_depleted = sum(upper_wild < 1)
-  )
-```
-
-```{r domesticwild}
-vf_domestic_sig <- vf_plot_df %>%
-  dplyr::filter(lower_domestic > 1)
-
-vf_wild_sig <- vf_plot_df %>%
-  dplyr::filter(lower_wild > 1)
-
-top_domestic_sig <- vf_domestic_sig %>%
-  dplyr::arrange(desc(OR_domestic)) %>%
-  dplyr::slice_head(n = 20)
-
-top_wild_sig <- vf_wild_sig %>%
-  dplyr::arrange(desc(OR_wild)) %>%
-  dplyr::slice_head(n = 20)
-
-ggplot(top_domestic_sig,
-       aes(x = reorder(annotation, OR_domestic),
-           y = OR_domestic)) +
-  geom_point(size = 2) +
-  geom_errorbar(aes(ymin = lower_domestic, ymax = upper_domestic),
-                width = 0.2) +
-  coord_flip() +
-  scale_y_log10() +
-  geom_hline(yintercept = 1, linetype = "dashed") +
-  labs(title = "Significantly enriched VFs (Domestic vs Human)",
-       y = "Odds ratio",
-       x = "Annotation") +
-  theme_minimal()
-
-
-ggplot(top_wild_sig,
-       aes(x = reorder(annotation, OR_wild),
-           y = OR_wild)) +
-  geom_point(size = 2) +
-  geom_errorbar(aes(ymin = lower_wild, ymax = upper_wild),
-                width = 0.2) +
-  coord_flip() +
-  scale_y_log10() +
-  geom_hline(yintercept = 1, linetype = "dashed") +
-  labs(title = "Significantly enriched VFs (Wild vs Human)",
-       y = "Odds ratio",
-       x = "Annotation") +
-  theme_minimal()
-```
-```{r vfs enriched in both}
-#vfs enriched in domestic and wild vs human
-
-vf_both <- vf_plot_df %>%
-  dplyr::filter(
-    lower_domestic > 1,
-    lower_wild > 1
-  )
-nrow(vf_both)
-
-top_both <- vf_both %>%
-  dplyr::arrange(desc(OR_domestic + OR_wild)) %>%
-  dplyr::slice_head(n = 20)
-
-
-
-vf_both_long <- top_both %>%
-  dplyr::select(annotation,
-                OR_domestic, lower_domestic, upper_domestic,
-                OR_wild, lower_wild, upper_wild) %>%
-  pivot_longer(
-    cols = -annotation,
-    names_to = c(".value", "host"),
-    names_pattern = "(OR|lower|upper)_(.*)"
-  )
-
-ggplot(vf_both_long,
-       aes(x = reorder(annotation, OR),
-           y = OR,
-           color = host)) +
-  geom_point(position = position_dodge(width = 0.6), size = 2) +
-  geom_errorbar(aes(ymin = lower, ymax = upper),
-                position = position_dodge(width = 0.6),
-                width = 0.2) +
-  coord_flip() +
-  scale_y_log10() +
-  geom_hline(yintercept = 1, linetype = "dashed") +
-  labs(
-    title = "VFs enriched in BOTH domestic and wild (vs human)",
-    y = "Odds ratio",
-    x = "Annotation"
-  ) +
-  theme_minimal()
-
-```
-```{r plotting vfs again}
-
-vf_plot_df <- vf_plot_df %>%
-  dplyr::mutate(
-    z_domestic = beta_domestic / se_domestic,
-    p_domestic = 2 * pnorm(-abs(z_domestic)),
-
-    z_wild = beta_wild / se_wild,
-    p_wild = 2 * pnorm(-abs(z_wild)),
-
-    z_dw = beta_dw / se_dw,
-    p_dw = 2 * pnorm(-abs(z_dw))
-  )
-
-vf_plot_df <- vf_plot_df %>%
-  dplyr::mutate(
-    padj_domestic = p.adjust(p_domestic, method = "BH"),
-    padj_wild     = p.adjust(p_wild, method = "BH"),
-    padj_dw       = p.adjust(p_dw, method = "BH")
-  )
-
-vf_plot_df <- vf_plot_df %>%
-  dplyr::mutate(
-    sig_domestic = padj_domestic < 0.05,
-    sig_wild     = padj_wild < 0.05,
-    sig_dw       = padj_dw < 0.05
-  )
-
-```
-
-```{r plottingtogether}
-plot_domestic <- vf_plot_df %>%
-  dplyr::filter(sig_domestic) %>%
-  dplyr::mutate(
-    logOR = log(OR_domestic),
-    lower_log = log(lower_domestic),
-    upper_log = log(upper_domestic),
-    comparison = "Domestic vs Human"
-  )
-
-plot_wild <- vf_plot_df %>%
-  dplyr::filter(sig_wild) %>%
-  dplyr::mutate(
-    logOR = log(OR_wild),
-    lower_log = log(lower_wild),
-    upper_log = log(upper_wild),
-    comparison = "Wild vs Human"
-  )
-
-plot_all <- dplyr::bind_rows(plot_domestic, plot_wild)
-
-ggplot(plot_all,
-       aes(x = logOR,
-           y = reorder(annotation, logOR),
-           color = comparison)) +
-  geom_point(size = 2) +
-  geom_errorbarh(aes(xmin = lower_log, xmax = upper_log),
-                 height = 0.2) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
-  labs(
-    title = "Host-associated virulence factors",
-    x = "Log odds ratio (0 = no difference)",
-    y = "Annotation"
-  ) +
-  theme_minimal()
-
-```
-```{r more plottn}
-ggplot(plot_all,
-       aes(x = logOR,
-           y = reorder(annotation, logOR))) +
-  geom_point(size = 2) +
-  geom_errorbarh(aes(xmin = lower_log, xmax = upper_log),
-                 height = 0.2) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
-  facet_wrap(~comparison, scales = "free_y") +
-  labs(
-    title = "Host-specific enrichment (significant VFs only)",
-    x = "Log odds ratio",
-    y = "Annotation"
-  ) +
-  theme_minimal()
-```
 
 ## kegg-per-spceis
-```{r kegg per species}
-kegg_models <- readRDS("data/glmm_results/kegg/kegg_glmmTMB_models_by_species.rds")
-kegg_host <- read_csv("data/glmm_results/kegg/kegg_host_effects_by_species.csv")
-kegg_annotation_random <- read_csv("data/glmm_results/kegg/kegg_annotation_random_slopes.csv")
+```{r load kegg per species model filtered}
+kegg_models <- readRDS("data/glmm_results/kegg/kegg_glmmTMB_models_by_species_FILTERED.rds")
 ```
 
 
-
-```{r load kegg host}
-kegg_host
-```
-
-```{r checkrandomkegg}
-head(kegg_annotation_random )
+```{r vf_effects_per_species}
+kegg_models <- purrr::map(kegg_models, glmmTMB::up2date)
 
 
-ggplot(kegg_annotation_random, aes(x = host_type_2domestic)) +
-  geom_histogram(bins = 40) +
-  facet_wrap(~ species, scales = "free") +
-  labs(
-    title = "Distribution of annotation-level random slopes",
-    x = "Random slope (host_type effect deviation)",
-    y = "Count"
-  )
-ggplot(kegg_annotation_random, aes(x = host_type_2wild)) +
-  geom_histogram(bins = 40) +
-  facet_wrap(~ species, scales = "free") +
-  labs(
-    title = "Distribution of annotation-level random slopes",
-    x = "Random slope (host_type effect deviation)",
-    y = "Count"
-  )
-```
-
-
-```{r forests, fig.height = 10, fig.width =15 }
-kegg_fixed_wild <- kegg_host %>%
-  dplyr::filter(term == "host_type_2wild") %>%
-  dplyr::select(species, fixed_wild = estimate)
-
-
-
-kegg_or <- kegg_annotation_random %>%
-  dplyr::left_join(kegg_fixed_wild, by = "species") %>%
-  dplyr::mutate(
-    log_odds_wild = fixed_wild + host_type_2wild,
-    OR_wild_vs_human = exp(log_odds_wild)
-  )
-
-kegg_top <- kegg_or %>%
-  dplyr::mutate(diff_strength = abs(log(OR_wild_vs_human))) %>%
-  dplyr::group_by(species) %>%
-  dplyr::slice_max(diff_strength, n = 15) %>%
-  dplyr::ungroup()
-
-
-ggplot(
-  kegg_top,
-  aes(
-    x = OR_wild_vs_human,
-    y = reorder(annotation, OR_wild_vs_human)
-  )
-) +
-  geom_point() +
-  facet_wrap(~ species, scales = "free_y") +
-  geom_vline(xintercept = 1, linetype = "dashed") +
-  scale_x_log10() +
-  labs(
-    title = "Top KEGG annotations differing between wild and human",
-    x = "Odds ratio (wild vs human, log scale)",
-    y = "KEGG annotation"
-  )
-
-```
-
-
-```{r kegg wild effects}
-kegg_wild_effects <- purrr::imap_dfr(
+kegg_effects <- purrr::imap_dfr(
   kegg_models,
-  ~ {
-    re <- ranef(.x)$cond$annotation %>% as.data.frame()
-    
-    fixed <- kegg_host %>%
-      filter(term == "host_type_2wild", species == .y) %>%
-      pull(estimate)
-    
-    tibble(
-      annotation = rownames(re),
-      log_odds = fixed + re$host_type_2wild,
-      species = .y
-    )
-  }
+  ~ broom.mixed::tidy(.x, effects = "fixed") %>%
+      dplyr::mutate(species = .y)
 )
 
-kegg_meta <- kegg_wild_effects %>%
-  group_by(annotation) %>%
-  summarise(
-    mean_log_odds = mean(log_odds, na.rm = TRUE),
-    sd_log_odds = sd(log_odds, na.rm = TRUE),
-    n_species = n(),
-    consistency = mean(log_odds > 0, na.rm = TRUE)
+kegg_effects
+```
+For Akkermansia muciniphila (first 4 lines):
+Intercept : -1.04 : baseline log-odds of KEGG presence in human 
+host_type2domestic: -0.75  (p = 1.22e-05) - domestic have significantly less KEGGs than human
+host_type2wild: -0.40  (p = 0.021) - wild has less KEGG than human.
+completeness: +0.13 : (p = 6.9 e-20	)- KEGG presence increases with completeness
+
+
+```{r kegg_per_species_host_effects_fixed, fig.width= 10, fig.height = 5}
+kegg_host_effects <- kegg_effects %>%
+  dplyr::filter(term %in% c("host_type_2domestic", "host_type_2wild")) %>%
+  dplyr::mutate(
+    # Convert to odds ratios
+    odds_ratio = exp(estimate),
+    conf.low = exp(estimate - 1.96 * std.error),
+    conf.high = exp(estimate + 1.96 * std.error),
+    
+    # Significance flag
+    significant = p.value < 0.05,
+    
+    # Clean labels
+    term = dplyr::recode(
+      term,
+      host_type_2domestic = "Domestic vs human",
+      host_type_2wild = "Wild vs human"
+    )
+  )
+
+ggplot(kegg_host_effects,
+       aes(x = odds_ratio, y = species,
+           color = significant)) +
+  geom_point(size = 2) +
+  geom_errorbarh(
+    aes(xmin = conf.low, xmax = conf.high),
+    height = 0.2
+  ) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  scale_x_log10() +
+  scale_color_manual(
+    values = c(`TRUE` = "#2C7BB6",   
+               `FALSE` = "grey80"),
+    labels = c("Not significant", "Significant")
+  ) +
+  
+  facet_wrap(~ term) +
+  
+  labs(
+    x = "Odds ratio (log scale)",
+    y = "Species",
+    color = "Effect significance",
+    title = "Host-type effects on kegg ortholog presence"
+  ) +
+  
+  theme_minimal() +
+  theme(
+    legend.position = "top"
+  )
+```
+Host type effects are inconsistent and species-dependent.
+
+Human vs wild: for all species, KOs are less likely to be present in wild compared to human.
+
+Human vs domestic: mix
+Lactococcus lactis: KOs are less likely to be present in both domestic compared to human.
+Parabacteroides goldsteinii, Citrobacter braakii and Enterococcus hirae: KOs are more likely to be in domestic than human.
+The rest - not significantly different.
+
+
+  
+```{r annotation_slopers_per_species_kegg}
+kegg_annotation_slopes <- purrr::imap_dfr(
+  kegg_models,
+  ~ ranef(.x)$cond$annotation %>%
+      as.data.frame() %>%
+      tibble::rownames_to_column("annotation") %>%
+      dplyr::mutate(species = .y)
+)
+
+kegg_annotation_slopes
+```
+
+```{r vf_real_effects_per_species, fig.height = 7, fig.width = 12}
+kegg_fixed <- kegg_models %>%
+  purrr::imap_dfr(~ {
+    coefs <- summary(.x)$coefficients$cond
+    
+    tibble::tibble(
+      term = rownames(coefs),
+      estimate = coefs[, "Estimate"],
+      species = .y
+    )
+  }) %>%
+  dplyr::filter(term %in% c("host_type_2domestic", "host_type_2wild"))
+
+kegg_combined <- kegg_annotation_slopes %>%
+  tidyr::pivot_longer(
+    cols = c(host_type_2domestic, host_type_2wild),
+    names_to = "term",
+    values_to = "random_effect"
   ) %>%
-  ungroup() %>%
+  dplyr::left_join(kegg_fixed, by = c("species", "term")) %>%
+  dplyr::mutate(
+    total_effect = estimate + random_effect,
+    odds_ratio = exp(total_effect)
+  )
+
+
+plots <- kegg_combined %>%
+  dplyr::filter(odds_ratio > 0.1, odds_ratio < 10) %>%
+  dplyr::group_split(species) %>%
+  purrr::map(~ {
+    species_name <- unique(.x$species)
+    
+    top <- .x %>%
+      dplyr::group_by(term) %>%
+      dplyr::slice_max(abs(total_effect), n = 10)
+    
+    ggplot(top,
+           aes(x = odds_ratio,
+               y = reorder(annotation, odds_ratio),
+               color = term)) +
+      geom_point() +
+      facet_wrap(~ term, scales = "free_y") +
+      scale_x_log10() +
+      geom_vline(xintercept = 1, linetype = "dashed") +
+      labs(title = species_name,
+           y = "KOs") +
+      theme_minimal()
+  })
+
+# combine
+wrap_plots(plots, guides = "collect")
+```
+
+#### Trying to do meta-analysis on the KEGG per species model
+
+To check if there are any kos that across species follow the same direction of enrichment (in terms of host type).
+
+Random effects do not give you uncertainty (SE), so we cannot do a proper meta-analysis.
+
+
+Here we do we will try to check for KO-level consistency doing a pseudo-meta-analysis, by calculating the mean and standard variation across species.
+
+Here it is unweighted, so the same weight is given to each species:
+
+```{r pseudometaanalysis_unweighted_kegg}
+kegg_meta <- kegg_combined %>%
+  dplyr::group_by(annotation, term) %>%
+  dplyr::summarise(
+    mean_effect = mean(total_effect),  #average effect across species
+    sd_effect = sd(total_effect),
+    n_species = n(),
+    prop_positive = mean(total_effect > 0),  # consistenvy of direction; ie: 1 - always enriched, 0 -always depleted
+    .groups = "drop"
+  )
+
+
+#select consistent keggs accross at least 3 species
+consistent_keggs <- kegg_meta %>%
+  dplyr::filter(
+    n_species >= 3,
+    abs(mean_effect) > 0.5,
+    prop_positive > 0.8 | prop_positive < 0.2
+  )
+
+
+consistent_keggs <- consistent_keggs %>%
   mutate(
-    OR = exp(mean_log_odds)
-  )
+    odds_ratio = exp(mean_effect),
+    conf.low = exp(mean_effect - sd_effect),
+    conf.high = exp(mean_effect + sd_effect)
+  ) %>%
+  filter((conf.low > 1 & conf.high > 1) | (conf.low < 1 & conf.high < 1))
 
-kegg_top <- kegg_meta %>%
-  filter(n_species >= 3) %>%   # keep reliable ones
-  mutate(strength = abs(mean_log_odds)) %>%
-  arrange(desc(strength)) %>%
-  slice_head(n = 30)
-
-
-
-ggplot(
-  kegg_top,
-  aes(
-    x = OR,
-    y = reorder(annotation, OR),
-    color = consistency
-  )
-) +
-  geom_point(size = 2) +
-  geom_vline(xintercept = 1, linetype = "dashed") +
-  scale_x_log10() +
-  scale_color_gradient2(
-    low = "blue",
-    mid = "grey",
-    high = "red",
-    midpoint = 0.5
+ggplot(consistent_keggs,
+       aes(x = odds_ratio,
+           y = reorder(annotation, odds_ratio))) +
+  geom_point() +
+  geom_errorbarh(
+    aes(xmin = conf.low, xmax = conf.high),
+    height = 0.2
   ) +
-  labs(
-    title = "Consistent KEGG enrichment across species (wild vs human)",
-    x = "Odds ratio (log scale)",
-    y = "KEGG annotation",
-    color = "Consistency\n(>0 = wild enriched)"
-  )
-
-
-kegg_top_2 <- kegg_meta %>%
-  filter(n_species >= 3) %>%   # keep reliable ones
-  mutate(strength = abs(mean_log_odds)) %>%
-  arrange(desc(strength)) %>%
-  slice_head(n = 50)
-
-
-ggplot(
-  kegg_top_2,
-  aes(
-    x = OR,
-    y = reorder(annotation, OR),
-    color = consistency
-  )
-) +
-  geom_point(size = 2) +
-  geom_vline(xintercept = 1, linetype = "dashed") +
+  facet_wrap(~ term, scales = "free_y") +
   scale_x_log10() +
-  scale_color_gradient2(
-    low = "blue",
-    mid = "grey",
-    high = "red",
-    midpoint = 0.5
-  ) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
   labs(
-    title = "Consistent KEGG enrichment across species (wild vs human)",
-    x = "Odds ratio (log scale)",
-    y = "KEGG annotation",
-    color = "Consistency\n(>0 = wild enriched)"
-  )
+    x = "Odds ratio (across species)",
+    y = "Virulence factor",
+    title = "Consistently host-associated virulence factors"
+  ) +
+  theme_minimal()
 
 ```
+
+Checking for what we are actually finding with this analysis:
+
+Supposedly enriched in domestic: K12944, K18434
+```{r k12944}
+kegg_summary_hd %>% filter(kegg == "K12944", contrast == "human_vs_domestic" )
+```
+
+
+
+```{r K13290}
+kegg_summary_hd %>% filter(kegg == "K13290", contrast == "human_vs_domestic" )
+```
+K13290 is supposed to be higher in domestic, is not really...
+
+
+
+
+```{r top wild check }
+#which vf is enriched in wild according to previous psuedo-meta-analysis?
+top_wild_keggs <- consistent_keggs %>%
+  dplyr::filter(term == "host_type_2wild") %>%   # only wild comparison
+  dplyr::filter(odds_ratio > 1) %>%              # enriched in wild 
+  dplyr::arrange(desc(odds_ratio)) %>%           # strongest first
+  dplyr::select(
+    annotation,
+    odds_ratio,
+    conf.low,
+    conf.high,
+    mean_effect,
+    n_species,
+    prop_positive
+  )
+  
+top_wild_keggs
+```
+```{r K13408}
+kegg_summary_hw %>% filter(kegg == "K13408", contrast == "human_vs_wild" )
+
+kegg_summary_hw %>% filter(kegg == "K27086", contrast == "human_vs_wild" )
+```
+K13408 and K27086- do seem to be more enriched in wild than human across a few species.
+
+K13408: membrane fusion protein (cvaA, mchE, raxA) - type I secretion system - plant-pathogen interaction
+K27086: ESX secretion system protein EccC- Type VII secretion system.
+
+
+Here it is again, but this time weighing each species by number of observations (hafnia and citrobacter have much lower n_mags than phocaeicola and others).
+
+Correct way to say it:  weighted aggregation of BLUP-based estimates.
+```{r pseudometaanalysis_weighted_kegg}
+# Get species-level weights (sample size)
+species_weights <- kegg_models %>%
+  purrr::imap_dfr(~ {
+    data.frame(
+      species = .y,
+      n_obs = nrow(.x$frame)   # approximate sample size per species
+    )
+  })
+
+
+# Combine kegg random + fixed effects = TRUE EFFECT
+kegg_combined <- kegg_annotation_slopes %>%
+  pivot_longer(
+    cols = c(host_type_2domestic, host_type_2wild),
+    names_to = "term",
+    values_to = "random_effect"
+  ) %>%
+  left_join(kegg_fixed, by = c("species", "term")) %>%
+  mutate(
+    total_effect = estimate + random_effect   # log-odds
+  ) %>%
+  left_join(species_weights, by = "species")
+
+
+#Weighted meta-like aggregation per kegg
+kegg_meta <- kegg_combined %>%
+  group_by(annotation, term) %>%
+  summarise(
+    n_species = n(),
+    
+    # weighted mean 
+    weighted_mean = weighted.mean(total_effect, w = n_obs),
+    
+    # weighted variance (approximate)
+    weighted_var = sum(n_obs * (total_effect - weighted_mean)^2) / sum(n_obs),
+    
+    weighted_se = sqrt(weighted_var / n_species),
+    
+    # consistency of direction
+    prop_positive = mean(total_effect > 0),
+    
+    .groups = "drop"
+  )
+
+
+# Build confidence intervals (log-odds scale)
+kegg_meta <- kegg_meta %>%
+  mutate(
+    ci_low = weighted_mean - 1.96 * weighted_se,
+    ci_high = weighted_mean + 1.96 * weighted_se,
+    
+    # convert to odds ratios
+    odds_ratio = exp(weighted_mean),
+    or_low = exp(ci_low),
+    or_high = exp(ci_high)
+  )
+
+
+# Filter for CONSISTENT direction
+# (CI does NOT cross 0 (log scale)/ OR does NOT cross 1(odds ratio scale))
+kegg_consistent <- kegg_meta %>%
+  filter(
+    n_species >= 3,   # require at least 3 species
+    
+    # CI does NOT cross 0 (log scale)
+    (ci_low > 0 & ci_high > 0) | (ci_low < 0 & ci_high < 0)
+  )
+
+# keep top keggs 
+kegg_top <- kegg_consistent %>%
+  group_by(term) %>%
+  slice_max(abs(weighted_mean), n = 15) %>%
+  ungroup()
+
+
+# Final forest-style plot - plotting only the top 15
+ggplot(kegg_top,
+       aes(x = odds_ratio,
+           y = reorder(annotation, odds_ratio))) +
+  geom_point(size = 2) +
+  geom_errorbarh(
+    aes(xmin = or_low, xmax = or_high),
+    height = 0.2
+  ) +
+  facet_wrap(~ term, scales = "free_y") +
+  scale_x_log10() +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  labs(
+    x = "Odds ratio (weighted across species)",
+    y = "KO",
+    title = "KEGG Orthologs with consistent host association across species"
+  ) +
+  theme_minimal()
+
+
+#Plotting all of the ones where the ci does not cross
+ggplot(kegg_consistent,
+       aes(x = odds_ratio,
+           y = reorder(annotation, odds_ratio))) +
+  geom_point(size = 2) +
+  geom_errorbarh(
+    aes(xmin = or_low, xmax = or_high),
+    height = 0.2
+  ) +
+  facet_wrap(~ term, scales = "free_y") +
+  scale_x_log10() +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  labs(
+    x = "Odds ratio (weighted across species)",
+    y = "KO",
+    title = "KEGG Orthologs with consistent host association across species"
+  ) +
+  theme_minimal()
+```
+
+```{r K18434}
+#supposedly enriched in domestic
+kegg_summary_hd %>% filter(kegg == "K18434", contrast == "human_vs_domestic" )
+```
+K18434 is supposed to be enriched in domestic compared to human -> is higher in domestic for 3 of the species.
+K18434: type IV secretion system T-DNA border endonuclease VirD2
+
+
+
+```{r K05601}
+#supposedly enriched in human compared to wild
+kegg_summary_hw %>% filter(kegg == "K18434", contrast == "human_vs_wild" )
+```
+
+
+
+
 
