@@ -1956,6 +1956,9 @@ meta::forest(
 
 ```
 
+
+
+
 Plotting the individual KOs to check if all species do follow same pattern
 
 ```{r forest plot individual keggs_human_wild_after_ribosomal, fig.height = 6, fid.width = 10}
@@ -2312,9 +2315,9 @@ df_dw <- kegg_fisher_total %>%
     tot_wild  = n_mags_wild  + absent_wild,
     tot_domestic = n_mags_domestic + absent_domestic
   ) %>%
-  filter(n_mags_human > 0 | n_mags_wild > 0) %>% # remove rows where kegg is not present in both groups
-  filter(tot_wild > 0, tot_human > 0) %>%  #remove rows that dont have any data for kegg
-  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) %>% #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
+  filter(n_mags_domestic > 0 | n_mags_wild > 0) %>% # remove rows where kegg is not present in both groups
+  filter(tot_wild > 0, tot_domestic > 0) %>%  #remove rows that dont have any data for kegg
+  filter((n_mags_domestic< tot_domestic) | (n_mags_wild < tot_wild)) %>% #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
 filter(!grepl("^K02[89]", kegg))   # remove ribosomal protein KOs
 
 
@@ -2473,9 +2476,9 @@ df_dw <- kegg_fisher_total %>%
     tot_domestic  = n_mags_domestic  + absent_domestic,
     tot_human = n_mags_human + absent_human
   ) %>%
-  filter(n_mags_human > 0 | n_mags_wild > 0) %>% # remove rows where kegg is not present in both groups
-  filter(tot_wild > 0, tot_human > 0) %>%  #remove rows that dont have any data for kegg
-  filter((n_mags_human < tot_human) | (n_mags_wild < tot_wild)) %>% #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
+  filter(n_mags_human > 0 | n_mags_domestic > 0) %>% # remove rows where kegg is not present in both groups
+  filter(tot_domestic > 0, tot_human > 0) %>%  #remove rows that dont have any data for kegg
+  filter((n_mags_human < tot_human) | (n_mags_domestic < tot_domestic)) %>% #remove rows where kegg is present in all mags of both groups (at least one group shows variation)
 filter(!grepl("^K02[89]", kegg))   # remove ribosomal protein KOs
 
 #  Low-bias screen 
