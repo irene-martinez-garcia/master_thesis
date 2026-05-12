@@ -1933,26 +1933,38 @@ mh_re_table_ci <- mh_hw_table %>%
   dplyr::arrange(p_adj_fdr, p_random) 
 
 
+
+ord <- order(mh_re_table_ci$p_adj_fdr)
+
 mgen_ci <- metagen(
-  TE   = mh_re_table_ci$logOR_random,   
-  seTE = mh_re_table_ci$se_random,
-  studlab = mh_re_table_ci$kegg,
+  TE   = mh_re_table_ci$logOR_random[ord],
+  seTE = mh_re_table_ci$se_random[ord],
+  studlab = mh_re_table_ci$kegg[ord],
   sm = "OR",
-  common = FALSE, 
+  common = FALSE,
   random = FALSE
 )
 
+mgen_ci$I2_KEGG <- round(mh_re_table_ci$I2_percent[ord], 1)
+mgen_ci$FDR     <- signif(mh_re_table_ci$p_adj_fdr[ord], 2)
 
 meta::forest(
   mgen_ci,
   backtransf = TRUE,
   xlab = "Odds ratio (Human vs Wild)",
-  leftlabs = c("KEGG pathway"),
+
+  leftcols = c("studlab", "I2_KEGG", "FDR"),
+  leftlabs = c("KEGG", "I²", "FDR"),
+
+  I2 = round(mh_re_table_ci$I2_percent, 1),
+  p_fdr = signif(mh_re_table_ci$p_adj_fdr, 2),
+
   sortvar = mh_re_table_ci$p_adj_fdr,
   col.square = "black",
   col.diamond = "black",
   col.diamond.lines = "black"
 )
+
 
 ```
 
@@ -2028,7 +2040,8 @@ kegg_search_info <- tibble::tibble(
     "K18220","K20922","K07339",
     "K21029","K18909","K16566","K00980","K16702","K12453","K06919",
     
-    "K18234", "K03076", "K15773"
+    "K18234", "K03076", "K15773", "K00793","K00826","K07040","K03366","K03733","K07487", "K07126",
+    "K03783", "K01160", "K02518"
   ),
 
   description = c(
@@ -2087,7 +2100,17 @@ kegg_search_info <- tibble::tibble(
     "Putative DNA replication protein",
     "Virginiamycin A acetyltransferase",
     "Preprotein translocase subunit SecY",
-    "HTH-type transcriptional regulator / antitoxin HipB"
+    "HTH-type transcriptional regulator / antitoxin HipB",
+"Riboflavin synthase","Branched-chain amino acid aminotransferase",
+    "DUF177 domain-containing protein (ribosome biogenesis)",
+    "Meso-butanediol dehydrogenase",
+    "Tyrosine-type recombinase / integrase (XerC)",
+    "Transposase",
+"uncharacterized protein",
+"Purine-nucleoside phosphorylase",
+"Crossover junction endodeoxyribonuclease RusA",
+"Translation initiation factor IF-1"
+
   ),
 
   extra_info = c(
@@ -2145,7 +2168,14 @@ kegg_search_info <- tibble::tibble(
     "replication / repair",
     "vat",
     "",
-    ""
+    "",
+"[EC:2.5.1.9]",
+    "[EC:2.6.1.42]",
+    "",
+    "[EC:1.1.1.76 / 1.1.1.304]",
+    "",
+    "","", "", "", ""
+
     
   )
 )
@@ -2171,20 +2201,30 @@ mh_re_table_ci <- mh_hw_table_annot %>%
   dplyr::filter(ci_low_random > 1 | ci_high_random < 1) %>%
   dplyr::arrange(p_adj_fdr, p_random)
 
+
 mgen_ci <- metagen(
-  TE   = mh_re_table_ci$logOR_random,
-  seTE = mh_re_table_ci$se_random,
-  studlab = mh_re_table_ci$studlab_desc,
+  TE   = mh_re_table_ci$logOR_random[ord],
+  seTE = mh_re_table_ci$se_random[ord],
+  studlab = mh_re_table_ci$studlab_desc[ord],
   sm = "OR",
   common = FALSE,
   random = FALSE
 )
 
+mgen_ci$I2_KEGG <- round(mh_re_table_ci$I2_percent[ord], 1)
+mgen_ci$FDR     <- signif(mh_re_table_ci$p_adj_fdr[ord], 2)
+
 meta::forest(
   mgen_ci,
   backtransf = TRUE,
   xlab = "Odds ratio (Human vs Wild)",
-  leftlabs = c("KEGG pathway"),
+
+  leftcols = c("studlab", "I2_KEGG", "FDR"),
+  leftlabs = c("KEGG", "I²", "FDR"),
+
+  I2 = round(mh_re_table_ci$I2_percent, 1),
+  p_fdr = signif(mh_re_table_ci$p_adj_fdr, 2),
+
   sortvar = mh_re_table_ci$p_adj_fdr,
   col.square = "black",
   col.diamond = "black",
@@ -2322,7 +2362,7 @@ filter(!grepl("^K02[89]", kegg))   # remove ribosomal protein KOs
 
 
 #  Low-bias screen 
-min_informative_species <- 4
+min_informative_species <- 6
 min_total_events <- 10
 
 kegg_keep_dw <- df_dw %>%
@@ -2392,39 +2432,51 @@ mh_dw_table <- bind_rows(lapply(names(mh_dw), function(k) {
 })) %>%
   mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
 
-```
 
 
 
-```{r keggs where ci does not include_1_h_d_r_r, fig.height = 5, fig.width = 7}
 mh_re_table_ci <- mh_dw_table %>%
   dplyr::filter(ci_low_random > 1 | ci_high_random <1) %>%
   dplyr::arrange(p_adj_fdr, p_random) 
 
 
+
+
+ord <- order(mh_re_table_ci$p_adj_fdr)
+
 mgen_ci <- metagen(
-  TE   = mh_re_table_ci$logOR_random,   
-  seTE = mh_re_table_ci$se_random,
-  studlab = mh_re_table_ci$kegg,
+  TE   = mh_re_table_ci$logOR_random[ord],
+  seTE = mh_re_table_ci$se_random[ord],
+  studlab = mh_re_table_ci$studlab_desc[ord],
   sm = "OR",
-  common = FALSE, 
+  common = FALSE,
   random = FALSE
 )
 
+mgen_ci$I2_KEGG <- round(mh_re_table_ci$I2_percent[ord], 1)
+mgen_ci$FDR     <- signif(mh_re_table_ci$p_adj_fdr[ord], 2)
 
 meta::forest(
   mgen_ci,
   backtransf = TRUE,
-  xlab = "Odds ratio (domestic vs Wild)",
-  leftlabs = c("KEGG pathway"),
+  xlab = "Odds ratio (Domestic vs Wild)",
+
+  leftcols = c("studlab", "I2_KEGG", "FDR"),
+  leftlabs = c("KEGG", "I²", "FDR"),
+
+  I2 = round(mh_re_table_ci$I2_percent, 1),
+  p_fdr = signif(mh_re_table_ci$p_adj_fdr, 2),
+
   sortvar = mh_re_table_ci$p_adj_fdr,
   col.square = "black",
   col.diamond = "black",
   col.diamond.lines = "black"
 )
 
-
 ```
+
+
+
 
 ```{r wild domestic with kegginfo, fig.height = 6, fig.width = 10}
 mh_dw_table_annot <- mh_dw_table %>%
@@ -2444,20 +2496,33 @@ mh_re_table_ci <- mh_dw_table_annot %>%
   dplyr::filter(ci_low_random > 1 | ci_high_random < 1) %>%
   dplyr::arrange(p_adj_fdr, p_random)
 
+
+
+ord <- order(mh_re_table_ci$p_adj_fdr)
+
 mgen_ci <- metagen(
-  TE   = mh_re_table_ci$logOR_random,
-  seTE = mh_re_table_ci$se_random,
-  studlab = mh_re_table_ci$studlab_desc,
+  TE   = mh_re_table_ci$logOR_random[ord],
+  seTE = mh_re_table_ci$se_random[ord],
+  studlab = mh_re_table_ci$studlab_desc[ord],
   sm = "OR",
   common = FALSE,
   random = FALSE
 )
 
+mgen_ci$I2_KEGG <- round(mh_re_table_ci$I2_percent[ord], 1)
+mgen_ci$FDR     <- signif(mh_re_table_ci$p_adj_fdr[ord], 2)
+
 meta::forest(
   mgen_ci,
   backtransf = TRUE,
   xlab = "Odds ratio (Domestic vs Wild)",
-  leftlabs = c("KEGG pathway"),
+
+  leftcols = c("studlab", "I2_KEGG", "FDR"),
+  leftlabs = c("KEGG", "I²", "FDR"),
+
+  I2 = round(mh_re_table_ci$I2_percent, 1),
+  p_fdr = signif(mh_re_table_ci$p_adj_fdr, 2),
+
   sortvar = mh_re_table_ci$p_adj_fdr,
   col.square = "black",
   col.diamond = "black",
@@ -2482,7 +2547,7 @@ df_dw <- kegg_fisher_total %>%
 filter(!grepl("^K02[89]", kegg))   # remove ribosomal protein KOs
 
 #  Low-bias screen 
-min_informative_species <- 4
+min_informative_species <-6
 min_total_events <- 10
 
 kegg_keep_dw <- df_dw %>%
@@ -2558,21 +2623,31 @@ mh_re_table_ci <- mh_dw_table %>%
   dplyr::arrange(p_adj_fdr, p_random) 
 
 
+ord <- order(mh_re_table_ci$p_adj_fdr)
+
 mgen_ci <- metagen(
-  TE   = mh_re_table_ci$logOR_random,   
-  seTE = mh_re_table_ci$se_random,
-  studlab = mh_re_table_ci$kegg,
+  TE   = mh_re_table_ci$logOR_random[ord],
+  seTE = mh_re_table_ci$se_random[ord],
+  studlab = mh_re_table_ci$studlab_desc[ord],
   sm = "OR",
-  common = FALSE, 
+  common = FALSE,
   random = FALSE
 )
 
+mgen_ci$I2_KEGG <- round(mh_re_table_ci$I2_percent[ord], 1)
+mgen_ci$FDR     <- signif(mh_re_table_ci$p_adj_fdr[ord], 2)
 
 meta::forest(
   mgen_ci,
   backtransf = TRUE,
-  xlab = "Odds ratio (human vs domestic)",
-  leftlabs = c("KEGG pathway"),
+  xlab = "Odds ratio (Human vs Domestic)",
+
+  leftcols = c("studlab", "I2_KEGG", "FDR"),
+  leftlabs = c("KEGG", "I²", "FDR"),
+
+  I2 = round(mh_re_table_ci$I2_percent, 1),
+  p_fdr = signif(mh_re_table_ci$p_adj_fdr, 2),
+
   sortvar = mh_re_table_ci$p_adj_fdr,
   col.square = "black",
   col.diamond = "black",
@@ -2583,7 +2658,7 @@ meta::forest(
 
 
 
-```{r human domestic with kegginfo_3, fig.height = 6, fig.width = 10}
+```{r human domestic with kegginfo_3, fig.height = 6, fig.width = 12}
 mh_dw_table_annot <- mh_dw_table %>%
   dplyr::left_join(
     kegg_search_info,
@@ -2600,21 +2675,31 @@ mh_dw_table_annot <- mh_dw_table %>%
 mh_re_table_ci <- mh_dw_table_annot %>%
   dplyr::filter(ci_low_random > 1 | ci_high_random < 1) %>%
   dplyr::arrange(p_adj_fdr, p_random)
+ord <- order(mh_re_table_ci$p_adj_fdr)
 
 mgen_ci <- metagen(
-  TE   = mh_re_table_ci$logOR_random,
-  seTE = mh_re_table_ci$se_random,
-  studlab = mh_re_table_ci$studlab_desc,
+  TE   = mh_re_table_ci$logOR_random[ord],
+  seTE = mh_re_table_ci$se_random[ord],
+  studlab = mh_re_table_ci$studlab_desc[ord],
   sm = "OR",
   common = FALSE,
   random = FALSE
 )
 
+mgen_ci$I2_KEGG <- round(mh_re_table_ci$I2_percent[ord], 1)
+mgen_ci$FDR     <- signif(mh_re_table_ci$p_adj_fdr[ord], 2)
+
 meta::forest(
   mgen_ci,
   backtransf = TRUE,
   xlab = "Odds ratio (Human vs Domestic)",
-  leftlabs = c("KEGG pathway"),
+
+  leftcols = c("studlab", "I2_KEGG", "FDR"),
+  leftlabs = c("KEGG", "I²", "FDR"),
+
+  I2 = round(mh_re_table_ci$I2_percent, 1),
+  p_fdr = signif(mh_re_table_ci$p_adj_fdr, 2),
+
   sortvar = mh_re_table_ci$p_adj_fdr,
   col.square = "black",
   col.diamond = "black",
@@ -2737,6 +2822,11 @@ meta::forest(
 
 ```
 
+```{r rename vf data_from_befoer}
+vf_type_data <- vf_data
+```
+
+
 ```{r check vf name}
 vf_data <- read_excel("data/VFs.xls")
 ```
@@ -2746,34 +2836,51 @@ vf_data <- read_excel("data/VFs.xls")
 mh_hw_table_annot <- mh_hw_table %>%
   dplyr::left_join(
     vf_data,
-    join_by ("vf" == "VFID")
+    dplyr::join_by(vf == VFID)
+  ) %>%
+  dplyr::left_join(
+    vf_type_data,
+    dplyr::join_by(vf)
   ) %>%
   dplyr::mutate(
+    label_value = dplyr::coalesce(VF_Name, vf_type),
     studlab_desc = ifelse(
-      is.na(VF_Name),
+      is.na(label_value),
       vf,
-      paste0(vf, ": ", VF_Name)
+      paste0(vf, ": ", label_value)
     )
   )
+
 
 mh_re_table_ci <- mh_hw_table_annot %>%
   dplyr::filter(ci_low_random > 1 | ci_high_random < 1) %>%
   dplyr::arrange(p_adj_fdr, p_random)
 
+ord <- order(mh_re_table_ci$p_adj_fdr)
+
 mgen_ci <- metagen(
-  TE   = mh_re_table_ci$logOR_random,
-  seTE = mh_re_table_ci$se_random,
-  studlab = mh_re_table_ci$studlab_desc,
+  TE   = mh_re_table_ci$logOR_random[ord],
+  seTE = mh_re_table_ci$se_random[ord],
+  studlab = mh_re_table_ci$studlab_desc[ord],
   sm = "OR",
   common = FALSE,
   random = FALSE
 )
 
+mgen_ci$I2_VF <- round(mh_re_table_ci$I2_percent[ord], 1)
+mgen_ci$FDR     <- signif(mh_re_table_ci$p_adj_fdr[ord], 2)
+
 meta::forest(
   mgen_ci,
   backtransf = TRUE,
   xlab = "Odds ratio (Human vs Wild)",
-  leftlabs = c("Virulence Factor"),
+
+  leftcols = c("studlab", "I2_VF", "FDR"),
+  leftlabs = c("KEGG", "I²", "FDR"),
+
+  I2 = round(mh_re_table_ci$I2_percent, 1),
+  p_fdr = signif(mh_re_table_ci$p_adj_fdr, 2),
+
   sortvar = mh_re_table_ci$p_adj_fdr,
   col.square = "black",
   col.diamond = "black",
@@ -2782,7 +2889,7 @@ meta::forest(
 ```
 
 #### Human vs domestic
-```{r metaanalysis for all vfs_hd}
+```{r metaanalysis for all vfs_hd, fig.height = 6, fig.width = 12}
 # Prep totals and basic filters 
 df_hw <- vf_fisher_total %>%
   filter(contrast == "human_vs_domestic") %>%
@@ -2867,38 +2974,55 @@ mh_hw_table <- bind_rows(lapply(names(mh_hw), function(k) {
   mutate(p_adj_fdr = p.adjust(p_random, method = "fdr"))
 
 
-
 mh_hw_table_annot <- mh_hw_table %>%
   dplyr::left_join(
     vf_data,
-    join_by ("vf" == "VFID")
+    dplyr::join_by(vf == VFID)
+  ) %>%
+  dplyr::left_join(
+    vf_type_data,
+    dplyr::join_by(vf)
   ) %>%
   dplyr::mutate(
+    label_value = dplyr::coalesce(VF_Name, vf_type),
     studlab_desc = ifelse(
-      is.na(VF_Name),
+      is.na(label_value),
       vf,
-      paste0(vf, ": ", VF_Name)
+      paste0(vf, ": ", label_value)
     )
   )
+
+
 
 mh_re_table_ci <- mh_hw_table_annot %>%
   dplyr::filter(ci_low_random > 1 | ci_high_random < 1) %>%
   dplyr::arrange(p_adj_fdr, p_random)
 
+ord <- order(mh_re_table_ci$p_adj_fdr)
+
 mgen_ci <- metagen(
-  TE   = mh_re_table_ci$logOR_random,
-  seTE = mh_re_table_ci$se_random,
-  studlab = mh_re_table_ci$studlab_desc,
+  TE   = mh_re_table_ci$logOR_random[ord],
+  seTE = mh_re_table_ci$se_random[ord],
+  studlab = mh_re_table_ci$studlab_desc[ord],
   sm = "OR",
   common = FALSE,
   random = FALSE
 )
 
+mgen_ci$I2_VF <- round(mh_re_table_ci$I2_percent[ord], 1)
+mgen_ci$FDR     <- signif(mh_re_table_ci$p_adj_fdr[ord], 2)
+
 meta::forest(
   mgen_ci,
   backtransf = TRUE,
   xlab = "Odds ratio (Human vs Domestic)",
-  leftlabs = c("Virulence Factor"),
+
+  leftcols = c("studlab", "I2_VF", "FDR"),
+  leftlabs = c("KEGG", "I²", "FDR"),
+
+  I2 = round(mh_re_table_ci$I2_percent, 1),
+  p_fdr = signif(mh_re_table_ci$p_adj_fdr, 2),
+
   sortvar = mh_re_table_ci$p_adj_fdr,
   col.square = "black",
   col.diamond = "black",
@@ -3053,13 +3177,18 @@ mh_hw_table <- bind_rows(lapply(names(mh_hw), function(k) {
 mh_hw_table_annot <- mh_hw_table %>%
   dplyr::left_join(
     vf_data,
-    join_by ("vf" == "VFID")
+    dplyr::join_by(vf == VFID)
+  ) %>%
+  dplyr::left_join(
+    vf_type_data,
+    dplyr::join_by(vf)
   ) %>%
   dplyr::mutate(
+    label_value = dplyr::coalesce(VF_Name, vf_type),
     studlab_desc = ifelse(
-      is.na(VF_Name),
+      is.na(label_value),
       vf,
-      paste0(vf, ": ", VF_Name)
+      paste0(vf, ": ", label_value)
     )
   )
 
@@ -3067,26 +3196,36 @@ mh_re_table_ci <- mh_hw_table_annot %>%
   dplyr::filter(ci_low_random > 1 | ci_high_random < 1) %>%
   dplyr::arrange(p_adj_fdr, p_random)
 
+ord <- order(mh_re_table_ci$p_adj_fdr)
+
 mgen_ci <- metagen(
-  TE   = mh_re_table_ci$logOR_random,
-  seTE = mh_re_table_ci$se_random,
-  studlab = mh_re_table_ci$studlab_desc,
+  TE   = mh_re_table_ci$logOR_random[ord],
+  seTE = mh_re_table_ci$se_random[ord],
+  studlab = mh_re_table_ci$studlab_desc[ord],
   sm = "OR",
   common = FALSE,
   random = FALSE
 )
 
+mgen_ci$I2_VF <- round(mh_re_table_ci$I2_percent[ord], 1)
+mgen_ci$FDR     <- signif(mh_re_table_ci$p_adj_fdr[ord], 2)
+
 meta::forest(
   mgen_ci,
   backtransf = TRUE,
-  xlab = "Odds ratio (domestic vs Wild)",
-  leftlabs = c("Virulence Factor"),
+  xlab = "Odds ratio (Domestic vs Wild)",
+
+  leftcols = c("studlab", "I2_VF", "FDR"),
+  leftlabs = c("KEGG", "I²", "FDR"),
+
+  I2 = round(mh_re_table_ci$I2_percent, 1),
+  p_fdr = signif(mh_re_table_ci$p_adj_fdr, 2),
+
   sortvar = mh_re_table_ci$p_adj_fdr,
   col.square = "black",
   col.diamond = "black",
   col.diamond.lines = "black"
 )
-
 ```
 ```{r forest plot individual vfs_dom_wild, fig.height = 6, fid.width = 10}
 # Forest plot (Human on right, Wild on left)
