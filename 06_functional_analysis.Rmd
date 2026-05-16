@@ -1754,6 +1754,16 @@ kegg_keep_hw <- df_hw %>%
 df_hw_screened <- df_hw %>%
   inner_join(kegg_keep_hw, by = "kegg")
 
+
+kegg_species_map_hw <- df_hw_screened %>%
+  dplyr::select(kegg, species) %>%
+  distinct()
+
+save(kegg_species_map_hw, file = "data/glmm_results/kegg_species_map_hw.RData") #for the glmm models
+
+
+
+
 # Split by KEGG
 kegg_split_hw <- split(df_hw_screened, df_hw_screened$kegg)
 
@@ -2041,7 +2051,7 @@ kegg_search_info <- tibble::tibble(
     "K21029","K18909","K16566","K00980","K16702","K12453","K06919",
     
     "K18234", "K03076", "K15773", "K00793","K00826","K07040","K03366","K03733","K07487", "K07126",
-    "K03783", "K01160", "K02518"
+    "K03783", "K01160", "K02518", "K03205", "K07451", "K07486", "K00986", "K07452", "K15342", "K04095", "K03086", "K19068"
   ),
 
   description = c(
@@ -2109,74 +2119,17 @@ kegg_search_info <- tibble::tibble(
 "uncharacterized protein",
 "Purine-nucleoside phosphorylase",
 "Crossover junction endodeoxyribonuclease RusA",
-"Translation initiation factor IF-1"
+"Translation initiation factor IF-1",
+"Type IV secretion system protein VirD4",
+"5-methylcytosine-specific restriction enzyme A",
+"Transposase",
+"RNA-directed DNA polymerase",
+"5-methylcytosine-specific restriction enzyme B", 
+"CRISP-associated protein Cas1",
+"Cell filamentation protein (FICD), protein adenylyltransferase",
+"RNA polymerase primary sigma factor (rpoD)",
+"UDP-2-acetamido-2,6-beta-L-arabino-hexul-4-ose reductase (wbjC)"
 
-  ),
-
-  extra_info = c(
-    "",
-    "fructose operon transcriptional repressor",
-    "serine endopeptidase, SOS response regulator",
-    "",
-    "pafC",
-    "",
-    "Type IV TA system toxin",
-    "",
-    "metallo-endopeptidase",
-    "Type II R-M system",
-    "adenine-specific DNA methyltransferase",
-    "function unknown",
-    "large subunit",
-    "large subunit",
-    "",
-    "",
-    "",
-    "",
-    "abnA",
-    "RP-S19, RSM19, rpsS",
-    "RP-L22, MRPL22, rplV",
-    "Early infantile epileptic encephalopathy",
-    "ribosome",
-    "RP-S8, MRPS8, rpsH",
-    "RP-L6, MRPL6, rplF",
-    "RP-S3, rpsC",
-    "RP-S10, rpsJ",
-    "RP-L23, MRPL23, rplW",
-    "RP-L4, MRPL4, rplD",
-    "RP-L30, MRPL30, rpmD",
-    "Type I R-M system specificity subunit",
-    "RP-S14, MRPS14, rpsN",
-    "waaJ, rfaJ",
-    "rpoC",
-    "adenine-specific",
-    "DNA damage response",
-    "arsC, thioredoxin-dependent",
-    "restriction-modification system",
-    "protein phosphorylation",
-    "MFS transporter",
-    "mobile genetic element",
-    "homologous recombination",
-    "tetM / tetO",
-    "biofilm-associated",
-    "Type II toxin–antitoxin system",
-    "function unknown",
-    "mepR, antibiotic resistance regulation",
-    "exopolysaccharide synthesis",
-    "tagD",
-    "amsE",
-    "rfbS",
-    "replication / repair",
-    "vat",
-    "",
-    "",
-"[EC:2.5.1.9]",
-    "[EC:2.6.1.42]",
-    "",
-    "[EC:1.1.1.76 / 1.1.1.304]",
-    "",
-    "","", "", "", ""
-
-    
   )
 )
 
@@ -2381,6 +2334,15 @@ kegg_keep_dw <- df_dw %>%
 df_dw_screened <- df_dw %>%
   inner_join(kegg_keep_dw, by = "kegg")
 
+
+kegg_species_map_dw <- df_dw_screened %>%
+  dplyr::select(kegg, species) %>%
+  distinct()
+
+save(kegg_species_map_dw, file = "data/glmm_results/kegg_species_map_dw.RData") #for the glmm models
+
+
+
 # Split by KEGG
 kegg_split_dw <- split(df_dw_screened, df_dw_screened$kegg)
 
@@ -2566,6 +2528,14 @@ kegg_keep_dw <- df_dw %>%
 df_dw_screened <- df_dw %>%
   inner_join(kegg_keep_dw, by = "kegg")
 
+
+kegg_species_map_hd <- df_dw_screened %>%
+  dplyr::select(kegg, species) %>%
+  distinct()
+
+save(kegg_species_map_hd, file = "data/glmm_results/kegg_species_map_hd.RData") #for the glmm models
+
+
 # Split by KEGG
 kegg_split_dw <- split(df_dw_screened, df_dw_screened$kegg)
 
@@ -2740,6 +2710,12 @@ vf_keep_hw <- df_hw %>%
 
 df_hw_screened <- df_hw %>%
   inner_join(vf_keep_hw, by = "vf")
+
+vf_species_map_hw <- df_hw_screened %>%
+  dplyr::select(vf, species) %>%
+  distinct()
+
+save(vf_species_map_hw, file = "data/glmm_results/vf_species_map_hw.RData") #for the glmm models
 
 # Split by vf
 vf_split_hw <- split(df_hw_screened, df_hw_screened$vf)
@@ -2922,6 +2898,14 @@ vf_keep_hw <- df_hw %>%
 df_hw_screened <- df_hw %>%
   inner_join(vf_keep_hw, by = "vf")
 
+
+vf_species_map_hd <- df_hw_screened %>%
+  dplyr::select(vf, species) %>%
+  distinct()
+
+save(vf_species_map_hd, file = "data/glmm_results/vf_species_map_hd.RData") #for the glmm models
+
+
 # Split by vf
 vf_split_hw <- split(df_hw_screened, df_hw_screened$vf)
 
@@ -3032,6 +3016,7 @@ meta::forest(
 
 
 
+
 ```{r forest plot individual vfs_hd, fig.height = 6, fid.width = 10}
 # Forest plot (Human on right, Wild on left)
 forest_one_vf <- function(vf_id, xlim = NULL, at = NULL) {
@@ -3117,6 +3102,15 @@ vf_keep_hw <- df_hw %>%
 
 df_hw_screened <- df_hw %>%
   inner_join(vf_keep_hw, by = "vf")
+
+
+vf_species_map_dw <- df_hw_screened %>%
+  dplyr::select(vf, species) %>%
+  distinct()
+
+save(vf_species_map_dw, file = "data/glmm_results/vf_species_map_dw.RData") #for the glmm models
+
+
 
 # Split by vf
 vf_split_hw <- split(df_hw_screened, df_hw_screened$vf)
@@ -3479,6 +3473,787 @@ ggplot(vf_by_genome, aes(x = n_vf)) +
 
 
 The following generalized linear mixed models are done in Mjolnir HPC, then the results are imported into this R Markdown.
+
+
+### Per-species, per-VF model
+```{r perspeciespervfmodel_human_wild}
+library(glmmTMB)
+vf_glmm_per_vf_species <- readRDS("data/glmm_results/vf_glmmTMB_perVF_perSpecies_models.rds")
+```
+
+
+```{r update}
+vf_models <- purrr::map(vf_glmm_per_vf_species, glmmTMB::up2date)
+```
+
+```{r extract fixed_effesct}
+
+vf_results <- map2_dfr(
+  vf_models,
+  seq_along(vf_models),
+  ~ {
+    if (is.null(.x)) return(NULL)
+
+    broom.mixed::tidy(.x, effects = "fixed") %>%
+      filter(grepl("host_type_2", term)) %>%   # keep host contrast
+      mutate(
+        model_id = .y,
+        logOR = estimate,
+        SE    = std.error,
+        OR    = exp(estimate),
+        CI_low  = exp(estimate - 1.96 * std.error),
+        CI_high = exp(estimate + 1.96 * std.error)
+      )
+  }
+)
+
+```
+
+```{r human_wild_model}
+per_species_results <- read_csv("data/glmm_results/vf_glmmTMB_perVF_perSpecies_results.csv")
+per_species_results
+```
+
+```{r metaanalysis_human_wild, fig.height = 5, fig.width = 10}
+# Prepare data
+vf_results_hw <- per_species_results %>%
+  filter(term == "host_type_2wild") %>%
+  filter(
+    is.finite(logOR),
+    is.finite(SE),
+    SE > 0,
+    SE < 5
+  )
+
+#Meta-analysis
+meta_results <- vf_results_hw %>%
+  group_by(annotation) %>%
+  group_map(~ {
+
+    dat <- .x
+    key <- .y
+
+    if (nrow(dat) < 2) return(NULL)
+
+    m <- rma(
+      yi   = dat$logOR,
+      sei  = dat$SE,
+      method = "REML",
+      test   = "knha"
+    )
+
+    data.frame(
+      annotation = key$annotation,
+      k = m$k,
+
+      logOR = as.numeric(m$b),
+      SE    = m$se,
+
+      OR = exp(m$b),
+      CI_low  = exp(m$ci.lb),
+      CI_high = exp(m$ci.ub),
+
+      p_value = m$pval,
+      tau2    = m$tau2,
+      I2      = m$I2
+    )
+  }) %>%
+  bind_rows()
+
+#Add VF name, and if not present- then add vf type
+meta_results_annot <- meta_results %>%
+  left_join(vf_data, by = c("annotation" = "VFID")) %>%
+  left_join(vf_type_data, by = c("annotation" = "vf")) %>%
+  mutate(
+    label_value = coalesce(VF_Name, vf_type),
+    studlab_desc = ifelse(
+      is.na(label_value),
+      annotation,
+      paste0(annotation, ": ", label_value)
+    )
+  )
+
+#Multiple testing correction
+meta_results_annot <- meta_results_annot %>%
+  mutate(p_adj_fdr = p.adjust(p_value, method = "BH"))
+
+# Filter significant results for plot:
+meta_sig <- meta_results_annot %>%
+  filter(
+    (CI_low > 1 | CI_high < 1),
+    k >= 3
+  ) %>%
+  arrange(p_adj_fdr)
+
+#Sort and order so that the order of the added columns is the same 
+meta_sig <- meta_sig %>%
+  arrange(p_adj_fdr)
+
+
+ord <- order(meta_sig$p_adj_fdr)
+
+#Build meta object for plot
+mgen_ci <- metagen(
+  TE   = meta_sig$logOR[ord],
+  seTE = meta_sig$SE[ord],
+  studlab = meta_sig$studlab_desc[ord],
+  sm = "OR",
+  common = FALSE,
+  random = FALSE
+)
+
+# Add I2, tau2 and FDR to the forest plot
+mgen_ci$I2_vf <- round(meta_sig$I2[ord], 1)
+mgen_ci$tau2_vf <- signif(meta_sig$tau2[ord], 2)
+mgen_ci$FDR <- signif(meta_sig$p_adj_fdr[ord], 2)
+
+#Forest plot
+forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (Wild vs Human)",
+
+  leftcols = c("studlab", "I2_vf", "tau2_vf", "FDR"),
+  leftlabs = c("VF", "I² (%)", "τ²", "FDR"),
+
+  sortvar = meta_sig$p_adj_fdr,
+
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+
+```
+
+
+
+
+```{r checking vfs}
+vf_summary_hw %>% filter(vf == "VF0123", contrast == "human_vs_wild" )
+
+vf_summary_hw %>% filter(vf == "VF0940", contrast == "human_vs_wild" )
+```
+
+```{r perspeciespervfmodel_wild_domestic}
+vf_glmm_per_vf_species_hd <- readRDS("data/glmm_results/vf_glmmTMB_perVF_perSpecies_models_hd.rds")
+```
+
+
+```{r update}
+vf_models_hd <- purrr::map(vf_glmm_per_vf_species_hd, glmmTMB::up2date)
+```
+
+```{r extract fixed_effesct}
+
+vf_results <- map2_dfr(
+  vf_models,
+  seq_along(vf_models),
+  ~ {
+    if (is.null(.x)) return(NULL)
+
+    broom.mixed::tidy(.x, effects = "fixed") %>%
+      filter(grepl("host_type_2", term)) %>%   # keep host contrast
+      mutate(
+        model_id = .y,
+        logOR = estimate,
+        SE    = std.error,
+        OR    = exp(estimate),
+        CI_low  = exp(estimate - 1.96 * std.error),
+        CI_high = exp(estimate + 1.96 * std.error)
+      )
+  }
+)
+
+```
+
+```{r}
+per_species_results_hd <- read_csv("data/glmm_results/vf_glmmTMB_perVF_perSpecies_results_hd.csv")
+per_species_results_hd
+```
+
+```{r metaanalysis_human_domestic, fig.height = 5, fig.width = 10}
+# Prepare data
+vf_results_hd <- per_species_results_hd %>%
+  filter(term == "host_type_2domestic") %>%
+  filter(
+    is.finite(logOR),
+    is.finite(SE),
+    SE > 0,
+    SE < 5
+  )
+
+#Meta-analysis
+meta_results <- vf_results_hd %>%
+  group_by(annotation) %>%
+  group_map(~ {
+
+    dat <- .x
+    key <- .y
+
+    if (nrow(dat) < 2) return(NULL)
+
+    m <- rma(
+      yi   = dat$logOR,
+      sei  = dat$SE,
+      method = "REML",
+      test   = "knha"
+    )
+
+    data.frame(
+      annotation = key$annotation,
+      k = m$k,
+
+      logOR = as.numeric(m$b),
+      SE    = m$se,
+
+      OR = exp(m$b),
+      CI_low  = exp(m$ci.lb),
+      CI_high = exp(m$ci.ub),
+
+      p_value = m$pval,
+      tau2    = m$tau2,
+      I2      = m$I2
+    )
+  }) %>%
+  bind_rows()
+
+#Add VF name, and if not present- then add vf type
+meta_results_annot <- meta_results %>%
+  left_join(vf_data, by = c("annotation" = "VFID")) %>%
+  left_join(vf_type_data, by = c("annotation" = "vf")) %>%
+  mutate(
+    label_value = coalesce(VF_Name, vf_type),
+    studlab_desc = ifelse(
+      is.na(label_value),
+      annotation,
+      paste0(annotation, ": ", label_value)
+    )
+  )
+
+#Multiple testing correction
+meta_results_annot <- meta_results_annot %>%
+  mutate(p_adj_fdr = p.adjust(p_value, method = "BH"))
+
+# Filter significant results for plot:
+meta_sig <- meta_results_annot %>%
+  filter(
+    (CI_low > 1 | CI_high < 1),
+    k >= 3
+  ) %>%
+  arrange(p_adj_fdr)
+
+#Sort and order so that the order of the added columns is the same 
+meta_sig <- meta_sig %>%
+  arrange(p_adj_fdr)
+
+
+ord <- order(meta_sig$p_adj_fdr)
+
+#Build meta object for plot
+mgen_ci <- metagen(
+  TE   = meta_sig$logOR[ord],
+  seTE = meta_sig$SE[ord],
+  studlab = meta_sig$studlab_desc[ord],
+  sm = "OR",
+  common = FALSE,
+  random = FALSE
+)
+
+# Add I2, tau2 and FDR to the forest plot
+mgen_ci$I2_vf <- round(meta_sig$I2[ord], 1)
+mgen_ci$tau2_vf <- signif(meta_sig$tau2[ord], 2)
+mgen_ci$FDR <- signif(meta_sig$p_adj_fdr[ord], 2)
+
+#Forest plot
+forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (Domestic vs Human)",
+
+  leftcols = c("studlab", "I2_vf", "tau2_vf", "FDR"),
+  leftlabs = c("VF", "I² (%)", "τ²", "FDR"),
+
+  sortvar = meta_sig$p_adj_fdr,
+
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+
+```
+
+
+```{r perspeciespervfmodel_wild_domestic}
+per_species_results_dw <- read_csv("data/glmm_results/vf_glmmTMB_perVF_perSpecies_results_dw.csv")
+per_species_results_dw
+```
+
+```{r metaanalysis_wild_domestic, fig.height = 5, fig.width = 10}
+# Prepare data
+vf_results_dw <- per_species_results_dw %>%
+  filter(term == "host_type_2wild") %>%
+  filter(
+    is.finite(logOR),
+    is.finite(SE),
+    SE > 0,
+    SE < 5
+  )
+
+#Meta-analysis
+meta_results <- vf_results_dw %>%
+  group_by(annotation) %>%
+  group_map(~ {
+
+    dat <- .x
+    key <- .y
+
+    if (nrow(dat) < 2) return(NULL)
+
+    m <- rma(
+      yi   = dat$logOR,
+      sei  = dat$SE,
+      method = "REML",
+      test   = "knha"
+    )
+
+    data.frame(
+      annotation = key$annotation,
+      k = m$k,
+
+      logOR = as.numeric(m$b),
+      SE    = m$se,
+
+      OR = exp(m$b),
+      CI_low  = exp(m$ci.lb),
+      CI_high = exp(m$ci.ub),
+
+      p_value = m$pval,
+      tau2    = m$tau2,
+      I2      = m$I2
+    )
+  }) %>%
+  bind_rows()
+
+#Add VF name, and if not present- then add vf type
+meta_results_annot <- meta_results %>%
+  left_join(vf_data, by = c("annotation" = "VFID")) %>%
+  left_join(vf_type_data, by = c("annotation" = "vf")) %>%
+  mutate(
+    label_value = coalesce(VF_Name, vf_type),
+    studlab_desc = ifelse(
+      is.na(label_value),
+      annotation,
+      paste0(annotation, ": ", label_value)
+    )
+  )
+
+#Multiple testing correction
+meta_results_annot <- meta_results_annot %>%
+  mutate(p_adj_fdr = p.adjust(p_value, method = "BH"))
+
+# Filter significant results for plot:
+meta_sig <- meta_results_annot %>%
+  filter(
+    (CI_low > 1 | CI_high < 1),
+    k >= 3
+  ) %>%
+  arrange(p_adj_fdr)
+
+#Sort and order so that the order of the added columns is the same 
+meta_sig <- meta_sig %>%
+  arrange(p_adj_fdr)
+
+
+ord <- order(meta_sig$p_adj_fdr)
+
+#Build meta object for plot
+mgen_ci <- metagen(
+  TE   = meta_sig$logOR[ord],
+  seTE = meta_sig$SE[ord],
+  studlab = meta_sig$studlab_desc[ord],
+  sm = "OR",
+  common = FALSE,
+  random = FALSE
+)
+
+# Add I2, tau2 and FDR to the forest plot
+mgen_ci$I2_vf <- round(meta_sig$I2[ord], 1)
+mgen_ci$tau2_vf <- signif(meta_sig$tau2[ord], 2)
+mgen_ci$FDR <- signif(meta_sig$p_adj_fdr[ord], 2)
+
+#Forest plot
+forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (Wild vs Domestic)",
+
+  leftcols = c("studlab", "I2_vf", "tau2_vf", "FDR"),
+  leftlabs = c("VF", "I² (%)", "τ²", "FDR"),
+
+  sortvar = meta_sig$p_adj_fdr,
+
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+
+```
+
+```{r}
+kegg_results_hw <- read_csv("data/glmm_results/kegg/kegg_glmmTMB_perkegg_perSpecies_results_hw.csv")
+kegg_results_hw
+```
+
+
+### kegg per species per kegg
+```{r kegg_wild_human_final_meta, fig.height = 5, fig.width = 10}
+kegg_results_hw <- read_csv("data/glmm_results/kegg/kegg_glmmTMB_perkegg_perSpecies_results_hw.csv")
+
+kegg_results_hw <- kegg_results_hw %>%
+  filter(term == "host_type_2wild")%>%
+  filter(!grepl("^K02[89]", annotation))
+
+
+kegg_results_clean <- kegg_results_hw %>%
+  filter(
+    !is.na(logOR),
+    !is.na(SE),
+    is.finite(logOR),
+    is.finite(SE),
+    SE > 0
+  )
+#Meta-analysis
+meta_results <- kegg_results_hw %>%
+  group_by(annotation) %>%
+  group_map(~ {
+
+    dat <- .x
+    key <- .y
+
+    if (nrow(dat) < 2) return(NULL)
+
+    m <- rma(
+      yi   = dat$logOR,
+      sei  = dat$SE,
+      method = "REML",
+      test   = "knha"
+    )
+
+    data.frame(
+      annotation = key$annotation,
+      k = m$k,
+
+      logOR = as.numeric(m$b),
+      SE    = m$se,
+
+      OR = exp(m$b),
+      CI_low  = exp(m$ci.lb),
+      CI_high = exp(m$ci.ub),
+
+      p_value = m$pval,
+      tau2    = m$tau2,
+      I2      = m$I2
+    )
+  }) %>%
+  bind_rows()
+
+#Add Kegg name from kegg search info (manual lookup of the keggs)
+meta_results_annot <- meta_results %>%
+  dplyr::left_join(
+    kegg_search_info,
+    by = c("annotation" = "kegg")
+  ) %>%
+  dplyr::mutate(
+    studlab_desc = ifelse(
+      is.na(description),
+      annotation,
+      paste0(annotation, ": ", description)
+    )
+  )
+
+#Multiple testing correction
+meta_results_annot <- meta_results_annot %>%
+  mutate(p_adj_fdr = p.adjust(p_value, method = "BH"))
+
+# Filter significant results for plot:
+meta_sig <- meta_results_annot %>%
+  filter(
+    (CI_low > 1 | CI_high < 1),
+    k >= 4
+  ) %>%
+  arrange(p_adj_fdr)
+
+#Sort and order so that the order of the added columns is the same 
+meta_sig <- meta_sig %>%
+  arrange(p_adj_fdr)
+
+
+ord <- order(meta_sig$p_adj_fdr)
+
+#Build meta object for plot
+mgen_ci <- metagen(
+  TE   = meta_sig$logOR[ord],
+  seTE = meta_sig$SE[ord],
+  studlab = meta_sig$studlab_desc[ord],
+  sm = "OR",
+  common = FALSE,
+  random = FALSE
+)
+
+# Add I2, tau2 and FDR to the forest plot
+mgen_ci$I2_kegg <- round(meta_sig$I2[ord], 1)
+mgen_ci$tau2_kegg <- signif(meta_sig$tau2[ord], 2)
+mgen_ci$FDR <- signif(meta_sig$p_adj_fdr[ord], 2)
+
+#Forest plot
+forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (Wild vs Human)",
+
+  leftcols = c("studlab", "I2_kegg", "tau2_kegg", "FDR"),
+  leftlabs = c("KEGG Ortholog", "I² (%)", "τ²", "FDR"),
+
+  sortvar = meta_sig$p_adj_fdr,
+
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+```
+
+```{r kegg_domestic_human_final_meta, fig.height = 5, fig.width = 10}
+kegg_results_hd <- read_csv("data/glmm_results/kegg/kegg_glmmTMB_perkegg_perSpecies_results_hd.csv")
+
+kegg_results_hd <- kegg_results_hd %>%
+  filter(term == "host_type_2domestic")%>%
+  filter(!grepl("^K02[89]", annotation))
+
+
+kegg_results_clean <- kegg_results_hd %>%
+  filter(
+    !is.na(logOR),
+    !is.na(SE),
+    is.finite(logOR),
+    is.finite(SE),
+    SE > 0
+  )
+#Meta-analysis
+meta_results <- kegg_results_clean %>%
+  group_by(annotation) %>%
+  group_map(~ {
+
+    dat <- .x
+    key <- .y
+
+    if (nrow(dat) < 2) return(NULL)
+
+    m <- rma(
+      yi   = dat$logOR,
+      sei  = dat$SE,
+      method = "REML",
+      test   = "knha"
+    )
+
+    data.frame(
+      annotation = key$annotation,
+      k = m$k,
+
+      logOR = as.numeric(m$b),
+      SE    = m$se,
+
+      OR = exp(m$b),
+      CI_low  = exp(m$ci.lb),
+      CI_high = exp(m$ci.ub),
+
+      p_value = m$pval,
+      tau2    = m$tau2,
+      I2      = m$I2
+    )
+  }) %>%
+  bind_rows()
+
+#Add Kegg name from kegg search info (manual lookup of the keggs)
+meta_results_annot <- meta_results %>%
+  dplyr::left_join(
+    kegg_search_info,
+    by = c("annotation" = "kegg")
+  ) %>%
+  dplyr::mutate(
+    studlab_desc = ifelse(
+      is.na(description),
+      annotation,
+      paste0(annotation, ": ", description)
+    )
+  )
+
+#Multiple testing correction
+meta_results_annot <- meta_results_annot %>%
+  mutate(p_adj_fdr = p.adjust(p_value, method = "BH"))
+
+# Filter significant results for plot:
+meta_sig <- meta_results_annot %>%
+  filter(
+    (CI_low > 1 | CI_high < 1),
+    k >= 4
+  ) %>%
+  arrange(p_adj_fdr)
+
+#Sort and order so that the order of the added columns is the same 
+meta_sig <- meta_sig %>%
+  arrange(p_adj_fdr)
+
+
+ord <- order(meta_sig$p_adj_fdr)
+
+#Build meta object for plot
+mgen_ci <- metagen(
+  TE   = meta_sig$logOR[ord],
+  seTE = meta_sig$SE[ord],
+  studlab = meta_sig$studlab_desc[ord],
+  sm = "OR",
+  common = FALSE,
+  random = FALSE
+)
+
+# Add I2, tau2 and FDR to the forest plot
+mgen_ci$I2_kegg <- round(meta_sig$I2[ord], 1)
+mgen_ci$tau2_kegg <- signif(meta_sig$tau2[ord], 2)
+mgen_ci$FDR <- signif(meta_sig$p_adj_fdr[ord], 2)
+
+#Forest plot
+forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (Domestic vs Human)",
+
+  leftcols = c("studlab", "I2_kegg", "tau2_kegg", "FDR"),
+  leftlabs = c("KEGG Ortholog", "I² (%)", "τ²", "FDR"),
+
+  sortvar = meta_sig$p_adj_fdr,
+
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+```
+
+
+```{r kegg_domestic_wild_final_meta, fig.height = 5, fig.width = 12}
+kegg_results_dw <- read_csv("data/glmm_results/kegg/kegg_glmmTMB_perkegg_perSpecies_results_dw.csv")
+
+kegg_results_dw <- kegg_results_dw %>%
+  filter(term == "host_type_2wild")%>%
+  filter(!grepl("^K02[89]", annotation))
+
+
+kegg_results_clean <- kegg_results_dw %>%
+  filter(
+    !is.na(logOR),
+    !is.na(SE),
+    is.finite(logOR),
+    is.finite(SE),
+    SE > 0
+  )
+#Meta-analysis
+meta_results <- kegg_results_clean %>%
+  group_by(annotation) %>%
+  group_map(~ {
+
+    dat <- .x
+    key <- .y
+
+    if (nrow(dat) < 2) return(NULL)
+
+    m <- rma(
+      yi   = dat$logOR,
+      sei  = dat$SE,
+      method = "REML",
+      test   = "knha"
+    )
+
+    data.frame(
+      annotation = key$annotation,
+      k = m$k,
+
+      logOR = as.numeric(m$b),
+      SE    = m$se,
+
+      OR = exp(m$b),
+      CI_low  = exp(m$ci.lb),
+      CI_high = exp(m$ci.ub),
+
+      p_value = m$pval,
+      tau2    = m$tau2,
+      I2      = m$I2
+    )
+  }) %>%
+  bind_rows()
+
+#Add Kegg name from kegg search info (manual lookup of the keggs)
+meta_results_annot <- meta_results %>%
+  dplyr::left_join(
+    kegg_search_info,
+    by = c("annotation" = "kegg")
+  ) %>%
+  dplyr::mutate(
+    studlab_desc = ifelse(
+      is.na(description),
+      annotation,
+      paste0(annotation, ": ", description)
+    )
+  )
+
+#Multiple testing correction
+meta_results_annot <- meta_results_annot %>%
+  mutate(p_adj_fdr = p.adjust(p_value, method = "BH"))
+
+# Filter significant results for plot:
+meta_sig <- meta_results_annot %>%
+  filter(
+    (CI_low > 1 | CI_high < 1),
+    k >= 4
+  ) %>%
+  arrange(p_adj_fdr)
+
+#Sort and order so that the order of the added columns is the same 
+meta_sig <- meta_sig %>%
+  arrange(p_adj_fdr)
+
+
+ord <- order(meta_sig$p_adj_fdr)
+
+#Build meta object for plot
+mgen_ci <- metagen(
+  TE   = meta_sig$logOR[ord],
+  seTE = meta_sig$SE[ord],
+  studlab = meta_sig$studlab_desc[ord],
+  sm = "OR",
+  common = FALSE,
+  random = FALSE
+)
+
+# Add I2, tau2 and FDR to the forest plot
+mgen_ci$I2_kegg <- round(meta_sig$I2[ord], 1)
+mgen_ci$tau2_kegg <- signif(meta_sig$tau2[ord], 2)
+mgen_ci$FDR <- signif(meta_sig$p_adj_fdr[ord], 2)
+
+#Forest plot
+forest(
+  mgen_ci,
+  backtransf = TRUE,
+  xlab = "Odds ratio (Wild vs Domestic)",
+
+  leftcols = c("studlab", "I2_kegg", "tau2_kegg", "FDR"),
+  leftlabs = c("KEGG Ortholog", "I² (%)", "τ²", "FDR"),
+
+  sortvar = meta_sig$p_adj_fdr,
+
+  col.square = "black",
+  col.diamond = "black",
+  col.diamond.lines = "black"
+)
+```
 
 
 ### 1) VF glmm with lme4
@@ -5034,8 +5809,5 @@ vf_species_effects <- vf_long %>%
     odds_ratio = exp(total_effect)
   )
 ```
-Model does not give true standard error for random effects, so we will approximate SE_total ≈ SE_fixed
-
-
 
 

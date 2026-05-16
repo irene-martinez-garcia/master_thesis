@@ -520,6 +520,61 @@ ggplot(total_genome_metadata,
 
   theme_minimal(base_size = 14) +
   theme(legend.position = "none")
+
+
+
+ggplot(total_genome_metadata,
+       aes(x = host_type_2, y = contigs, color = host_type_2)) +
+
+  geom_boxplot(
+    outlier.shape = NA,
+    alpha = 0.3,
+    width = 0.55
+  ) +
+
+  geom_jitter(
+    width = 0.18,
+    alpha = 0.35,
+    size = 1
+  ) +
+
+  scale_color_manual(values = host_type_2_colors) +
+
+  labs(
+    title = "Contig Number by Host Type",
+    x = "Host Type",
+    y = "Contig Number"
+  ) +
+
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+
+
+ggplot(total_genome_metadata,
+       aes(x = host_type_2, y = N50, color = host_type_2)) +
+
+  geom_boxplot(
+    outlier.shape = NA,
+    alpha = 0.3,
+    width = 0.55
+  ) +
+
+  geom_jitter(
+    width = 0.18,
+    alpha = 0.35,
+    size = 1
+  ) +
+
+  scale_color_manual(values = host_type_2_colors) +
+
+  labs(
+    title = "N50 by Host Type",
+    x = "Host Type",
+    y = "N50"
+  ) +
+
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
 ```
 
 
@@ -645,6 +700,14 @@ m_cont <- lmer(contamination ~ host_type_2 + (1 | bacterial_species),
 
 summary(m_cont)
 anova(m_cont)
+
+
+# Contamination model
+m_contig <- lmer(contigs ~ host_type_2 + (1 | bacterial_species),
+               data = total_genome_metadata)
+
+summary(m_contig)
+anova(m_contig)
 
 ```
 ```{r means completeness and contamination}
@@ -1272,6 +1335,10 @@ results_tbl <- map_dfr(species_list, function(sp) {
 ```
 ```{r stats}
 results_tbl %>% dplyr::select(p.value, species, variable) %>% filter(p.value<0.05)
+```
+```{r contig size}
+ggplot(total_genome_metadata, aes(x= host_type_2, y = contigs)) +
+  geom_boxplot()
 ```
 
 
