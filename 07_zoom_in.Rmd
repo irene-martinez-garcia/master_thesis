@@ -1,0 +1,570 @@
+
+# Checking VF annotations
+```{r}
+target_vfs_data <- read_tsv("data/target_VFs_all_MAGs.tsv")
+```
+```{r}
+vf_0311 <- target_vfs_data %>% filter(VF_id =="VF0311")
+vf_0311
+```
+```{r}
+library(scales)
+
+ggplot(target_vfs_data, aes(x= VF_id, y = identity, col = species)) +
+  geom_point()
+```
+```{r plotting evalue and identity, fig.height= 5, fig.width = 9}
+
+plot_df <- target_vfs_data %>%
+  dplyr::mutate(neglog10_e = -log10(evalue),
+    gap_frac = gaps / length                    # length is alignment length in mmseqs output
+  )
+
+ggplot(plot_df, aes(x = identity_percent, y = neglog10_e, colour = species)) +
+  geom_point(alpha = 0.25, size = 1) +
+  facet_wrap(~ VF_id, scales = "free_y") +
+  scale_colour_viridis_d(option = "turbo") +
+  labs(x = "Identity (%)", y = expression(-log[10](evalue)), colour = "Species") +
+  theme_bw()
+
+
+ggplot(plot_df, aes(x = identity_percent, y = neglog10_e, colour = species)) +
+  geom_point(alpha = 0.25, size = 1) +
+  geom_vline(xintercept = 50, linetype = "dashed", colour = "black") +
+  facet_wrap(~ VF_id) +
+  scale_colour_viridis_d(option = "turbo") +
+  labs(x = "Identity (%)", y = expression(-log[10](evalue)), colour = "Species") +
+  theme_bw()
+```
+
+
+```{r}
+ggplot(plot_df, aes(x = VF_id, y = identity_percent, fill = VF_id)) +
+  geom_violin(trim = FALSE, alpha = 0.6) +
+  geom_boxplot(width = 0.12, outlier.alpha = 0.1) +
+  coord_flip() +
+  labs(x = NULL, y = "Identity (%)") +
+  theme_bw() +
+  theme(legend.position = "none")
+```
+```{r}
+
+# 1. Count number of hits per MAG and VF_id
+heat_df <- plot_df %>%
+  group_by(species, mag, VF_id) %>%
+  summarise(n_hits = n(), .groups = "drop")
+
+# 2. Order MAGs grouped by species
+heat_df <- heat_df %>%
+  arrange(species, mag)
+
+# 3. Convert to long format (already long, but ensure completeness)
+heat_df_complete <- heat_df %>%
+  complete(mag, VF_id, fill = list(n_hits = 0)) %>%
+  left_join(plot_df %>% dplyr::select(mag, species) %>% distinct(), by = "mag")
+
+# 4. Plot heatmap
+ggplot(heat_df_complete, aes(x = VF_id, y = mag, fill = n_hits)) +
+  geom_tile() +
+  facet_grid(species.y ~ ., scales = "free_y", space = "free_y") +
+  scale_fill_viridis_c(option = "turbo", name = "Number of hits") +
+  labs(x = "Virulence factor (VF_id)", y = "MAG") +
+  theme_bw() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+```
+```{r}
+host_info <- total_genome_metadata %>% dplyr::select(ID_clean, host_type_2)
+
+heat_df_complete_annot <- heat_df_complete %>% left_join(host_info, join_by(mag == ID_clean))
+```
+
+```{r}
+heat_df_complete_annot <- heat_df_complete_annot %>% filter(!is.na(host_type_2))
+
+
+ggplot(heat_df_complete_annot, aes(x = 1, y = mag, fill = n_hits)) +
+  geom_tile() +
+  facet_grid(host_type_2 ~ VF_id, scales = "free_y", space = "free_y") +
+  scale_fill_viridis_c(option = "turbo", name = "Number of hits") +
+  labs(x = NULL, y = "MAG") +
+  theme_bw() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.y = element_blank(),
+    strip.text.y = element_text(angle = 0),
+    strip.text.x = element_text(angle = 90, hjust = 0)
+  )
+
+```
+
+
+```{r}
+vf_order <- c("VF0940", "VF0057", "VF0249", "VF0311", "VF0369", "VF1233")
+
+
+species_order <- c(
+  "bacteroides_uniformis",
+  "bacteroides_fragilis",
+  "phocaeicola_vulgatus",
+  "parabacteroides_goldsteinii",
+  "akkermansia_muciniphila",
+  "hafnia_paralvei",
+  "citrobacter_braakii",
+  "enterococcus_faecalis",
+  "enterococcus_hirae",
+  "lactococcus_lactis"
+)
+
+
+
+
+heat_df_complete_annot_hw <- heat_df_complete_annot %>%
+  filter(!is.na(host_type_2),
+         host_type_2 != "domestic",
+         VF_id %in% vf_order) %>%
+  mutate(
+    VF_id = factor(VF_id, levels = vf_order),
+    species.y = factor(species.y, levels = species_order)
+  ) %>%
+  arrange(host_type_2, species.y, mag) %>%
+  mutate(mag = factor(mag, levels = unique(mag)))
+
+
+sep_df <- heat_df_complete_annot_hw %>%
+  distinct(host_type_2, mag, species.y) %>%
+  group_by(host_type_2, species.y) %>%
+  summarise(n = dplyr::n(), .groups = "drop") %>%
+  group_by(host_type_2) %>%
+  mutate(cum_n = cumsum(n),
+         is_last = row_number() == dplyr::n()) %>%
+  ungroup() %>%
+  filter(!is_last) %>%   # remove last species per host
+  mutate(yintercept = cum_n + 0.5)
+
+ggplot(heat_df_complete_annot_hw,
+       aes(x = 1, y = mag, fill = n_hits)) +
+  geom_tile() +
+  geom_hline(
+    data = sep_df,
+    aes(yintercept = yintercept),
+    colour = "white",
+    linewidth = 0.6
+  ) +
+  facet_grid(host_type_2 ~ VF_id, scales = "free_y", space = "free_y") +
+  scale_fill_viridis_c(option = "turbo", name = "Number of hits") +
+  labs(x = NULL, y = "MAG") +
+  theme_bw() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.y = element_blank(),
+    strip.text.y = element_text(angle = 0),
+    strip.text.x = element_text(angle = 90, hjust = 0)
+  )
+
+```
+
+
+```{r}
+vf_order <- c("VF0445", "VF1120", "VF0562")
+
+
+species_order <- c(
+  "bacteroides_uniformis",
+  "bacteroides_fragilis",
+  "phocaeicola_vulgatus",
+  "parabacteroides_goldsteinii",
+  "akkermansia_muciniphila",
+  "hafnia_paralvei",
+  "citrobacter_braakii",
+  "enterococcus_faecalis",
+  "enterococcus_hirae",
+  "lactococcus_lactis"
+)
+
+
+
+
+heat_df_complete_annot_wd <- heat_df_complete_annot %>%
+  filter(!is.na(host_type_2),
+         host_type_2 != "human",
+         VF_id %in% vf_order) %>%
+  mutate(
+    VF_id = factor(VF_id, levels = vf_order),
+    species.y = factor(species.y, levels = species_order)
+  ) %>%
+  arrange(host_type_2, species.y, mag) %>%
+  mutate(mag = factor(mag, levels = unique(mag)))
+
+
+ggplot(heat_df_complete_annot_wd,
+       aes(x = 1, y = mag, fill = n_hits)) +
+  geom_tile()  +
+  facet_grid(host_type_2 ~ VF_id, scales = "free_y", space = "free_y") +
+  scale_fill_viridis_c(option = "turbo", name = "Number of hits") +
+  labs(x = NULL, y = "MAG") +
+  theme_bw() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.y = element_blank(),
+    strip.text.y = element_text(angle = 0),
+    strip.text.x = element_text(angle = 90, hjust = 0)
+  )
+```
+
+```{r}
+vf_order <- c("VF0720", "VF0321", "VF0344")
+
+
+species_order <- c(
+  "bacteroides_uniformis",
+  "bacteroides_fragilis",
+  "phocaeicola_vulgatus",
+  "parabacteroides_goldsteinii",
+  "akkermansia_muciniphila",
+  "hafnia_paralvei",
+  "citrobacter_braakii",
+  "enterococcus_faecalis",
+  "enterococcus_hirae",
+  "lactococcus_lactis"
+)
+
+
+
+
+heat_df_complete_annot_hd <- heat_df_complete_annot %>%
+  filter(!is.na(host_type_2),
+         host_type_2 != "wild",
+         VF_id %in% vf_order) %>%
+  mutate(
+    VF_id = factor(VF_id, levels = vf_order),
+    species.y = factor(species.y, levels = species_order)
+  ) %>%
+  arrange(host_type_2, species.y, mag) %>%
+  mutate(mag = factor(mag, levels = unique(mag)))
+
+
+ggplot(heat_df_complete_annot_hd,
+       aes(x = 1, y = mag, fill = n_hits)) +
+  geom_tile()  +
+  facet_grid(host_type_2 ~ VF_id, scales = "free_y", space = "free_y") +
+  scale_fill_viridis_c(option = "turbo", name = "Number of hits") +
+  labs(x = NULL, y = "MAG") +
+  theme_bw() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.y = element_blank(),
+    strip.text.y = element_text(angle = 0),
+    strip.text.x = element_text(angle = 90, hjust = 0)
+  )
+```
+
+
+
+
+
+## Heatmaps presence/absence
+```{r wild human heatmap, fig.height = 3, fig.width = 8}
+vf_order <- rev(c("VF0940", "VF0057", "VF0249", "VF0311", "VF0369", "VF1233"))
+
+keggs <- rev(c("K03205","K07317","K07451","K07497","K07486","K00986","K07452"))
+
+
+
+species_order <- c(
+  "bacteroides_uniformis",
+  "bacteroides_fragilis",
+  "phocaeicola_vulgatus",
+  "parabacteroides_goldsteinii",
+  "akkermansia_muciniphila",
+  "hafnia_paralvei",
+  "citrobacter_braakii",
+  "enterococcus_faecalis",
+  "enterococcus_hirae",
+  "lactococcus_lactis"
+)
+
+#convert to long
+long_df <- total_genome_annotations %>%
+  dplyr::select(genome, vf, kegg) %>%
+  tidyr::pivot_longer(
+    cols = c(vf, kegg),
+    names_to = "type",
+    values_to = "feature"
+  ) %>%
+  dplyr::filter(!is.na(feature)) %>%
+  dplyr::filter(feature %in% c(vf_order, keggs))
+
+
+
+#presence absence
+pa_df <- long_df %>%
+  dplyr::mutate(presence = 1) %>%
+  dplyr::distinct(genome, feature, .keep_all = TRUE) %>%
+  tidyr::pivot_wider(
+    names_from = genome,
+    values_from = presence,
+    values_fill = 0
+  )
+
+#order
+feature_order <- c(vf_order, keggs)
+
+pa_df <- pa_df %>%
+  dplyr::mutate(feature = factor(feature, levels = feature_order)) %>%
+  dplyr::arrange(feature)
+
+
+# genome_order <- total_genome_annotations %>%
+#   dplyr::select(genome, bacterial_species) %>%
+#   dplyr::distinct() %>%
+#   dplyr::mutate(
+#     bacterial_species = factor(bacterial_species, levels = species_order)
+#   ) %>%
+#   dplyr::arrange(bacterial_species) %>%
+#   dplyr::pull(genome)
+
+
+genome_order_hw <- total_genome_annotations %>%
+  dplyr::select(genome, bacterial_species) %>%
+  dplyr::distinct() %>%
+  left_join(host_info, join_by(genome == ID_clean)) %>%
+  dplyr::mutate(
+    host_type_2 = factor(host_type_2, levels = c("human", "wild")),
+    bacterial_species = factor(bacterial_species, levels = species_order)
+  ) %>%
+  dplyr::arrange(host_type_2, bacterial_species) %>%
+  dplyr::pull(genome)
+
+
+pa_df <- pa_df %>%
+  dplyr::select(feature, dplyr::all_of(genome_order_hw))
+
+
+
+
+plot_df <- pa_df %>%
+  tidyr::pivot_longer(-feature, names_to = "genome", values_to = "presence")
+
+
+host_info <- total_genome_metadata %>% dplyr::select(ID_clean, host_type_2)
+
+plot_df_annot <- plot_df %>% left_join(host_info, join_by(genome == ID_clean))
+
+
+plot_df_annot_hw <- plot_df_annot %>% filter(host_type_2 != "domestic")
+
+
+
+n_vf <- length(vf_order)
+
+ggplot(plot_df_annot_hw, aes(x = genome, y = feature, fill = factor(presence))) +
+  geom_tile(color = NA) +
+  geom_hline(yintercept = n_vf + 0.5, color = "black", size = 1) +
+  facet_grid(. ~ host_type_2, scales = "free_x", space = "free_x") +
+  scale_fill_manual(values = c("0" = "white", "1" = "#0049B4"), 
+labels = c("0" = "Absence", "1" = "Presence"),
+  name = NULL
+) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.title = element_blank(),
+    panel.spacing = unit(0.5, "lines"),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1)
+  )
+
+
+```
+
+
+```{r wild domestic heatmap, fig.height = 3, fig.width = 8}
+vf_order <- rev(c("VF0445", "VF1120", "VF0562"))
+
+keggs <- rev(c("K03205","K03783","K04095","K07486","K15342","K03086","K19068"))
+
+
+#convert to long
+long_df <- total_genome_annotations %>%
+  dplyr::select(genome, vf, kegg) %>%
+  tidyr::pivot_longer(
+    cols = c(vf, kegg),
+    names_to = "type",
+    values_to = "feature"
+  ) %>%
+  dplyr::filter(!is.na(feature)) %>%
+  dplyr::filter(feature %in% c(vf_order, keggs))
+
+
+
+#presence absence
+pa_df <- long_df %>%
+  dplyr::mutate(presence = 1) %>%
+  dplyr::distinct(genome, feature, .keep_all = TRUE) %>%
+  tidyr::pivot_wider(
+    names_from = genome,
+    values_from = presence,
+    values_fill = 0
+  )
+
+#order
+feature_order <- c(vf_order, keggs)
+
+pa_df <- pa_df %>%
+  dplyr::mutate(feature = factor(feature, levels = feature_order)) %>%
+  dplyr::arrange(feature)
+
+
+genome_order_wd <- total_genome_annotations %>%
+  dplyr::select(genome, bacterial_species) %>%
+  dplyr::distinct() %>%
+  left_join(host_info, join_by(genome == ID_clean)) %>%
+  dplyr::mutate(
+    host_type_2 = factor(host_type_2, levels = c("domestic", "wild")),
+    bacterial_species = factor(bacterial_species, levels = species_order)
+  ) %>%
+  dplyr::arrange(host_type_2, bacterial_species) %>%
+  dplyr::pull(genome)
+
+
+pa_df <- pa_df %>%
+  dplyr::select(feature, dplyr::all_of(genome_order_wd))
+
+
+
+plot_df <- pa_df %>%
+  tidyr::pivot_longer(-feature, names_to = "genome", values_to = "presence")
+
+
+plot_df_annot <- plot_df %>% left_join(host_info, join_by(genome == ID_clean))
+
+
+plot_df_annot_wd <- plot_df_annot %>% filter(host_type_2 != "human")
+
+
+
+n_vf <- length(vf_order)
+
+ggplot(plot_df_annot_wd, aes(x = genome, y = feature, fill = factor(presence))) +
+  geom_tile(color = NA) +
+  geom_hline(yintercept = n_vf + 0.5, color = "black", size = 1) +
+  facet_grid(. ~ host_type_2, scales = "free_x", space = "free_x") +
+  scale_fill_manual(values = c("0" = "white", "1" = "#0049B4"), 
+labels = c("0" = "Absence", "1" = "Presence"),
+  name = NULL
+) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.title = element_blank(),
+    panel.spacing = unit(0.5, "lines"),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1)
+  )
+
+
+```
+
+
+
+```{r wild domestic heatmap, fig.height = 3, fig.width = 8}
+vf_order <- rev(c("VF0720", "VF0321", "VF0344"))
+
+keggs <- rev(c("K06871","K15342","K07486","K08217"))
+
+
+#convert to long
+long_df <- total_genome_annotations %>%
+  dplyr::select(genome, vf, kegg) %>%
+  tidyr::pivot_longer(
+    cols = c(vf, kegg),
+    names_to = "type",
+    values_to = "feature"
+  ) %>%
+  dplyr::filter(!is.na(feature)) %>%
+  dplyr::filter(feature %in% c(vf_order, keggs))
+
+
+
+#presence absence
+pa_df <- long_df %>%
+  dplyr::mutate(presence = 1) %>%
+  dplyr::distinct(genome, feature, .keep_all = TRUE) %>%
+  tidyr::pivot_wider(
+    names_from = genome,
+    values_from = presence,
+    values_fill = 0
+  )
+
+#order
+feature_order <- c(vf_order, keggs)
+
+pa_df <- pa_df %>%
+  dplyr::mutate(feature = factor(feature, levels = feature_order)) %>%
+  dplyr::arrange(feature)
+
+
+genome_order_hd <- total_genome_annotations %>%
+  dplyr::select(genome, bacterial_species) %>%
+  dplyr::distinct() %>%
+  left_join(host_info, join_by(genome == ID_clean)) %>%
+  dplyr::mutate(
+    host_type_2 = factor(host_type_2, levels = c("domestic", "human")),
+    bacterial_species = factor(bacterial_species, levels = species_order)
+  ) %>%
+  dplyr::arrange(host_type_2, bacterial_species) %>%
+  dplyr::pull(genome)
+
+
+
+genome_order_hd <- genome_order_hd[
+  genome_order_hd %in% colnames(pa_df)
+]
+
+
+pa_df <- pa_df %>%
+  dplyr::select(feature, dplyr::all_of(genome_order_hd))
+
+
+
+plot_df <- pa_df %>%
+  tidyr::pivot_longer(-feature, names_to = "genome", values_to = "presence")
+
+
+plot_df_annot <- plot_df %>% left_join(host_info, join_by(genome == ID_clean))
+
+
+plot_df_annot_hd <- plot_df_annot %>% filter(host_type_2 != "wild")
+
+
+
+n_vf <- length(vf_order)
+
+ggplot(plot_df_annot_hd, aes(x = genome, y = feature, fill = factor(presence))) +
+  geom_tile(color = NA) +
+  geom_hline(yintercept = n_vf + 0.5, color = "black", size = 1) +
+  facet_grid(. ~ host_type_2, scales = "free_x", space = "free_x") +
+  scale_fill_manual(values = c("0" = "white", "1" = "#0049B4"), 
+labels = c("0" = "Absence", "1" = "Presence"),
+  name = NULL
+) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.title = element_blank(),
+    panel.spacing = unit(0.5, "lines"),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1)
+  )
+
+
+```
+
+
+
+

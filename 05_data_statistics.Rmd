@@ -461,97 +461,47 @@ total_genome_metadata %>%
   tt()
 ```
 
+### Additional quality measurements with QUAST
+```{r load quast files}
+
+# list all files
+files <- list.files("data/quast", pattern = "_transposed_report\\.tsv$", full.names = TRUE)
+
+quast_all <- files %>%
+  map_dfr(function(f) {
+    species <- basename(f) %>%
+      sub("_transposed_report\\.tsv$", "", .)
+    
+    read_tsv(f, show_col_types = FALSE) %>%
+      mutate(species = species)
+  })
+
+```
 
 
-```{r plot completeness}
-ggplot(total_genome_metadata, aes(x= bacterial_species, y = completeness))+
-  geom_violin()
-  #facet_grid(~bacterial_species)
-
-ggplot(total_genome_metadata,
-       aes(x = host_type_2, y = completeness, color = host_type_2)) +
-
-  geom_boxplot(
-    outlier.shape = NA,
-    alpha = 0.3,
-    width = 0.55
-  ) +
-
-  geom_jitter(
-    width = 0.18,
-    alpha = 0.35,
-    size = 1
-  ) +
-
-  scale_color_manual(values = host_type_2_colors) +
-
-  labs(
-    title = "MAG Completeness by Host Type",
-    x = "Host Type",
-    y = "Completeness (%)"
-  ) +
-
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "none")
+```{r join the quast resutls}
+quast_all <- quast_all %>% dplyr::rename(N50_quast = N50, species_quast = species)
 
 
-ggplot(total_genome_metadata,
-       aes(x = host_type_2, y = contamination, color = host_type_2)) +
+quast_all <- quast_all %>%
+  separate(`# predicted rRNA genes`,
+           into = c("rrna_complete", "rrna_partial"),
+           sep = " \\+ ") %>%
+  mutate(
+    rrna_partial = gsub(" part", "", rrna_partial),
+    rrna_complete = as.integer(rrna_complete),
+    rrna_partial = as.integer(rrna_partial)
+  )
 
-  geom_boxplot(
-    outlier.shape = NA,
-    alpha = 0.3,
-    width = 0.55
-  ) +
 
-  geom_jitter(
-    width = 0.18,
-    alpha = 0.35,
-    size = 1
-  ) +
-
-  scale_color_manual(values = host_type_2_colors) +
-
-  labs(
-    title = "MAG Contamination by Host Type",
-    x = "Host Type",
-    y = "Contamination (%)"
-  ) +
-
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "none")
+total_genome_metadata_annot <- total_genome_metadata %>% left_join(quast_all, join_by(ID_clean == Assembly))
+```
 
 
 
-ggplot(total_genome_metadata,
-       aes(x = host_type_2, y = contigs, color = host_type_2)) +
-
-  geom_boxplot(
-    outlier.shape = NA,
-    alpha = 0.3,
-    width = 0.55
-  ) +
-
-  geom_jitter(
-    width = 0.18,
-    alpha = 0.35,
-    size = 1
-  ) +
-
-  scale_color_manual(values = host_type_2_colors) +
-
-  labs(
-    title = "Contig Number by Host Type",
-    x = "Host Type",
-    y = "Contig Number"
-  ) +
-
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "none")
-
-
-ggplot(total_genome_metadata,
-       aes(x = host_type_2, y = N50, color = host_type_2)) +
+```{r plot contig size n50 and so on}
+ggplot(total_genome_metadata_annot,
+       aes(x = host_type_2, y = N50_quast, color = host_type_2)) +
 
   geom_boxplot(
     outlier.shape = NA,
@@ -571,6 +521,110 @@ ggplot(total_genome_metadata,
     title = "N50 by Host Type",
     x = "Host Type",
     y = "N50"
+  ) +
+
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+
+ggplot(total_genome_metadata_annot,
+       aes(x = host_type_2, y = N90, color = host_type_2)) +
+
+  geom_boxplot(
+    outlier.shape = NA,
+    alpha = 0.3,
+    width = 0.55
+  ) +
+
+  geom_jitter(
+    width = 0.18,
+    alpha = 0.35,
+    size = 1
+  ) +
+
+  scale_color_manual(values = host_type_2_colors) +
+
+  labs(
+    title = "N90 by Host Type",
+    x = "Host Type",
+    y = "N90"
+  ) +
+
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+
+ggplot(total_genome_metadata_annot,
+       aes(x = host_type_2, y = rrna_complete, color = host_type_2)) +
+
+  geom_boxplot(
+    outlier.shape = NA,
+    alpha = 0.3,
+    width = 0.55
+  ) +
+
+  geom_jitter(
+    width = 0.18,
+    alpha = 0.35,
+    size = 1
+  ) +
+
+  scale_color_manual(values = host_type_2_colors) +
+
+  labs(
+    title = "Number of RNAs by Host Type",
+    x = "Host Type",
+    y = "Number of complete RNAs present"
+  ) +
+
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+
+ggplot(total_genome_metadata_annot,
+       aes(x = host_type_2, y = `Largest contig`, color = host_type_2)) +
+
+  geom_boxplot(
+    outlier.shape = NA,
+    alpha = 0.3,
+    width = 0.55
+  ) +
+
+  geom_jitter(
+    width = 0.18,
+    alpha = 0.35,
+    size = 1
+  ) +
+
+  scale_color_manual(values = host_type_2_colors) +
+
+  labs(
+    title = "Largest contig size by MAG",
+    x = "Host Type",
+    y = "Largest contig size"
+  ) +
+
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+
+ggplot(total_genome_metadata_annot,
+       aes(x = host_type_2, y = `# contigs`, color = host_type_2)) +
+
+  geom_boxplot(
+    outlier.shape = NA,
+    alpha = 0.3,
+    width = 0.55
+  ) +
+
+  geom_jitter(
+    width = 0.18,
+    alpha = 0.35,
+    size = 1
+  ) +
+
+  scale_color_manual(values = host_type_2_colors) +
+
+  labs(
+    title = "Number of contigs by Host Type",
+    x = "Host Type",
+    y = "Number of contigs"
   ) +
 
   theme_minimal(base_size = 14) +
@@ -686,33 +740,55 @@ Testing the differences in completeness and contamination between host types tak
 
 Does host type explain genome quality differences after accounting for species-level differences?
 
-```{r statistics testing host type compelteness}
+```{r statistics testing host type quality measures}
+library(lmerTest)
 # Completeness model
 m_comp <- lmer(completeness ~ host_type_2 + (1 | bacterial_species),
                data = total_genome_metadata)
 
 summary(m_comp)
-anova(m_comp)
+
 
 # Contamination model
 m_cont <- lmer(contamination ~ host_type_2 + (1 | bacterial_species),
                data = total_genome_metadata)
 
 summary(m_cont)
-anova(m_cont)
 
 
-# Contamination model
-m_contig <- lmer(contigs ~ host_type_2 + (1 | bacterial_species),
-               data = total_genome_metadata)
+
+# Contig model - log because range is 0 to millions
+m_contig <- lmer(log(`# contigs`) ~ host_type_2 + (1 | bacterial_species),
+               data = total_genome_metadata_annot)
 
 summary(m_contig)
-anova(m_contig)
+
+
+# n50 - log because range is 0 to millions
+m_n50 <- lmer(log(N50_quast) ~ host_type_2 + (1 | bacterial_species),
+               data = total_genome_metadata_annot)
+
+summary(m_n50)
+
+
+
+# Number of rRNAs model
+m_rrna <- lmer(rrna_complete ~ host_type_2 + (1 | bacterial_species),
+               data = total_genome_metadata_annot)
+
+summary(m_rrna)
+
 
 ```
 ```{r means completeness and contamination}
 emmeans(m_comp, pairwise ~ host_type_2)
 emmeans(m_cont, pairwise ~ host_type_2)
+
+emmeans(m_contig, pairwise ~ host_type_2)
+
+
+emmeans(m_n50, pairwise ~ host_type_2)
+
 ```
 
 
@@ -1541,7 +1617,6 @@ save(total_genome_metadata,
 save(pruned, file = "data/pruned_tree.RData")
 save(host_tree, file = "data/host_tree.RData")
 ```
-
 
 
 
