@@ -1,0 +1,444 @@
+
+# Lactococcus lactis zoom-in
+
+```{r load gene family presence absence matrix}
+gene_matrix <- read.table(
+  "data/lactococcus_lactis_gene_presence_absence.Rtab",
+  header = TRUE,
+  row.names = 1
+)
+```
+
+
+```{r pca with pa matrix}
+# Transpose so genomes = rows
+gene_matrix_transposed <- t(gene_matrix)
+
+# Subset metadata
+lactococcus_metadata <- total_genome_metadata %>%
+  dplyr::filter(bacterial_species == "lactococcus_lactis")
+
+# Keep only genomes present in metadata
+keep_ids <- lactococcus_metadata$ID_clean
+
+gene_matrix_subset <- gene_matrix_transposed[
+  rownames(gene_matrix_transposed) %in% keep_ids, 
+]
+
+# Reorder metadata to match matrix rows
+lactococcus_metadata <- lactococcus_metadata %>%
+  dplyr::filter(ID_clean %in% rownames(gene_matrix_subset)) %>%
+  dplyr::slice(match(rownames(gene_matrix_subset), ID_clean))
+
+# PCA
+pca_gene_matrix <- prcomp(gene_matrix_subset)
+
+# Variance explained
+percent_variance <- summary(pca_gene_matrix)$importance["Proportion of Variance", ] * 100
+
+# Combine PCA scores + metadata
+plot_pca_gene_matrix <- as_tibble(pca_gene_matrix$x) %>%
+  bind_cols(lactococcus_metadata)
+
+# Plot
+ggplot(plot_pca_gene_matrix, 
+       aes(x = PC1, y = PC2, col = host_order)) + 
+  scale_color_manual(values = host_order_colors)+
+  geom_point() + 
+  xlab(paste0("PC1 (", round(percent_variance[1], 1), "%)")) + 
+  ylab(paste0("PC2 (", round(percent_variance[2], 1), "%)")) +
+  theme_bw()
+
+ggplot(plot_pca_gene_matrix, 
+       aes(x = PC1, y = PC2, col = host_type_2)) + 
+  scale_color_manual(values = host_type_2_colors)+
+  geom_point() + 
+  xlab(paste0("PC1 (", round(percent_variance[1], 1), "%)")) + 
+  ylab(paste0("PC2 (", round(percent_variance[2], 1), "%)")) +
+  theme_bw()
+```
+
+## Lactococcus dRep tree
+```{r}
+# Run drep tree construction for THIS species
+  drep_results <- drep_tree_metadata(
+    genome_metadata = species_data$lactococcus_lactis$metadata,
+    ndb = species_data$lactococcus_lactis$ndb
+  )
+
+  p_host_order <- plot_tree_basic(
+    tree       = drep_results$tree,
+    tip_df     = drep_results$tip_df,
+    color_by   = "host_order",
+    palette = host_order_colors,
+    label_tips = TRUE,
+    show_threshold = 99.5
+  )
+  
+  p_host_type_2 <- plot_tree_basic(
+    tree       = drep_results$tree,
+    tip_df     = drep_results$tip_df,
+    color_by   = "host_type_2",
+    palette = host_type_2_colors,
+    label_tips = FALSE,
+    show_threshold = 99.5
+  )
+  
+  #print(p_host_order)  
+  print(p_host_type_2) 
+
+
+
+```
+```{r}
+# keep only tips with host_type_2 (or host_order)
+tip_df_filtered <- drep_results$tip_df %>%
+  dplyr::filter(!is.na(host_type_2))
+
+tree_pruned <- ape::drop.tip(
+  drep_results$tree,
+  setdiff(drep_results$tree$tip.label, tip_df_filtered$label)
+)
+
+p_host_type_2 <- plot_tree_basic(
+  tree       = tree_pruned,
+  tip_df     = tip_df_filtered,
+  color_by   = "host_type_2",
+  palette    = host_type_2_colors,
+  label_tips = FALSE,
+  show_threshold = 99.5
+)
+
+print(p_host_type_2)
+
+```
+
+```{r}
+p0 <- plot_tree_basic(
+  tree       = tree_pruned,
+  tip_df     = tip_df_filtered,
+  color_by   = "host_type_2",
+  palette    = host_type_2_colors,
+  label_tips = FALSE
+)
+
+p_circ <- p0 + ggtree::layout_circular()
+p_circ
+```
+```{r fig.height = 20, fig.width = 20}
+gene_pa <- t(gene_matrix) |> as.matrix()  # genomes x genes
+
+rownames(gene_pa) <- clean_label(rownames(gene_pa))
+
+# keep only genomes in the pruned tree and in the same order as the tips
+gene_pa <- gene_pa[tree_pruned$tip.label, , drop = FALSE]
+
+prev <- colMeans(gene_pa, na.rm = TRUE)
+
+# avoid genes present in almost all or almost none (adjust thresholds if you want)
+keep_genes <- names(prev)[prev >= 0.05 & prev <= 0.95]
+
+# rank by binary variance p(1-p) and take top N
+var_rank <- prev[keep_genes] * (1 - prev[keep_genes])
+topN <- 50
+sel_genes <- names(sort(var_rank, decreasing = TRUE))[seq_len(min(topN, length(var_rank)))]
+
+gene_pa_sel <- gene_pa[, sel_genes, drop = FALSE]
+
+gene_long <- as.data.frame(gene_pa_sel) %>%
+  tibble::rownames_to_column("label") %>%
+  tidyr::pivot_longer(
+    cols = -label,
+    names_to = "gene_family",
+    values_to = "presence"
+  ) %>%
+  dplyr::mutate(
+    presence = as.integer(presence)  # ensure 0/1
+  )
+
+
+p_final <- p_circ +
+  ggnewscale::new_scale_fill() +
+  ggtreeExtra::geom_fruit(
+    data    = gene_long,
+    geom    = geom_tile,
+    mapping = aes(y = label, x = gene_family, fill = factor(presence)),
+    offset  = 0.05,
+    width   = 0.001
+  ) +
+  scale_fill_manual(
+    values = c("0"= "#ECE2F6", "1" = "#6C53A6"),
+    name   = "Gene P/A"
+  ) +
+  theme(legend.position = "right")
+
+print(p_final)
+```
+
+
+
+```{r}
+# gene_matrix: genes x genomes (PPanGGOLiN Rtab)
+dim(gene_matrix)
+
+gene_pa <- t(gene_matrix) |> as.matrix()  # genomes x genes
+rownames(gene_pa) <- clean_label(rownames(gene_pa))
+
+# ¿valores binarios reales?
+vals <- unique(as.vector(gene_pa))
+length(vals)
+sort(vals)[1:10]
+
+# fuerza binario por si hay counts >1 (a veces pasa)
+gene_pa <- (gene_pa > 0) * 1
+
+# matching con tips del árbol
+sum(tree_pruned$tip.label %in% rownames(gene_pa))
+missing <- setdiff(tree_pruned$tip.label, rownames(gene_pa))
+head(missing)
+
+# OJO: si hay missing, este subset mete filas NA sin que te enteres
+anyNA(gene_pa[tree_pruned$tip.label, 1])
+```
+
+```{r}
+prev <- colMeans(gene_pa, na.rm = TRUE)
+
+ggplot(tibble(prev = prev), aes(prev)) +
+  geom_histogram(binwidth = 0.02) +
+  theme_bw() +
+  labs(x = "Prevalence (proportion of MAGs with gene)", y = "Nº de gene families")
+```
+
+```{r}
+var_rank <- prev * (1 - prev)
+topN <- 50
+sel_genes <- names(sort(var_rank, decreasing = TRUE))[seq_len(min(topN, length(var_rank)))]
+
+gene_long <- as.data.frame(gene_pa[, sel_genes, drop = FALSE]) %>%
+  tibble::rownames_to_column("genome") %>%
+  tidyr::pivot_longer(-genome, names_to = "gene_family", values_to = "presence") %>%
+  dplyr::mutate(presence = factor(presence, levels = c(0, 1)))
+
+ggplot(gene_long, aes(x = gene_family, y = genome, fill = presence)) +
+  geom_tile() +
+  scale_fill_manual(values = c("0" = "#ECE2F6", "1" = "#6C53A6"), drop = FALSE) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  labs(x = NULL, y = NULL, fill = "Gene P/A", title = "Top variable genes (preview)")
+```
+
+```{r select_top50_variable genes, fig.height= 7, fig.width = 7}
+sel_genes <- sel_genes  # or sel_genes_host
+
+gene_long_ring <- as.data.frame(gene_pa[, sel_genes, drop = FALSE]) %>%
+  tibble::rownames_to_column("label") %>%
+  tidyr::pivot_longer(-label, names_to = "gene_family", values_to = "presence") %>%
+  dplyr::mutate(
+    presence = factor(presence, levels = c(0,1)),
+    gene_family = factor(gene_family, levels = sel_genes)
+  )
+
+p_final <- p_circ +
+  ggnewscale::new_scale_fill() +
+  ggtreeExtra::geom_fruit(
+    data    = gene_long_ring,
+    geom    = geom_tile,
+    mapping = aes(y = label, x = gene_family, fill = presence),
+    offset  = 0.03,   
+    width   = 0.001    
+  ) +
+  scale_fill_manual(
+    values = c("0" = "#ECE2F6", "1" = "#6C53A6"),
+    name   = "Gene P/A",
+    drop   = FALSE
+  ) +
+  theme(legend.position = "right")
+
+print(p_final)
+```
+
+
+```{r}
+host_vec <- tip_df_filtered %>%
+  dplyr::slice(match(tree_pruned$tip.label, label)) %>%
+  dplyr::pull(host_type_2)
+
+score_gene_chisq <- function(v, g) {
+  tbl <- table(g, v)
+  if (ncol(tbl) < 2) return(1)  # if gene is constant, p=1
+  suppressWarnings(chisq.test(tbl)$p.value)  ## test whether host type and gene presence are independent
+}
+
+pvals <- apply(gene_pa, 2, score_gene_chisq, g = host_vec)
+p_adj <- p.adjust(pvals, method = "BH")
+
+sel_genes_host <- names(sort(p_adj))[1:50]
+```
+
+
+
+
+```{r plot, fig.height= 7, fig.width = 7}
+sel_genes <- sel_genes_host  
+
+gene_long_ring <- as.data.frame(gene_pa[, sel_genes, drop = FALSE]) %>%
+  tibble::rownames_to_column("label") %>%
+  tidyr::pivot_longer(-label, names_to = "gene_family", values_to = "presence") %>%
+  dplyr::mutate(
+    presence = factor(presence, levels = c(0,1)),
+    gene_family = factor(gene_family, levels = sel_genes)
+  )
+
+p_final <- p_circ +
+  ggnewscale::new_scale_fill() +
+  ggtreeExtra::geom_fruit(
+    data    = gene_long_ring,
+    geom    = geom_tile,
+    mapping = aes(y = label, x = gene_family, fill = presence),
+    offset  = 0.03,   
+    width   = 0.001    
+  ) +
+  scale_fill_manual(
+    values = c("0" = "#ECE2F6", "1" = "#6C53A6"),
+    name   = "Gene P/A",
+    drop   = FALSE
+  ) +
+  theme(legend.position = "right")
+
+print(p_final)
+```
+
+```{r}
+
+# 1) Order of mags = order in tree
+genome_order <- tree_pruned$tip.label
+
+# 2)Host metadata in same order as tree
+host_df <- tip_df_filtered %>%
+  dplyr::filter(label %in% genome_order) %>%
+  dplyr::slice(match(genome_order, label)) %>%
+  dplyr::transmute(
+    genome = factor(label, levels = genome_order),
+    host_type_2
+  )
+
+# 3) Subset de P/A  (host_genes_select)
+mat_sel <- gene_pa[genome_order, sel_genes_host, drop = FALSE]
+
+
+mat_sel[is.na(mat_sel)] <- 0
+mat_sel <- (mat_sel > 0) * 1  
+
+# 4) Long format for ggplot
+gene_long <- as.data.frame(mat_sel) %>%
+  tibble::rownames_to_column("label") %>%
+  tidyr::pivot_longer(-label, names_to = "gene_family", values_to = "presence") %>%
+  dplyr::mutate(
+    genome     = factor(label, levels = genome_order),
+    gene_family = factor(gene_family, levels = sel_genes_host),
+    presence   = factor(presence, levels = c(0, 1))
+  )
+
+
+
+p_heat_host <- ggplot() +
+  geom_tile(
+    data = host_df,
+    aes(x = "host_type_2", y = genome, fill = host_type_2),
+    width = 0.9
+  ) +
+  scale_fill_manual(values = host_type_2_colors, name = "host_type_2", drop = FALSE) +
+  ggnewscale::new_scale_fill() +
+  # heatmap genes
+  geom_tile(
+    data = gene_long,
+    aes(x = gene_family, y = genome, fill = presence)
+  ) +
+  scale_fill_manual(values = c("0" = "#ECE2F6", "1" = "#6C53A6"), name = "Gene P/A", drop = FALSE) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+    axis.text.y = element_text(size = 6)
+  ) +
+  labs(x = NULL, y = NULL)
+
+print(p_heat_host)
+
+```
+
+```{r plotting, fig.width = 8, fig.height = 6}
+host_vec <- tip_df_filtered %>%
+  dplyr::slice(match(tree_pruned$tip.label, label)) %>%
+  dplyr::pull(host_type_2)
+
+score_gene_chisq <- function(v, g) {
+  tbl <- table(g, v)
+  if (ncol(tbl) < 2) return(1)  # if gene is constant, p=1
+  suppressWarnings(chisq.test(tbl)$p.value)  ## test whether host type and gene presence are independent
+}
+
+pvals <- apply(gene_pa, 2, score_gene_chisq, g = host_vec)
+p_adj <- p.adjust(pvals, method = "BH")
+
+sel_genes_host <- names(sort(p_adj))[1:200]
+
+
+# 1) Order of mags = tree tip order
+genome_order <- tree_pruned$tip.label
+
+# 2) Host strip data (RENAME columns to avoid collisions)
+host_df2 <- tip_df_filtered %>%
+  dplyr::filter(label %in% genome_order) %>%
+  dplyr::slice(match(genome_order, label)) %>%
+  dplyr::transmute(
+    tip_label  = factor(label, levels = genome_order),
+    host_strip = host_type_2
+  )
+
+# 3) Subset gene P/A matrix to selected genes and ordered genomes
+mat_sel <- gene_pa[genome_order, sel_genes_host, drop = FALSE]
+mat_sel[is.na(mat_sel)] <- 0
+mat_sel <- (mat_sel > 0) * 1
+
+# 4) Long format for gene heatmap ring (RENAME label column)
+gene_long2 <- as.data.frame(mat_sel) %>%
+  tibble::rownames_to_column("tip_label") %>%
+  tidyr::pivot_longer(-tip_label, names_to = "gene_family", values_to = "presence") %>%
+  dplyr::mutate(
+    tip_label   = factor(tip_label, levels = genome_order),
+    gene_family = factor(gene_family, levels = sel_genes_host),
+    presence    = factor(presence, levels = c(0, 1))
+  )
+
+# 5) Your tree plot (tips already colored by host_type_2)
+p0 <- plot_tree_basic(
+  tree       = tree_pruned,
+  tip_df     = tip_df_filtered,
+  color_by   = "host_type_2",
+  palette    = host_type_2_colors,
+  label_tips = FALSE
+)
+
+
+# 7) Add gene P/A heatmap using FILL (only one fill scale -> no ggnewscale)
+p_final <- p0 +
+  ggtreeExtra::geom_fruit(
+    data    = gene_long2,
+    geom    = geom_tile,
+    mapping = aes(y = tip_label, x = gene_family, fill = presence),
+    offset  = 0.02,
+    pwidth  = 0.9
+  ) +
+  scale_fill_manual(
+    values = c("0" = "#ECE2F6", "1" = "#6C53A6"),
+    name   = "Gene P/A",
+    drop   = FALSE
+  ) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+print(p_final)
+```
+
+
+

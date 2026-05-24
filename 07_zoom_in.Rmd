@@ -3,10 +3,39 @@
 ```{r}
 target_vfs_data <- read_tsv("data/target_VFs_all_MAGs.tsv")
 ```
+
+```{r}
+
+target_vfs_data %>%
+  dplyr::summarise(
+    mean_identity = mean(identity, na.rm = TRUE),
+    mean_evalue   = mean(evalue, na.rm = TRUE)
+  )
+
+```
+
+
 ```{r}
 vf_0311 <- target_vfs_data %>% filter(VF_id =="VF0311")
 vf_0311
+
+vf_0562 <- target_vfs_data %>% filter(VF_id =="VF0562")
+vf_0562
 ```
+```{r}
+top10_per_species_vf_0562 <- vf_0562 %>%
+  group_by(species) %>%
+  arrange(evalue, desc(identity), .by_group = TRUE) %>%
+  slice_head(n = 10) %>%
+  ungroup()
+
+write.table(top10_per_species_vf_0562, "data/top10_vf0562.tsv",
+            sep = "\t", row.names = FALSE, quote = FALSE)
+```
+
+
+
+
 ```{r}
 library(scales)
 
